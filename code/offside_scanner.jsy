@@ -1,0 +1,64 @@
+export default offside_scanner
+
+const rx_empty_line = /^\s*$/
+const rx_indent = /^([ \t]*)/
+
+function offside_scanner(raw_lines) ::
+  if 'string' === typeof raw_lines ::
+    raw_lines = raw_lines.split(/\r\n|\r|\n/)
+
+  const base = Object.create(line_base)
+
+  const all_lines = raw_lines
+    .map @ (raw_line, idx) => ::
+      const content = raw_line
+        .replace(/\s+$/, '') // normalize blank lines
+
+      if content ::
+        const [indent] = content.match(rx_indent)
+        return @{} __proto__: base
+          idx, content, indent: indent || '',
+      else ::
+        return @{} __proto__: base
+          idx, content:'', blank:true
+
+  base.all_lines = all_lines
+  return all_lines
+
+
+const line_base = @{}
+  next_line() :: return this.all_lines[1 + this.idx]
+
+  isIndentStart() ::
+    const next = this.next_line()
+    return undefined === next ? false 
+      : this.indent < next.indent
+
+  blockSlice(blockEnd, offset=0) ::
+    const {idx: idx_end} = blockEnd || this.findBlockEnd()
+    return this.all_lines.slice(this.idx+offset, idx_end+1)
+
+  findBlockEnd(indent) ::
+    let {blockEnd} = this
+    if undefined !== blockEnd ::
+      return blockEnd
+
+    if null == indent ::
+      indent = this.indent
+    const {idx, all_lines, tail} = this
+
+    let next, k=idx, i=k+1
+    while next = all_lines[i] ::
+      if next.blank ::
+        i++; continue
+
+      if next.indent > indent ::
+        k=i; i++; continue
+        
+      break
+
+    blockEnd = all_lines[k]
+    Object.defineProperties @ this, @{}
+      blockEnd: @{} value: blockEnd
+    return blockEnd
+

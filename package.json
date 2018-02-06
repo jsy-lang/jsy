@@ -1,0 +1,44 @@
+{
+  "name": "jsy-transpile",
+  "version": "0.0.1",
+  "description": "Offside (indention) JSY syntax transpiler to standard JavaScript — without Babel",
+  "author": "Shane Holloway <shane.holloway@ieee.org>",
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "syntax",
+    "offside",
+    "python",
+    "indention",
+    "indent"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shanewholloway/jsy-transpile.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shanewholloway/jsy-transpile/issues"
+  },
+  "homepage": "https://github.com/shanewholloway/jsy-transpile#readme",
+  "main": "dist/index.js",
+  "module": "dist/jsy-transpile.esm.js",
+  "dependencies": {
+    "source-map": "^0.6.1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-jsy": "^0.9.4",
+    "rollup": "^0.55.1",
+    "rollup-plugin-jsy-babel": "^1.0.1"
+  },
+  "babel": {
+    "presets": [
+      "jsy/lean"
+    ]
+  },
+  "scripts": {
+    "build": "rollup --config",
+    "watch": "npm -s run build -- --watch",
+    "pretest": "npm -s run build",
+    "test": "true"
+  }
+}
