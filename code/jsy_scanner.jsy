@@ -22,7 +22,17 @@ const at_offside = [].concat @
   at_outer_offside
   at_inner_offside
 
-const keyword_locator = /^([ \t]*)(if|while|catch|for await|for)(?=\s+[^(])/
+const keywords_with_args = @[] 'if', 'while', 'for await', 'for'
+const keywords_locator_parts = [].concat @
+  keywords_with_args.map @ e => `else ${e}`
+  keywords_with_args
+  @[] 'catch'
+  
+const keyword_locator = new RegExp @
+  @[] (/^([ \t]*)/).source
+      `(${keywords_locator_parts.join('|')})`
+      (/(?=\s+[^(])/).source
+  .join('')
 
 Object.assign @ jsy_scanner, @{}
   at_offside
