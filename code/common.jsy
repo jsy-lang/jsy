@@ -1,0 +1,10 @@
+export const rx_indent = /^([ \t]*)/
+
+export function not_undefined(e) ::
+  return undefined !== e
+
+const rx_blank_to_eol = /^[ \t]*$/
+export function is_eol_match(sz, pos, len) ::
+  if 'string' === typeof len :: len = len.length
+  return rx_blank_to_eol.test @ sz.slice @ pos+len
+

@@ -11,5 +11,5 @@ export default {
     { file: pkg.main, sourcemap, format: 'cjs' },
     { file: pkg.module, sourcemap, format: 'es' },
   ],
-  plugins, external: []}
+  plugins, external}
 

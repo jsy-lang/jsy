@@ -1,23 +1,48 @@
+import {is_eol_match} from './common.jsy'
+import {javascript_offside_scanner} from './basic_scanner.jsy'
 import jsy_renderer from './jsy_render.jsy'
-export default bind_jsy_scanner
-
-const rx_eol = /^[ \t]*$/
-const rx_jsy_op_to_rx = /[@:.\/\\\(\)\{\}\[\]]/g
-const rx_insert_comma = /^[^., \t]/
-
-const op_non_content = @{}
-  'indent': true
-  'comment_multi': true
-  'comment_eol': true
 
 
-function bind_jsy_scanner(options={}) ::
-  let {at_offside, keyword_locator} = options
-  if null == at_offside ::
-    at_offside = bind_jsy_scanner.at_offside
-  if null == keyword_locator ::
-    keyword_locator = bind_jsy_scanner.keyword_locator
+const at_outer_offside = @[]
+  @{} jsy_op: '::@', pre: "(", post: ")", nestInner: false, implicitCommas: false,
+  @{} jsy_op: '::()', pre: "(", post: ")", nestInner: false, implicitCommas: false,
+  @{} jsy_op: '::{}', pre: "{", post: "}", nestInner: false, implicitCommas: false,
+  @{} jsy_op: '::[]', pre: "[", post: "]", nestInner: false, implicitCommas: false,
+  @{} jsy_op: '::', pre: "{", post: "}", nestInner: false, implicitCommas: false, is_kw_close: true
 
+const at_inner_offside = @[]
+  @{} jsy_op: '@:', pre: "({", post: "})", nestInner: true, implicitCommas: true
+  @{} jsy_op: '@#', pre: "([", post: "])", nestInner: true, implicitCommas: true,
+  @{} jsy_op: '@()', pre: "{", post: "}", nestInner: true, implicitCommas: true,
+  @{} jsy_op: '@{}', pre: "{", post: "}", nestInner: true, implicitCommas: true
+  @{} jsy_op: '@[]', pre: "[", post: "]", nestInner: true, implicitCommas: true,
+  @{} jsy_op: '@', pre: "(", post: ")", nestInner: true, implicitCommas: true,
+
+const at_offside = [].concat @
+  at_outer_offside
+  at_inner_offside
+
+const keyword_locator = /^([ \t]*)(if|while|catch|for await|for)(?=\s+[^(])/
+
+Object.assign @ jsy_scanner, @{}
+  at_offside
+  at_outer_offside
+  at_inner_offside
+  keyword_locator
+
+let _jsy_scanner
+export default jsy_scanner
+export function jsy_scanner(offside_lines, options={}) ::
+  if undefined === _jsy_scanner ::
+    const {at_offside, keyword_locator} = jsy_scanner
+    _jsy_scanner = bind_jsy_scanner @:
+      at_offside, keyword_locator
+
+  return _jsy_scanner(offside_lines, options)
+
+
+
+export function bind_jsy_scanner({at_offside, keyword_locator}) ::
   const rx_jsy_ops = new RegExp @
     at_offside
       .filter @ e => e.jsy_op
@@ -32,14 +57,11 @@ function bind_jsy_scanner(options={}) ::
 
   return jsy_scanner
 
-  function jsy_scanner(offside_lines, options) ::
+  function jsy_scanner(offside_lines, options={}) ::
     if 'string' === typeof offside_lines ::
-      offside_lines =
-        javascript_scanner @
-          offside_scanner @
-            offside_lines
+      offside_lines = javascript_offside_scanner(offside_lines)
 
-    const jsy_render_ln = jsy_renderer(options || {})
+    const jsy_render_ln = jsy_renderer(options)
 
     const ctx_outer = {}
     for const ln of offside_lines ::
@@ -49,7 +71,13 @@ function bind_jsy_scanner(options={}) ::
       jsy_render_ln(ln)
 
     offside_lines.src_map = jsy_render_ln.src_map
-    return offside_lines
+    offside_lines.toStr
+    return Object.defineProperties @ offside_lines, @{}
+      src_map: @{} value: jsy_render_ln.src_map
+      src_code: @{} value() ::
+        return offside_lines
+          .map @ ln => ln.t_content
+          .join('\n')
 
   function _first_content_op(ops) ::
     for let i=0; i < ops.length; i++ ::
@@ -140,10 +168,6 @@ function bind_jsy_scanner(options={}) ::
       const last = _last_content_op(ctx.ln.ops)
       if null != last ::
         ctx.trailingComma = 1>=jsy_stack.length && /[,]\s*$/.test(last.sz || '')
-        if 0 && ctx.trailingComma ::
-          console.log @ 'trailing comma', ctx.trailingComma, last
-          console.dir @ ctx.ln, @{} colors: true, depth: null
-          console.log()
 
 
   function fixup_jsy_stack(ctx) ::
@@ -184,39 +208,11 @@ function bind_jsy_scanner(options={}) ::
         ln_in.allowImplicitComma = true
 
 
-function is_eol_match(sz, pos, len) ::
-  if 'string' === typeof len :: len = len.length
-  return rx_eol.test @ sz.slice @ pos+len
+const rx_jsy_op_to_rx = /[@:.\/\\\(\)\{\}\[\]]/g
+const rx_insert_comma = /^[^., \t]/
 
-import offside_scanner from './offside_scanner.jsy'
-import bindBasicScanner from './basic_scanner.jsy'
-const javascript_scanner = bindBasicScanner @
-  bindBasicScanner.javascript_scanners
+const op_non_content = @{}
+  'indent': true
+  'comment_multi': true
+  'comment_eol': true
 
-
-const at_outer_offside = @[]
-  @{} jsy_op: '::@', pre: "(", post: ")", nestInner: false, implicitCommas: false,
-  @{} jsy_op: '::()', pre: "(", post: ")", nestInner: false, implicitCommas: false,
-  @{} jsy_op: '::{}', pre: "{", post: "}", nestInner: false, implicitCommas: false,
-  @{} jsy_op: '::[]', pre: "[", post: "]", nestInner: false, implicitCommas: false,
-  @{} jsy_op: '::', pre: "{", post: "}", nestInner: false, implicitCommas: false, is_kw_close: true
-
-const at_inner_offside = @[]
-  @{} jsy_op: '@:', pre: "({", post: "})", nestInner: true, implicitCommas: true
-  @{} jsy_op: '@#', pre: "([", post: "])", nestInner: true, implicitCommas: true,
-  @{} jsy_op: '@()', pre: "{", post: "}", nestInner: true, implicitCommas: true,
-  @{} jsy_op: '@{}', pre: "{", post: "}", nestInner: true, implicitCommas: true
-  @{} jsy_op: '@[]', pre: "[", post: "]", nestInner: true, implicitCommas: true,
-  @{} jsy_op: '@', pre: "(", post: ")", nestInner: true, implicitCommas: true,
-
-const at_offside = [].concat @
-  at_outer_offside
-  at_inner_offside
-
-const keyword_locator = /^([ \t]*)(if|while|catch|for await|for)(?=\s+[^(])/
-
-Object.assign @ bind_jsy_scanner, @{}
-  at_offside
-  at_outer_offside
-  at_inner_offside
-  keyword_locator

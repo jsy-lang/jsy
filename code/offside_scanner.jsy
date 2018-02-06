@@ -1,13 +1,11 @@
-export default offside_scanner
+import {rx_indent} from './common.jsy'
 
-const rx_empty_line = /^\s*$/
-const rx_indent = /^([ \t]*)/
-
-function offside_scanner(raw_lines) ::
+export default offside_line_scanner
+export function offside_line_scanner(raw_lines) ::
   if 'string' === typeof raw_lines ::
     raw_lines = raw_lines.split(/\r\n|\r|\n/)
 
-  const base = Object.create(line_base)
+  const base = Object.create(offside_line_base)
 
   const all_lines = raw_lines
     .map @ (raw_line, idx) => ::
@@ -26,7 +24,7 @@ function offside_scanner(raw_lines) ::
   return all_lines
 
 
-const line_base = @{}
+export const offside_line_base = @{}
   next_line() :: return this.all_lines[1 + this.idx]
 
   isIndentStart() ::
