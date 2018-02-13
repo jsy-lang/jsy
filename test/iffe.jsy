@@ -1,0 +1,3 @@
+const iffe = f=>f()
+
+iffe @=> console.log @ 'it works!'
