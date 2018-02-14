@@ -13,6 +13,7 @@ const at_outer_offside = @[]
 const at_inner_offside = @[]
   @{} jsy_op: '@:', pre: "({", post: "})", nestInner: true, implicitCommas: true
   @{} jsy_op: '@#', pre: "([", post: "])", nestInner: true, implicitCommas: true,
+  @{} jsy_op: '@=>>', pre: "(async ()=>", post: ")", nestInner: true, implicitCommas: false,
   @{} jsy_op: '@=>', pre: "(()=>", post: ")", nestInner: true, implicitCommas: false,
   @{} jsy_op: '@()', pre: "{", post: "}", nestInner: true, implicitCommas: true,
   @{} jsy_op: '@{}', pre: "{", post: "}", nestInner: true, implicitCommas: true
