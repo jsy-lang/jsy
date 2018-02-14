@@ -153,7 +153,7 @@ export function bind_jsy_scanner({at_offside, keyword_locator}) ::
       const sz_line = args.pop()
       const pos = args.pop()
 
-      if c0 < pos ::
+      if c0 <= pos ::
         const jsy_op = scn_op[ match.replace(/[ \t]/g,'') ]
 
         emit @: op: 'src', c0, c1:pos, sz: sz.slice(c0, pos)
