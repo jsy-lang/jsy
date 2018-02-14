@@ -1,3 +1,11 @@
-const iffe = f=>f()
 
-iffe @=> console.log @ 'it works!'
+const invoke = f=>f()
+
+console.log @ 'First'
+invoke @=>> @
+  console.log @ 'Second'
+  await 42
+  console.log @ 'Fourth'
+
+console.log @ 'Third'
+
