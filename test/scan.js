@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const {promisify} = require('util')
 const readFile = promisify(require('fs').readFile)
 const {jsy_scanner} = require('../dist')

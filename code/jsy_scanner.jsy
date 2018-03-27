@@ -180,6 +180,7 @@ export function bind_jsy_scanner({at_offside, keyword_locator}) ::
       const last = _last_content_op(ctx.ln.ops)
       if null != last ::
         ctx.trailingComma = 1>=jsy_stack.length && /[,]\s*$/.test(last.sz || '')
+        ctx.trailingContent = 'src' === last.op ? last : null
 
 
   function fixup_jsy_stack(ctx) ::
@@ -215,7 +216,7 @@ export function bind_jsy_scanner({at_offside, keyword_locator}) ::
     for const ln_in of blk_slice ::
       if blk_indent != ln_in.indent :: continue
       if 'indent' !== ln_in.ops[0].op :: continue
-      if ln_in === blk_slice[0] :: continue
+      if ln_in === blk_slice[0] && ! ctx.trailingContent :: continue
       if rx_insert_comma.test @ ln_in.content.slice(ln_in.indent.length) ::
         ln_in.allowImplicitComma = true
 
