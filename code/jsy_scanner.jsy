@@ -29,7 +29,7 @@ const keywords_locator_parts = [].concat @
   keywords_with_args.map @ e => `else ${e}`
   keywords_with_args
   @[] 'catch'
-  
+
 const keyword_locator = new RegExp @
   @[] (/^([ \t]*)/).source
       `(${keywords_locator_parts.join('|')})`
@@ -180,7 +180,6 @@ export function bind_jsy_scanner({at_offside, keyword_locator}) ::
       const last = _last_content_op(ctx.ln.ops)
       if null != last ::
         ctx.trailingComma = 1>=jsy_stack.length && /[,]\s*$/.test(last.sz || '')
-        ctx.trailingContent = 'src' === last.op ? last : null
 
 
   function fixup_jsy_stack(ctx) ::
@@ -190,7 +189,12 @@ export function bind_jsy_scanner({at_offside, keyword_locator}) ::
 
     const end = ln.findBlockEnd()
 
-    if implicitCommas :: fixup_jsy_implicit_commas(end, ctx)
+    if implicitCommas ::
+      ctx.trailingContent = ctx.ln.ops.reduce @
+        (res, ea) => 'jsy_op' === ea.op ? '' : res+ea.sz
+        ''
+
+      fixup_jsy_implicit_commas(end, ctx)
 
     if ! jsy_stack.length :: return
 
@@ -216,9 +220,15 @@ export function bind_jsy_scanner({at_offside, keyword_locator}) ::
     for const ln_in of blk_slice ::
       if blk_indent != ln_in.indent :: continue
       if 'indent' !== ln_in.ops[0].op :: continue
-      if ln_in === blk_slice[0] && ! ctx.trailingContent :: continue
-      if rx_insert_comma.test @ ln_in.content.slice(ln_in.indent.length) ::
-        ln_in.allowImplicitComma = true
+      if ln_in === blk_slice[0] && ! ctx.trailingContent ::
+        continue
+      if ! rx_insert_comma.test @ ln_in.content.slice(ln_in.indent.length) ::
+        continue
+
+      if ctx.trailingContent && ! checkOptionalCommaSyntax(ctx.trailingContent) ::
+        continue
+
+      ln_in.allowImplicitComma = true
 
 
 const rx_jsy_op_to_rx = /[@:.\/\\\(\)\{\}\[\]]/g
@@ -228,4 +238,19 @@ const op_non_content = @{}
   'indent': true
   'comment_multi': true
   'comment_eol': true
+
+function checkOptionalCommaSyntax(content) ::
+  if checkSyntax @ `return fn( ${content} , expression )` :: return 'call expr'
+  if checkSyntax @ `return [ ${content} , expression ]` :: return 'list expr'
+  if checkSyntax @ `return { ${content} , expression }` :: return 'hash expr'
+  if checkSyntax @ `return ( ${content} , expression )` :: return 'comma expr'
+  return false
+
+function checkSyntax(content) ::
+  // use built-in Function from source to check syntax
+  try ::
+    new Function(content)
+    return true
+  catch err ::
+    return false
 
