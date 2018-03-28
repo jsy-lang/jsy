@@ -220,12 +220,11 @@ export function bind_jsy_scanner({at_offside, keyword_locator}) ::
     for const ln_in of blk_slice ::
       if blk_indent != ln_in.indent :: continue
       if 'indent' !== ln_in.ops[0].op :: continue
-      if ln_in === blk_slice[0] && ! ctx.trailingContent ::
-        continue
-      if ! rx_insert_comma.test @ ln_in.content.slice(ln_in.indent.length) ::
-        continue
+      if ln_in === blk_slice[0] ::
+        if ! ctx.trailingContent :: continue
+        if ! checkOptionalCommaSyntax(ctx.trailingContent) :: continue
 
-      if ctx.trailingContent && ! checkOptionalCommaSyntax(ctx.trailingContent) ::
+      if ! rx_insert_comma.test @ ln_in.content.slice(ln_in.indent.length) ::
         continue
 
       ln_in.allowImplicitComma = true
