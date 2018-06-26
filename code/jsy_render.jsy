@@ -24,7 +24,7 @@ export function jsy_renderer({file, source}) ::
     toBase64() :: 
       const sz = this.toString()
       if 'undefined' !== typeof Buffer ::
-        return new Buffer(sz).toString('base64')
+        return Buffer.from(sz).toString('base64')
       else ::
         return window.btoa @ unescape @ encodeURIComponent @ sz
 
