@@ -24,7 +24,7 @@ const at_offside = [].concat @
   at_outer_offside
   at_inner_offside
 
-const keywords_with_args = @[] 'if', 'while', 'for await', 'for'
+const keywords_with_args = @[] 'if', 'while', 'for await', 'for', 'switch'
 const keywords_locator_parts = [].concat @
   keywords_with_args.map @ e => `else ${e}`
   keywords_with_args
