@@ -1,6 +1,8 @@
 {
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "jsy-transpile": "file:.."
+  },
   "devDependencies": {
     "chokidar-cli": "^1.2.0",
     "mocha": "^5.2.0"
@@ -10,11 +12,16 @@
       "offside-js"
     ]
   },
+  "config": {
+    "unittest_roots": "./scanners",
+    "oow_unittest_roots": "./scanners ./unittest"
+  },
   "scripts": {
+    "env": "env",
     "pretest:one": "test -d ./node_modules || npm -s install",
     "test": "npm -s run test:one",
-    "test:one": "mocha --require babel-core/register ./unittest",
-    "test:min": "mocha --reporter=min --require babel-core/register ./unittest",
-    "watch": "chokidar -d 1200 -t 15000 '../dist/**' './unittest' -c 'npm -s run test:min'"
+    "test:one": "mocha --require babel-core/register $npm_package_config_unittest_roots",
+    "test:min": "mocha --reporter=min --require babel-core/register $npm_package_config_unittest_roots",
+    "watch": "chokidar -d 1200 -t 15000 '../dist/**' $npm_package_config_unittest_roots -c 'npm -s run test:min'"
   }
 }

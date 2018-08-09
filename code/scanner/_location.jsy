@@ -1,0 +1,40 @@
+const {inspect} = require('util')
+
+const SourceLocation = @{}
+  __proto__: null
+
+  [inspect.custom]() :: return this.toString()
+  [Symbol.toStringTag]() :: return this.toString()
+  toString() :: return `«${this.line}:${this.column}»`
+
+  get col() :: return this.pos - this.line_pos
+  get column() :: return this.pos - this.line_pos
+
+  nextLine() ::
+    let {line, pos} = this
+    line += 1
+    return Object.freeze @:
+      line, pos, line_pos: pos, __proto__: SourceLocation
+
+  create() ::
+    return Object.freeze @:
+      line:0, pos:0, line_pos:0, __proto__: SourceLocation
+
+  move(char_len) ::
+    if 'string' === typeof char_len ::
+      char_len = char_len.length
+    else if 'number' === typeof char_len ::
+      char_len |= 0
+    else throw new TypeError('Expected move to be a string or number')
+
+    let {line, pos, line_pos} = this
+    pos += char_len
+    return Object.freeze @:
+      line, pos, line_pos, __proto__: SourceLocation
+
+  distance(other) ::
+    const lines = this.line - other.line
+    const chars = this.pos - other.pos
+    return @{} lines, chars
+
+export default SourceLocation.create

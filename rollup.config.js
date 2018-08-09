@@ -4,7 +4,7 @@ import rpi_babel from 'rollup-plugin-babel'
 const configs = []
 export default configs
 
-const sourcemap = 'inline'
+const sourcemap = true //'inline'
 const external = []
 const plugins = [jsy_babel()]
 const plugins_browser = plugins.slice()
@@ -18,11 +18,31 @@ configs.push(
       { file: pkg.main, sourcemap, format: 'cjs' },
       { file: pkg.module, sourcemap, format: 'es' },
     ],
-    plugins, external},
+    plugins, external})
 
+configs.push(
   { input: 'code/index.jsy',
     output: { file: pkg.browser, sourcemap, format: 'umd', name:'jsy_transpile' },
     plugins: plugins_browser, external})
+
+
+const direct = [
+  'scanner/basic_offside',
+  'scanner/scan_clike',
+  'scanner/scan_javascript',
+].forEach(add_jsy)
+
+
+
+function add_jsy(name) {
+  configs.push({
+    input: `code/${name}.jsy`,
+    output: [
+      { file: `dist/${name}.js`, format: 'cjs', exports:'named', sourcemap },
+      //{ file: `umd/${name}.js`, format: 'umd', name, exports:'named', sourcemap },
+      { file: `dist/${name}.esm.js`, format: 'es', sourcemap },
+    ],
+    plugins, external }) }
 
 
 function jsy_babel() {

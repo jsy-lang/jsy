@@ -1,0 +1,146 @@
+import basic_offside_scanner from './basic_offside.jsy'
+
+
+export function bind_context_scanner(context_scanners) ::
+  if ! Object.isFrozen(context_scanners) || ! Array.isArray(context_scanners) ::
+    throw new TypeError @ `Expected a frozen array of context scanners`
+
+  const cache = bind_context_scanner.cache || new WeakMap()
+  if cache !== bind_context_scanner.cache ::
+    bind_context_scanner.cache = cache
+
+  let res = cache.get(context_scanners)
+  if undefined === res ::
+    res = compile_context_scanner(context_scanners)
+    cache.set(context_scanners, res)
+  return res
+
+
+function compile_context_scanner(context_scanners) ::
+  const scn_multiline={}, scn_ops={}
+  const rx_scanner = build_composite_regexp()
+
+  return context_scanner
+
+
+  function context_scanner(offside_lines) ::
+    const context_lines = []
+    let ctx = {}
+    for const ln of offside_lines ::
+      if ln.is_blank :: continue
+
+      const parts = []
+
+      ctx.ln = ln
+      ctx.loc_tip = ln.content.loc.start
+      ctx.ln_source = ln.content.content
+      ctx.lastIndex = 0
+
+      if ctx.continue_scan ::
+        ctx.continue_scan = ctx.continue_scan @ ln, parts, ctx
+        if undefined !== ctx.continue_scan ::
+          continue
+
+      ctx.continue_scan = context_line_scanner @ ln, parts, ctx
+
+      //console.dir @ parts, @{} depth: null, customInspect: true
+      if 0 === parts.length ::
+        const {loc, content} = ln.content
+        parts.push @: type: 'src', loc, content
+
+      context_lines.push @
+        Object.assign @ {}, ln, @{}
+          content: parts
+
+    return context_lines
+
+
+  function context_line_scanner(ln, parts, ctx) ::
+    rx_scanner.lastIndex = ctx.lastIndex
+    while true ::
+
+      const start = ctx.loc_tip
+      let idx0 = rx_scanner.lastIndex
+      const match = rx_scanner.exec(ctx.ln_source)
+
+      if null === match ::
+        if idx0 === ctx.ln_source.length ::
+          return // no more content
+
+        // last source of the current line
+        const content = ctx.ln_source.slice(idx0)
+        const end = ctx.loc_tip = ctx.loc_tip.move(content)
+
+        const loc = @{} start, end
+        parts.push @: type: 'src', loc, content
+        return
+
+      const op = scanner_op(match)
+
+      if ! op.close && op.multiline ::
+        const content = ctx.ln_source.slice(idx0)
+        const end = ctx.loc_tip = ln.content.loc.end
+
+        parts.push @:
+          type: op.op
+          loc: @{} start, end
+          content: content
+
+        return op.multiline
+
+      else ::
+        const content = match[0]
+        const end = ctx.loc_tip = ctx.loc_tip.move(content)
+
+        parts.push @:
+          type: op.op
+          loc: @{} start, end
+          content: content
+
+
+
+  function bind_multiline_scan_for(ctx_scan) ::
+    const rx_cont = new RegExp @ `^${ctx_scan.rx_close.source}`
+    return multiline_scan
+
+    function multiline_scan(ln, parts, ctx) ::
+      const match = rx_cont.exec(ctx.ln_source)
+      if undefined === match ::
+        throw new Error @ `Invalid multiline scan`
+
+      const content = match[0]
+      const start = ctx.loc_tip
+      const end = ctx.loc_tip = ctx.loc_tip.move(content)
+
+      parts.push @:
+        type: ctx_scan.op
+        loc: @{} start, end
+        content: content
+
+      const closed = match[1]
+      if ! closed :: return multiline_scan
+
+
+  function scanner_op(match) ::
+    const pairs = [].filter.call(match, Boolean)
+    const open = pairs[1], close = pairs[2]
+    const op = scn_ops[open]
+    const multiline = scn_multiline[op]
+    return @{} op, open, close, multiline
+
+
+  function build_composite_regexp() ::
+    const regexp_all = []
+    for const ctx_scan of context_scanners ::
+      regexp_all.push @
+        `(?:${ctx_scan.rx_open.source}${ctx_scan.rx_close.source})`
+
+      scn_ops[ctx_scan.kind] = ctx_scan.op
+      if true === ctx_scan.multiline ::
+        scn_multiline[ctx_scan.op] = bind_multiline_scan_for @ ctx_scan
+
+      else if 'function' === typeof ctx_scan.multiline ::
+        scn_multiline[ctx_scan.op] = ctx_scan.multiline.bind(ctx_scan)
+
+    return new RegExp @ regexp_all.join('|'), 'g'
+

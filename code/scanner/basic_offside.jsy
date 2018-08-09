@@ -1,0 +1,61 @@
+export const rx_lines = /(\r\n|\r|\n)/ ;
+export const rx_indent = /^([ \t]*)(.*)$/ ;
+
+import createLoc from './_location.jsy'
+
+export default basic_offside_scanner
+export function basic_offside_scanner(source) ::
+  const all_lines = []
+
+  const raw_lines = source.split(rx_lines)
+
+  let loc_tip = createLoc()
+
+  while 0 !== raw_lines.length ::
+    const loc = @{} start: loc_tip = loc_tip.nextLine()
+
+    const src_line = raw_lines.shift()
+    loc.end = loc_tip = loc_tip.move(src_line)
+
+    const src_line_end = raw_lines.shift() || ''
+    loc_tip = loc_tip.move(src_line_end)
+
+
+    const m = rx_indent.exec(src_line)
+
+    const loc_indent = loc.start.move(m[1])
+    const is_blank = 0 === m[2].length
+
+    const indent_node = @{}
+      type: 'offside_indent',
+      loc: @{}
+        start: loc.start
+        end: loc_indent
+      len_indent: m[1].length
+      indent: m[1]
+
+    const conent_node = @{}
+      type: 'offside_content',
+      loc: @{}
+        start: loc_indent.move(1)
+        end: loc.end
+      len_indent: m[1].length
+      indent: m[1]
+      content: m[2]
+      is_blank
+
+    const node = @{}
+      type: 'offside_line', loc
+      indent: indent_node
+      content: conent_node
+      is_blank
+
+    Object.defineProperties @ node, @{}
+      raw: @{} value: @{}
+        line: src_line
+        line_end: src_line_end
+
+    all_lines.push @ node
+
+  return all_lines
+

@@ -12,14 +12,14 @@ export function javascript_offside_scanner(offside_lines) ::
       offside_lines
 
 javascript_offside_scanner.scanners = @[]
-  @{} op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/
+  @{} op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,
   @{} op: 'comment_multi', kind:'/*', rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/
       multiline: true
-  @{} op: 'str_single', kind:"'", rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/
+  @{} op: 'str_single', kind:"'", rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,
       multiline(ln) :: throw new SyntaxError @ `Newline in single quote string (line ${pos.idx})`
-  @{} op: 'str_double', kind:'"', rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/
+  @{} op: 'str_double', kind:'"', rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
       multiline(ln) :: throw new SyntaxError @ `Newline in single quote string (line ${pos.idx})`
-  @{} op: 'str_multi', kind:'`', rx_open: /(`)/, rx_close: /(?:\\.|[^`])*(`|$)/
+  @{} op: 'str_multi', kind:'`', rx_open: /(`)/, rx_close: /(?:\\.|[^`])*(`|$)/,
       multiline: true
 
 

@@ -1,0 +1,20 @@
+import basic_offside_scanner from './basic_offside.jsy'
+import { bind_context_scanner } from './basic_contexts.jsy'
+
+export const context_scanners = Object.freeze @#
+  @{} op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,
+
+  @{} op: 'comment_multi', kind:'/*', rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,
+      multiline: true
+
+  @{} op: 'str_single', kind:"'", rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,
+      multiline(ln) :: throw new SyntaxError @ `Newline in single quote string (${ln.loc.end.toString()})`
+
+  @{} op: 'str_double', kind:'"', rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
+      multiline(ln) :: throw new SyntaxError @ `Newline in double quote string (${ln.loc.end.toString()})`
+
+export default scan_clike
+export function scan_clike(source) ::
+  const context_scanner = bind_context_scanner(context_scanners)
+  const offside_ast = context_scanner @ basic_offside_scanner @ source
+  //console.dir @ offside_ast, @{} depth: null, customInspect: true
