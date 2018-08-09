@@ -1,2 +1,4 @@
 syntax: glob
 *.md
+package-lock.json
+test/examples
