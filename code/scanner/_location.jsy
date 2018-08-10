@@ -1,13 +1,9 @@
-const {inspect} = require('util')
 
 const SourceLocation = @{}
   __proto__: null
 
-  [inspect.custom]() :: return this.toString()
-  [Symbol.toStringTag]() :: return this.toString()
+  get [Symbol.toStringTag]() :: return '«SourceLocation»'
   toString() :: return `«${this.line}:${this.column}»`
-
-  get col() :: return this.pos - this.line_pos
   get column() :: return this.pos - this.line_pos
 
   nextLine() ::
