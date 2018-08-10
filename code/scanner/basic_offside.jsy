@@ -3,6 +3,7 @@ export const rx_indent = /^([ \t]*)(.*)$/ ;
 export const rx_mixed_indent = /[\t][ ]|[ ][\t]/ ;
 
 import createLoc from './_location.jsy'
+import walk_offside from './walk_offside.jsy'
 
 export default basic_offside_scanner
 export function basic_offside_scanner(source, feedback) ::
@@ -11,6 +12,7 @@ export function basic_offside_scanner(source, feedback) ::
       warn(msg, ...args) :: console.warn @ `[Offside Warning]:: ${msg}`, ...args
 
   const all_lines = []
+  all_lines.walk_offside = walk_offside
 
   const q_raw_lines = source.split(rx_lines)
   //const dbg_lines = q_raw_lines.filter @ ln => ! rx_lines.test(ln)
@@ -36,35 +38,41 @@ export function basic_offside_scanner(source, feedback) ::
     if is_mixed ::
       feedback.warn @ `Mixed tab and space indent (${loc_indent})`, 
 
+    const raw = @{} value: @{}
+      line: src_line
+      line_end: src_line_end
 
-    const indent_node = @{}
-      type: 'offside_indent',
-      loc: @{}
-        start: loc.start
-        end: loc_indent
-      len_indent: match[1].length
-      indent: match[1]
+    let node
+    if is_blank ::
+      node = @{}
+        type: 'offside_blank_line', loc
+        is_blank
 
-    const conent_node = @{}
-      type: 'offside_content',
-      loc: @{}
-        start: loc_indent.move(1)
-        end: loc.end
-      len_indent: match[1].length
-      indent: match[1]
-      content: match[2]
-      is_blank
+    else ::
+      const indent_node = @{}
+        type: 'offside_indent',
+        loc: @{}
+          start: loc.start
+          end: loc_indent
+        len_indent: match[1].length
+        indent: match[1]
 
-    const node = @{}
-      type: 'offside_line', loc
-      indent: indent_node
-      content: conent_node
-      len_indent: match[1].length
-      is_blank
-      raw: Object.defineProperties @ {}, @{}
-        line: @{} value: src_line
-        line_end: @{} value: src_line_end
+      const conent_node = @{}
+        type: 'offside_content',
+        loc: @{}
+          start: loc_indent.move(1)
+          end: loc.end
+        len_indent: match[1].length
+        indent: match[1]
+        content: match[2]
 
+      node = @{}
+        type: 'offside_line', loc
+        indent: indent_node
+        content: conent_node
+        len_indent: match[1].length
+
+    Object.defineProperties @ node, { raw }
     all_lines.push @ node
 
   return all_lines

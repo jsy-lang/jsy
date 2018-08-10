@@ -586,25 +586,25 @@ const op_non_content = {
   'comment_eol': true };
 
 function checkOptionalCommaSyntax(content) {
-  if (checkSyntax(`return fn( ${content} , expression )`)) {
+  if (checkSyntax(`fn( ${content} , expression )`)) {
     return 'call expr';
   }
-  if (checkSyntax(`return [ ${content} , expression ]`)) {
+  if (checkSyntax(`[ ${content} , expression ]`)) {
     return 'list expr';
   }
-  if (checkSyntax(`return { ${content} , expression }`)) {
+  if (checkSyntax(`{ ${content} , expression }`)) {
     return 'hash expr';
   }
-  if (checkSyntax(`return ( ${content} , expression )`)) {
+  if (checkSyntax(`( ${content} , expression )`)) {
     return 'comma expr';
   }
   return false;
 }
 
-function checkSyntax(content) {
+function checkSyntax(expr) {
   // use built-in Function from source to check syntax
   try {
-    new Function(content);
+    new Function(`return ${expr}`);
     return true;
   } catch (err) {
     return false;

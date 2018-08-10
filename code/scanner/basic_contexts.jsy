@@ -1,7 +1,10 @@
-import basic_offside_scanner from './basic_offside.jsy'
 const rx_whitespace = /^[ \t]+$/ ;
 
+function as_src_ast(start, end, content) ::
+  return @{} type: 'src', loc: {start, end}, content,
+    is_ws: rx_whitespace.test(content)
 
+export default bind_context_scanner
 export function bind_context_scanner(context_scanners) ::
   if ! Object.isFrozen(context_scanners) || ! Array.isArray(context_scanners) ::
     throw new TypeError @ `Expected a frozen array of context scanners`
@@ -25,10 +28,11 @@ function compile_context_scanner(context_scanners) ::
 
 
   function context_scanner(offside_lines) ::
-    const context_lines = []
     let ctx = {}
     for const ln of offside_lines ::
-      if ln.is_blank :: continue
+      if ln.is_blank ::
+        delete ln.content
+        continue
 
       const parts = []
 
@@ -47,13 +51,12 @@ function compile_context_scanner(context_scanners) ::
       //console.dir @ parts, @{} depth: null, customInspect: true
       if 0 === parts.length ::
         const {loc, content} = ln.content
-        parts.push @: type: 'src', loc, content, is_whitespace: rx_whitespace.test(content)
+        parts.push @ as_src_ast @ loc.start, loc.end, content
 
-      context_lines.push @
-        Object.assign @ {}, ln, @{}
-          content: parts
+      //console.log @: len: parts.length, parts
+      ln.content = parts
 
-    return context_lines
+    return offside_lines
 
 
   function context_line_scanner(ln, parts, ctx) ::
@@ -71,10 +74,13 @@ function compile_context_scanner(context_scanners) ::
         // last source of the current line
         const content = ctx.ln_source.slice(idx0)
         const end = ctx.loc_tip = ctx.loc_tip.move(content)
-
-        const loc = @{} start, end
-        parts.push @: type: 'src', loc, content, is_whitespace: rx_whitespace.test(content)
+        parts.push @ as_src_ast @ start, end, content
         return
+
+      if idx0 !== match.index ::
+        const content = ctx.ln_source.slice(idx0, match.index)
+        const end = ctx.loc_tip = ctx.loc_tip.move(content)
+        parts.push @ as_src_ast @ start, end, content
 
       const op = scanner_op(match)
 
@@ -97,8 +103,6 @@ function compile_context_scanner(context_scanners) ::
           type: op.op
           loc: @{} start, end
           content: content
-
-
 
   function bind_multiline_scan_for(ctx_scan) ::
     const rx_cont = new RegExp @ `^${ctx_scan.rx_close.source}`

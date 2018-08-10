@@ -1,6 +1,11 @@
+import scan_offside_context from './basic_offside_context.jsy'
 import { context_scanners as clike_scanners } from './scan_clike.jsy'
 
 export const context_scanners = Object.freeze @ clike_scanners.concat @#
   @{} op: 'str_multi', kind:'`', rx_open: /(`)/, rx_close: /(?:\\.|[^`])*(`|$)/,
       multiline: true
+
+export default scan_javascript
+export function scan_javascript(source) ::
+  return scan_offside_context(source, context_scanners)
 
