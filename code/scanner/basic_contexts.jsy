@@ -1,4 +1,5 @@
 import basic_offside_scanner from './basic_offside.jsy'
+const rx_whitespace = /^[ \t]+$/ ;
 
 
 export function bind_context_scanner(context_scanners) ::
@@ -46,7 +47,7 @@ function compile_context_scanner(context_scanners) ::
       //console.dir @ parts, @{} depth: null, customInspect: true
       if 0 === parts.length ::
         const {loc, content} = ln.content
-        parts.push @: type: 'src', loc, content
+        parts.push @: type: 'src', loc, content, is_whitespace: rx_whitespace.test(content)
 
       context_lines.push @
         Object.assign @ {}, ln, @{}
@@ -72,7 +73,7 @@ function compile_context_scanner(context_scanners) ::
         const end = ctx.loc_tip = ctx.loc_tip.move(content)
 
         const loc = @{} start, end
-        parts.push @: type: 'src', loc, content
+        parts.push @: type: 'src', loc, content, is_whitespace: rx_whitespace.test(content)
         return
 
       const op = scanner_op(match)
