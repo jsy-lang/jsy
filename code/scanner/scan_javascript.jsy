@@ -6,6 +6,6 @@ export const context_scanners = Object.freeze @ clike_scanners.concat @#
       multiline: true
 
 export default scan_javascript
-export function scan_javascript(source) ::
-  return scan_offside_context(source, context_scanners)
+export function scan_javascript(source, feedback) ::
+  return scan_offside_context(source, feedback, context_scanners)
 

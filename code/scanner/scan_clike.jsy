@@ -14,6 +14,6 @@ export const context_scanners = Object.freeze @#
 
 
 export default scan_clike
-export function scan_clike(source) ::
-  return scan_offside_context(source, context_scanners)
+export function scan_clike(source, feedback) ::
+  return scan_offside_context(source, feedback, context_scanners)
 
