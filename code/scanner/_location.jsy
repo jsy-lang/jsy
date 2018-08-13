@@ -6,15 +6,22 @@ const SourceLocation = @{}
   toString() :: return `«${this.line}:${this.column}»`
   get column() :: return this.pos - this.line_pos
 
+  create(source) ::
+    const root = @{}
+      line:0, pos:0, line_pos:0
+      __proto__: SourceLocation
+
+    Object.defineProperties @ root, @{}
+      __root__: @{} value: root
+      source: @{} value: source
+    return Object.freeze @ root
+
   nextLine() ::
     let {line, pos} = this
     line += 1
     return Object.freeze @:
-      line, pos, line_pos: pos, __proto__: SourceLocation
-
-  create() ::
-    return Object.freeze @:
-      line:0, pos:0, line_pos:0, __proto__: SourceLocation
+      line, pos, line_pos: pos,
+      __proto__: this.__root__
 
   move(char_len) ::
     if 'string' === typeof char_len ::
@@ -26,11 +33,17 @@ const SourceLocation = @{}
     let {line, pos, line_pos} = this
     pos += char_len
     return Object.freeze @:
-      line, pos, line_pos, __proto__: SourceLocation
+      line, pos, line_pos,
+      __proto__: this.__root__
 
   distance(other) ::
     const lines = this.line - other.line
     const chars = this.pos - other.pos
     return @{} lines, chars
+
+  slice(other) ::
+    if this.source !== other.source ::
+      throw new Error @ `Locations from different sources`
+    return this.source.slice @ this.pos, other.pos
 
 export default SourceLocation.create

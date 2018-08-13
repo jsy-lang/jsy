@@ -18,7 +18,7 @@ export function basic_offside_scanner(source, feedback) ::
   //const dbg_lines = q_raw_lines.filter @ ln => ! rx_lines.test(ln)
   //dbg_lines.unshift @ ''
 
-  let loc_tip = createLoc()
+  let loc_tip = createLoc(source)
 
   while 0 !== q_raw_lines.length ::
     const loc = @{} start: loc_tip = loc_tip.nextLine()
@@ -38,9 +38,11 @@ export function basic_offside_scanner(source, feedback) ::
     if is_mixed ::
       feedback.warn @ `Mixed tab and space indent (${loc_indent})`, 
 
-    const raw = @{} value: @{}
+    const raw = @{}
       line: src_line
       line_end: src_line_end
+      indent: match[1]
+      content: match[2]
 
     let node
     if is_blank ::
@@ -60,7 +62,7 @@ export function basic_offside_scanner(source, feedback) ::
       const conent_node = @{}
         type: 'offside_content',
         loc: @{}
-          start: loc_indent.move(1)
+          start: loc_indent
           end: loc.end
         len_indent: match[1].length
         indent: match[1]
@@ -72,7 +74,7 @@ export function basic_offside_scanner(source, feedback) ::
         content: conent_node
         len_indent: match[1].length
 
-    Object.defineProperties @ node, { raw }
+    Object.defineProperties @ node, @{} raw: {value: raw}
     all_lines.push @ node
 
   return all_lines

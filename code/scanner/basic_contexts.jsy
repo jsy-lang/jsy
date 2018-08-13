@@ -48,12 +48,10 @@ function compile_context_scanner(context_scanners) ::
 
       ctx.continue_scan = context_line_scanner @ ln, parts, ctx
 
-      //console.dir @ parts, @{} depth: null, customInspect: true
       if 0 === parts.length ::
         const {loc, content} = ln.content
         parts.push @ as_src_ast @ loc.start, loc.end, content
 
-      //console.log @: len: parts.length, parts
       ln.content = parts
 
     return offside_lines
@@ -63,7 +61,7 @@ function compile_context_scanner(context_scanners) ::
     rx_scanner.lastIndex = ctx.lastIndex
     while true ::
 
-      const start = ctx.loc_tip
+      let start = ctx.loc_tip
       let idx0 = rx_scanner.lastIndex
       const match = rx_scanner.exec(ctx.ln_source)
 
@@ -81,6 +79,7 @@ function compile_context_scanner(context_scanners) ::
         const content = ctx.ln_source.slice(idx0, match.index)
         const end = ctx.loc_tip = ctx.loc_tip.move(content)
         parts.push @ as_src_ast @ start, end, content
+        start = ctx.loc_tip
 
       const op = scanner_op(match)
 

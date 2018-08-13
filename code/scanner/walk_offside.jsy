@@ -17,6 +17,21 @@ export class WalkOffside ::
   has_offside_block() ::
     return this.inner_block(true)
 
+  tree(visit) ::
+    if ! visit ::
+      visit = w => w.ln_tip
+
+    const res = []
+    for const w of this.iter_blocks() ::
+      const entry = @[] w.ln_tip.raw.content
+      res.push @ entry
+
+      const w_inner = w.inner_block()
+      if null !== w_inner ::
+        entry.push @ w_inner.tree(visit)
+    return res
+
+
   inner_block(asBool) ::
     const idx_next = 1 + this.idx_tip
     const ln = this.offside_lines[idx_next]
