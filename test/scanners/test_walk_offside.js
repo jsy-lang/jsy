@@ -20,11 +20,11 @@ describe @ 'Scanners', @=> ::
 
 
     it @ 'has debugging support', @=> ::
-      const walk = offside_ast.walk_offside(offside_ast)
+      const walk = offside_ast.walk_offside()
       const lines = walk.toString().split('\n')
       assert.equal @ lines.length, 9
 
-    it @ 'Can self-verify locations match original source', @=> ::
+    it @ 'can self-verify locations match original source', @=> ::
       const to_source = node => node.loc.start.slice @ node.loc.end
       for const ln of offside_ast ::
         if ln.is_blank :: continue
@@ -33,8 +33,8 @@ describe @ 'Scanners', @=> ::
         for const part of ln.content ::
           assert.equal @ part.content, to_source(part)
 
-    it @ 'Can walk a tree of offside indents', @=> ::
-      const walk = offside_ast.walk_offside(offside_ast)
+    it @ 'can walk a tree of offside indents', @=> ::
+      const walk = offside_ast.walk_offside()
       const tree = walk.tree @ w => w.ln_tip.raw.content
       assert.deepEqual @ tree, @[]
         @[] 'export function hash_fnv32(sz) ::', @[]
@@ -59,7 +59,7 @@ describe @ 'Scanners', @=> ::
         content: @[]
          @{} type: 'src'
              loc: @{} start: { line: 1, pos: 8, line_pos: 0 }, end: { line: 1, pos: 41, line_pos: 0 }
-             content: 'export function hash_fnv32(sz) ::', is_ws: false
+             content: 'export function hash_fnv32(sz) ::'
 
 
       check_ast_entry @ 'line 1', offside_ast[1], @{}
@@ -90,7 +90,7 @@ describe @ 'Scanners', @=> ::
         content: @[]
          @{} type: 'src',
              loc: { start: { line: 3, pos: 164, line_pos: 154 }, end: { line: 3, pos: 183, line_pos: 154 } },
-             content: 'let h = 0x811C9DC5 ', is_ws: false
+             content: 'let h = 0x811C9DC5 '
 
          @{} type: 'comment_eol',
              loc: { start: { line: 3, pos: 183, line_pos: 154 }, end: { line: 3, pos: 213, line_pos: 154 } },
@@ -109,7 +109,7 @@ describe @ 'Scanners', @=> ::
         content: @[]
          @{} type: 'src',
              loc: { start: { line: 4, pos: 224, line_pos: 214 }, end: { line: 4, pos: 258, line_pos: 214 } },
-             content: 'for let i=0; i < sz.length; i++ ::', is_ws: false
+             content: 'for let i=0; i < sz.length; i++ ::'
 
       check_ast_entry @ 'line 4', offside_ast[4], @{}
         type: 'offside_line',
@@ -124,7 +124,7 @@ describe @ 'Scanners', @=> ::
         content: @[]
          @{} type: 'src'
              loc: { start: { line: 5, pos: 271, line_pos: 259 }, end: { line: 5, pos: 292, line_pos: 259 } },
-             content: 'h ^= sz.charCodeAt(i)', is_ws: false
+             content: 'h ^= sz.charCodeAt(i)'
 
       check_ast_entry @ 'line 5', offside_ast[5], @{}
         type: 'offside_line'
@@ -139,7 +139,7 @@ describe @ 'Scanners', @=> ::
         content: @[]
          @{} type: 'src'
              loc: { start: { line: 6, pos: 305, line_pos: 293 }, end: { line: 6, pos: 363, line_pos: 293 } },
-             content: 'h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)', is_ws: false
+             content: 'h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)'
 
       check_ast_entry @ 'line 6', offside_ast[6], @{}
         type: 'offside_line'
@@ -154,7 +154,7 @@ describe @ 'Scanners', @=> ::
         content: @[]
          @{} type: 'src'
              loc: { start: { line: 7, pos: 374, line_pos: 364 }, end: { line: 7, pos: 382, line_pos: 364 } },
-             content: 'return h', is_ws: false
+             content: 'return h'
 
       check_ast_entry @ 'line 7', offside_ast[7], @{}
         type: 'offside_blank_line'

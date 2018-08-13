@@ -47,7 +47,7 @@ function genMochaSyntaxTestCases(iterSyntaxVariations, transformVariations) ::
   return @=> ::
     describe @ 'Basic', @=> genSyntaxTestCases @ it, iterSyntaxVariations()
 
-    if transformVariations ::
+    if false && transformVariations ::
       for const [name, xform] of Object.entries @ transformVariations ::
         describe @ name, @=> genSyntaxTestCases @ it, xform @ iterSyntaxVariations()
 

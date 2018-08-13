@@ -30,6 +30,7 @@ const direct = [
   'scanner/basic_offside',
   'scanner/scan_clike',
   'scanner/scan_javascript',
+  'scan_jsy',
 ].forEach(add_jsy)
 
 

@@ -1,6 +1,6 @@
 export default walk_offside
 export function walk_offside(offside_lines) ::
-  if null === offside_lines && Array.isArray(this) ::
+  if null == offside_lines && Array.isArray(this) ::
     offside_lines = this
   return WalkOffside.create @ offside_lines
 
@@ -65,6 +65,33 @@ export class WalkOffside ::
       if ! ln.is_blank && outer_len_indent >= ln.len_indent ::
         break
     return this.offside_lines.slice(idx_next, i)
+
+
+  inject_dedent(trailing_types) ::
+    if 'function' !== typeof trailing_types ::
+      const s_trailing_types = new Set @
+        trailing_types || ['comment_eol']
+      trailing_types = k => s_trailing_types.has(k)
+
+    let len_dedent=0
+    const offside_lines = this.offside_lines
+    for let i = offside_lines.length-1 ; i>=0 ; i-- ::
+      const ln = offside_lines[i]
+      if ln.is_blank :: continue
+
+      const len_indent = ln.len_indent
+      const offside_dedent = @{}
+        type: 'offside_dedent'
+        len_dedent, len_indent
+
+      len_dedent = ln.len_indent
+
+      const last = ln.content.pop()
+      if last.multiline || trailing_types(last.type) ::
+        ln.content.push @ offside_dedent, last
+      else ::
+        ln.content.push @ last, offside_dedent
+
 
   toString() ::
     const lines = this.lines_of_block().map @ e => `> ${e.raw.line}`

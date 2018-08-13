@@ -1,8 +1,4 @@
-const rx_whitespace = /^[ \t]+$/ ;
-
-function as_src_ast(start, end, content) ::
-  return @{} type: 'src', loc: {start, end}, content,
-    is_ws: rx_whitespace.test(content)
+import {as_src_ast} from './common.jsy'
 
 export default bind_context_scanner
 export function bind_context_scanner(context_scanners) ::
@@ -50,7 +46,7 @@ function compile_context_scanner(context_scanners) ::
 
       if 0 === parts.length ::
         const {loc, content} = ln.content
-        parts.push @ as_src_ast @ loc.start, loc.end, content
+        parts.push @ as_src_ast @ content, loc.start, loc.end
 
       ln.content = parts
 
@@ -61,8 +57,7 @@ function compile_context_scanner(context_scanners) ::
     rx_scanner.lastIndex = ctx.lastIndex
     while true ::
 
-      let start = ctx.loc_tip
-      let idx0 = rx_scanner.lastIndex
+      let start = ctx.loc_tip, idx0 = rx_scanner.lastIndex
       const match = rx_scanner.exec(ctx.ln_source)
 
       if null === match ::
@@ -72,36 +67,30 @@ function compile_context_scanner(context_scanners) ::
         // last source of the current line
         const content = ctx.ln_source.slice(idx0)
         const end = ctx.loc_tip = ctx.loc_tip.move(content)
-        parts.push @ as_src_ast @ start, end, content
+        parts.push @ as_src_ast @ content, start, end
         return
 
       if idx0 !== match.index ::
         const content = ctx.ln_source.slice(idx0, match.index)
         const end = ctx.loc_tip = ctx.loc_tip.move(content)
-        parts.push @ as_src_ast @ start, end, content
-        start = ctx.loc_tip
+        parts.push @ as_src_ast @ content, start, end
+        start = ctx.loc_tip; idx0 = match.index
 
       const op = scanner_op(match)
 
+      const content = op.close ? match[0] : ctx.ln_source.slice(idx0)
+      const end = ctx.loc_tip = ctx.loc_tip.move(content)
+      const entry = @{}
+        type: op.op
+        loc: @{} start, end
+        content: content
+
+      parts.push @ entry
+
       if ! op.close && op.multiline ::
-        const content = ctx.ln_source.slice(idx0)
-        const end = ctx.loc_tip = ln.content.loc.end
-
-        parts.push @:
-          type: op.op
-          loc: @{} start, end
-          content: content
-
+        entry.multiline = true
         return op.multiline
 
-      else ::
-        const content = match[0]
-        const end = ctx.loc_tip = ctx.loc_tip.move(content)
-
-        parts.push @:
-          type: op.op
-          loc: @{} start, end
-          content: content
 
   function bind_multiline_scan_for(ctx_scan) ::
     const rx_cont = new RegExp @ `^${ctx_scan.rx_close.source}`

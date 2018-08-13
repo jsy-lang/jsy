@@ -1,0 +1,83 @@
+import { rx_offside_ops, rx_keyword_ops } from './jsy_operators_regexp.jsy'
+import { as_src_ast } from './scanner/common.jsy'
+import scan_javascript from './scanner/scan_javascript.jsy'
+
+export default scan_jsy
+export function scan_jsy(source, feedback) ::
+  const offside_ast = scan_javascript(source, feedback)
+  const w = offside_ast.walk_offside()
+  w.inject_dedent @# 'comment_eol'
+
+  for const ln of offside_ast ::
+    if ln.is_blank :: continue
+
+    const parts = transform_jsy_ops(ln.content, ln)
+    ln.content = parts
+
+  return offside_ast
+
+
+
+function transform_jsy_ops(parts, ln) ::
+  const res = []
+
+  for let p, i=0; undefined !== (p = parts[i]) ; i++ ::
+    if 'src' === p.type ::
+      transform_jsy_part(res, p)
+    else res.push(p)
+
+  transform_jsy_keyword(res, res[0])
+  return res
+
+
+
+function transform_jsy_keyword(res, first) ::
+  rx_keyword_ops.lastIndex = 0
+  const kw_match = rx_keyword_ops.exec(first.content)
+  if ! kw_match :: return res
+
+  const kw_end = first.loc.start.move @ kw_match[0]
+
+  const pre_node = as_src_ast @ kw_match[0], first.loc.start, kw_end
+
+  const kw = kw_match[0].split(' ').filter(Boolean).join(' ')
+  const kw_node = @{}
+    type: 'jsy_kw', kw
+    loc: @{} start: kw_end, end: kw_end
+
+  const rest = kw_match.input.slice(rx_keyword_ops.lastIndex)
+  const post_node = as_src_ast @ rest, kw_end, first.loc.end
+
+  res.splice @ 0,1, pre_node, kw_node, post_node
+  return res
+
+
+
+function transform_jsy_part(res, part) ::
+  rx_offside_ops.lastIndex = 0
+
+  let loc_tip = part.loc.start
+  while true ::
+    let start = loc_tip, idx0 = rx_offside_ops.lastIndex
+    const op_match = rx_offside_ops.exec(part.content)
+
+    if null != op_match ::
+      if idx0 < op_match.index ::
+        const pre = part.content.slice(idx0, op_match.index)
+        const end = loc_tip = loc_tip.move(pre)
+        res.push @ as_src_ast @ pre, start, end
+        start = end; idx0 = rx_offside_ops.lastIndex
+
+
+      const op = op_match[0].trim()
+      const end = loc_tip = loc_tip.move(op_match[0])
+      res.push @:
+        type: 'jsy_op', op
+        loc: @{} start, end
+        content: op_match[0]
+
+    else ::
+      const rest = part.content.slice(idx0)
+      const end = loc_tip = loc_tip.move(rest)
+      res.push @ as_src_ast @ rest, start, end
+      return res

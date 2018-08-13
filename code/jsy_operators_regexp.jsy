@@ -1,0 +1,38 @@
+import {at_offside, keywords_locator_parts} from './jsy_operators.jsy'
+
+const regexp_keyword = sz => ::
+  sz = sz.replace(/[ ]+/g, '[ ]+') // allow one or more spaces
+  return `(?:${sz})` // using a non-matching group
+
+const re_keyword_space_prefix = /^([ \t]*)/.source ; // start of line and indent
+const re_keyword_trailer = /(?:[ \t]+(?=[^(]|$))/.source ; // not followed by () expr
+
+export const rx_keyword_ops = new RegExp @
+  re_keyword_space_prefix
+    + `(?:${keywords_locator_parts.map(regexp_keyword).join('|')})`
+    + re_keyword_trailer
+  , 'g' // global regexp for lastIndex support
+
+
+const rx_escape_offside_ops = /[@:.\/\\\(\)\{\}\[\]]/g ;
+const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
+const re_space_suffix = /(?:$|[ \t]+)/.source ; // spaces or end of line
+
+const regexp_from_offside_op = offside_op => ::
+  let sz = offside_op.jsy_op
+  // escape Offside operator chars to RegExp
+  sz.replace @ rx_escape_offside_ops, '\\$&'
+  // surrounded by newlines or spacees
+  sz = re_space_prefix + sz + re_space_suffix
+  return `(?:${sz})` // using a non-matching group
+
+export const rx_offside_ops = new RegExp @
+  at_offside.map(regexp_from_offside_op).join('|')
+  'g' // global regexp
+
+export const at_offside_map = at_offside.reduce @
+  (m, ea) => ::
+    m[ea.jsy_op] = ea
+    return m
+  {}
+
