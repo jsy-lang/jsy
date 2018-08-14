@@ -43,12 +43,12 @@ function testSourceTransform(testCase) ::
     assert.deepEqual @ tokens, expected_tokens
 
 
+const TEST_LEAN = !! process.env.TEST_LEAN
 function genMochaSyntaxTestCases(iterSyntaxVariations, transformVariations) ::
   return @=> ::
     describe @ 'Basic', @=> genSyntaxTestCases @ it, iterSyntaxVariations()
 
-    //if false && transformVariations ::
-    if transformVariations ::
+    if ! TEST_LEAN && transformVariations ::
       for const [name, xform] of Object.entries @ transformVariations ::
         describe @ name, @=> genSyntaxTestCases @ it, xform @ iterSyntaxVariations()
 
