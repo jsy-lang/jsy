@@ -40,7 +40,11 @@ function compile_context_scanner(context_scanners) ::
       if ctx.continue_scan ::
         ctx.continue_scan = ctx.continue_scan @ ln, parts, ctx
         if undefined !== ctx.continue_scan ::
+          ln.content = parts
           continue
+
+        // catch lastIndex up to where continue_scan left off
+        ctx.lastIndex = ctx.loc_tip.pos - ctx.loc_tip.line_pos
 
       ctx.continue_scan = context_line_scanner @ ln, parts, ctx
 
@@ -94,6 +98,7 @@ function compile_context_scanner(context_scanners) ::
 
   function bind_multiline_scan_for(ctx_scan) ::
     const rx_cont = new RegExp @ `^${ctx_scan.rx_close.source}`
+    multiline_scan.ctx_scan = ctx_scan
     return multiline_scan
 
     function multiline_scan(ln, parts, ctx) ::
