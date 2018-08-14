@@ -1,8 +1,7 @@
 require('source-map-support').install()
 
 const assert = require('assert')
-const { scan_jsy } = require('jsy-transpile/cjs/scan_jsy')
-const { transpile_jsy } = require('jsy-transpile/cjs/transpile_jsy')
+const { transpile_jsy, scan_jsy } = require('jsy-transpile/cjs/all')
 const { SourceMapGenerator } = require('source-map')
 
 describe @ 'JSY Scanner', @=> ::

@@ -84,7 +84,10 @@ const transpile_visitor = @{}
 
   stack_push(op, p) ::
     const {len_indent, loc} = p
-    const head = @{} __proto__: this.head, op, len_indent, loc
+    const head = @{} __proto__: this.head
+      op, len_indent, loc
+      nestInner: op.nestInner
+
     if op.in_kw_block ::
       head.in_kw_block = true
       head.kw_block_indent = len_indent
@@ -124,12 +127,12 @@ const transpile_visitor = @{}
 
     const line = this.cur_ln.loc.start.line
     const t = this.head.tail
-      .filter @ e => e.loc && line === e.loc.start.line
+      .filter @ t => t.loc && line === t.loc.start.line
       .pop()
 
     if undefined === t :: return
 
-    while t !== this.head ::
+    while t !== this.head && this.head.nestInner ::
       this.stack_pop()
 
   v$offside_dedent(p) ::
