@@ -1,17 +1,19 @@
 import { at_offside_map, kw_jsy_op  } from './jsy_operators.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
+
 export default transpile_jsy
 export const jsy_transpile = transpile_jsy
 export function transpile_jsy(jsy_ast, feedback) ::
+  if ! feedback :: feedback = {}
   if 'string' === typeof jsy_ast ::
     jsy_ast = scan_jsy(jsy_ast, feedback)
 
   const visitor = @{} __proto__: transpile_visitor
 
-  if feedback && feedback.sourcemap ::
+  if feedback.addSourceMapping ::
     Object.defineProperties @ visitor, @{}
-      src_map_gen: @{} value: new feedback.sourcemap.SourceMapGenerator()
+      addSourceMapping: @{} value: feedback.addSourceMapping
 
   const lines = []
   visitor.start()
@@ -20,49 +22,62 @@ export function transpile_jsy(jsy_ast, feedback) ::
     //debug_ln @ ln
     visitor.start_line(ln)
     if ! ln.is_blank ::
-      perform_part(ln.indent)
-      for const part of ln.content ::
-        perform_part(part)
+      visitor.v$offside_indent(ln.indent)
 
-    add_line @ visitor.finish_line(ln)
+      for const part of ln.content ::
+        const key = `v$${part.type}`
+        visitor[key] @ part
+
+    lines.push @ visitor.finish_line(ln).join('')
 
   visitor.finish()
 
+  if feedback.inlineSourceMap ::
+    const srcmap = feedback.inlineSourceMap()
+    if srcmap ::
+      lines.push @ sourceMapAsComment @ srcmap
+
   return lines.join('\n')
 
-  function add_line(src_parts) ::
-    lines.push @ src_parts.join('')
     
-  function perform_part(part) ::
-    const key = `v$${part.type}`
-    visitor[key] @ part
-
-
 function debug_ln(ln) ::
   if ln.is_blank :: return
   console.log()
   console.dir @ ln.raw.line
   console.dir @: types: ln.content.map @ e => e.type
 
+
+
 const root_head = Object.freeze @: __proto__: null
 
 const transpile_visitor = @{}
   __proto__: null
   start() ::
+    this.lineno = 0
     this.head = root_head
-
-  start_line(ln) ::
-    this.cur_ln = ln
-    this.cur = []
-
-  finish_line(ln) ::
-    const line_src = this.cur
-    this.cur = this.cur_ln = null
-    return line_src
 
   finish() ::
     if root_head !== this.head ::
       throw new Error @ 'Excess stack at finish'
+
+  start_line(ln) ::
+    this.lineno ++
+    this.cur_ln = ln
+    this._cur = []
+
+  finish_line(ln) ::
+    const line_src = this._cur
+    this._cur = this.cur_ln = null
+    return line_src
+
+  emit(src, loc_start) ::
+    if loc_start && this.addSourceMapping ::
+      const column = this._cur.join('').length
+      this.addSourceMapping @:
+        generated: @{} line: this.lineno, column
+        original: @{} line: loc_start.line, column: loc_start.column
+
+    this._cur.push @ src
 
   stack_push(op, p) ::
     const {len_indent, loc} = p
@@ -73,13 +88,13 @@ const transpile_visitor = @{}
 
     head.tail = [this.head].concat(head.tail || [])
     if head.op.pre ::
-      this.cur.push @ head.op.pre
+      this.emit @ head.op.pre
     return this.head = head
 
   stack_pop() ::
     const head = this.head
     if head.op.post ::
-      this.cur.push @ head.op.post
+      this.emit @ head.op.post
     return this.head = head.tail[0]
 
 
@@ -122,17 +137,27 @@ const transpile_visitor = @{}
       this.stack_pop()
 
 
-  v$offside_indent(p) ::
-    this.cur.push @ p.indent
+  v$offside_indent(p) :: this.emit @ p.indent
+
+  v$src: direct_srcmap
+  v$str_single: direct_srcmap
+  v$str_double: direct_srcmap
+  v$str_multi: direct_srcmap
+  v$comment_eol: direct_noloc
+  v$comment_multi: direct_noloc
+
+function direct_srcmap(p) :: this.emit @ p.content, p.loc.start
+function direct_noloc(p) :: this.emit @ p.content
 
 
-  v$src: direct
-  v$str_single: direct
-  v$str_double: direct
-  v$str_multi: direct
-  v$comment_eol: direct
-  v$comment_multi: direct
-  direct
 
-function direct(p) ::
-  this.cur.push @ p.content
+export function sourceMapAsComment(srcmap_json) ::
+  if 'string' !== typeof srcmap_json ::
+    srcmap_json = JSON.stringify(srcmap_json)
+
+  const b64 = 'undefined' !== typeof Buffer
+    ? Buffer.from(srcmap_json).toString('base64')
+    : window.btoa @ unescape @ encodeURIComponent @ srcmap_json
+
+  return `//# sourceMappingURL=data:application/json;charset=utf-8;base64,${b64}`
+
