@@ -4,17 +4,23 @@ import scan_javascript from './scanner/scan_javascript.jsy'
 
 export default scan_jsy
 export function scan_jsy(source, feedback) ::
-  const offside_ast = scan_javascript(source, feedback)
-  const w = offside_ast.walk_offside()
+  const jsy_ast = scan_javascript(source, feedback)
+  const w = jsy_ast.walk_offside()
   w.inject_dedent @# 'comment_eol'
 
-  for const ln of offside_ast ::
+  for const ln of jsy_ast ::
     if ln.is_blank :: continue
 
     const parts = transform_jsy_ops(ln.content, ln)
     ln.content = parts
 
-  return offside_ast
+    const idx_dedent = parts.findIndex @ p => 'offside_dedent' === p.type
+    const last = parts[idx_dedent - 1]
+    if undefined !== last && 'jsy_op' === last.type ::
+      parts[idx_dedent].ends_with_jsy_op = true
+      last.ending_jsy_op = true
+
+  return jsy_ast
 
 
 
@@ -23,15 +29,15 @@ function transform_jsy_ops(parts, ln) ::
 
   for let p, i=0; undefined !== (p = parts[i]) ; i++ ::
     if 'src' === p.type ::
-      transform_jsy_part(res, p)
+      transform_jsy_part(res, p, ln)
     else res.push(p)
 
-  transform_jsy_keyword(res, res[0])
+  transform_jsy_keyword(res, res[0], ln)
   return res
 
 
 
-function transform_jsy_keyword(res, first) ::
+function transform_jsy_keyword(res, first, ln) ::
   rx_keyword_ops.lastIndex = 0
   const kw_match = rx_keyword_ops.exec(first.content)
   if ! kw_match :: return res
@@ -44,6 +50,7 @@ function transform_jsy_keyword(res, first) ::
   const kw_node = @{}
     type: 'jsy_kw', kw
     loc: @{} start: kw_end, end: kw_end
+    len_indent: ln.len_indent
 
   const rest = kw_match.input.slice(rx_keyword_ops.lastIndex)
   const post_node = as_src_ast @ rest, kw_end, first.loc.end
@@ -53,7 +60,7 @@ function transform_jsy_keyword(res, first) ::
 
 
 
-function transform_jsy_part(res, part) ::
+function transform_jsy_part(res, part, ln) ::
   rx_offside_ops.lastIndex = 0
 
   let loc_tip = part.loc.start
@@ -74,10 +81,13 @@ function transform_jsy_part(res, part) ::
       res.push @:
         type: 'jsy_op', op
         loc: @{} start, end
+        len_indent: ln.len_indent
         content: op_match[0]
 
     else ::
       const rest = part.content.slice(idx0)
-      const end = loc_tip = loc_tip.move(rest)
-      res.push @ as_src_ast @ rest, start, end
+      if rest ::
+        const end = loc_tip = loc_tip.move(rest)
+        res.push @ as_src_ast @ rest, start, end
+
       return res

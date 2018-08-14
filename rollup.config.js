@@ -31,6 +31,7 @@ const direct = [
   'scanner/scan_clike',
   'scanner/scan_javascript',
   'scan_jsy',
+  'transpile_jsy',
 ].forEach(add_jsy)
 
 

@@ -1,6 +1,7 @@
 require('source-map-support').install()
 const assert = require('assert')
 const {scan_jsy} = require('jsy-transpile/dist/scan_jsy')
+const {transpile_jsy} = require('jsy-transpile/dist/transpile_jsy')
 
 describe @ 'JSY Scanner', @=> ::
   let offside_ast
@@ -13,17 +14,17 @@ describe @ 'JSY Scanner', @=> ::
         constructor( credentials ) ::
           const apiCall = async ( pathName, body ) => ::
             const res = await fetch @ \`$\{apiUrl}/$\{pathName}\`, @{}
-              method: 'POST'
-              headers: @{}
+                method: 'POST'
+              , headers: @{}
                 'Content-Type': 'application/json'
-              body: JSON.stringify @ body
+              , body: JSON.stringify @ body
 
             return await res.json()
             
           Object.assign @ this, @{}
-            add: data => apiCall @ 'add', data
-            modify: data => apiCall @ 'send', data
-            retrieve: data => apiCall @ 'get', data
+              add: data => apiCall @ 'add', data
+            , modify: data => apiCall @ 'send', data
+            , retrieve: data => apiCall @ 'get', data
 
         compare(a,b) ::
           if a > b ::
@@ -53,4 +54,8 @@ describe @ 'JSY Scanner', @=> ::
         if !part.loc || !part.content :: continue
 
         assert.equal @ part.content, to_source(part)
+
+  it @ 'transpiles', @=> ::
+    const js_src = transpile_jsy @ offside_ast
+    new Function(js_src)
 
