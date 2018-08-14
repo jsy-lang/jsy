@@ -1,4 +1,4 @@
-import { rx_offside_ops, rx_keyword_ops } from './jsy_operators_regexp.jsy'
+import { rx_offside_ops, rx_keyword_ops } from './jsy_regexp.jsy'
 import { as_src_ast } from './scanner/common.jsy'
 import scan_javascript from './scanner/scan_javascript.jsy'
 
