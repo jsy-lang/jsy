@@ -1,24 +1,29 @@
 require('source-map-support').install()
 
 const {genMochaSyntaxTestCases, standardTransforms} = require('./_xform_syntax_variations')
-describe.skip @ 'Complex Multiline Statements',
+describe @ 'Complex Multiline Statements',
   genMochaSyntaxTestCases @ iterSyntaxVariations, standardTransforms
 
 
 function * iterSyntaxVariations() ::
-  yield @{} expectSyntaxError: true
+  yield * iterExpectedSyntaxErrors()
+  yield * iterBlockStatements()
+
+function * iterExpectedSyntaxErrors() ::
+  yield @{} expectSyntaxError: true, skip: true
       title: 'silent mixed block indentation should throw a SyntaxError'
       source: @[] 'if (cond)'
                   '  firstStatement'
                   '  secondStatement'
 
-  yield @{} expectSyntaxError: true
+  yield @{} expectSyntaxError: true, skip: true
       title: 'mixed block indentation should throw a SyntaxError'
       source: @[] 'if cond ::'
                   '  firstStatement'
                   '    secondStatement'
                   '  thirdStatement'
 
+function * iterBlockStatements() ::
   yield @{} expectValid: true
       title: 'chained statements in a block should work'
       source: @[] 'if cond ::'
@@ -107,3 +112,4 @@ function * iterSyntaxVariations() ::
                   '    ; i++ ::'
                   '  blockStatement'
       tokens: @[] 'for', '(', 'let', 'name', '=', 'name', '(', 'name', ',', 'name', ')', ';', 'name', '(', 'name', ',', 'name', ')', ';', 'name', '++/--', ')', '{', 'name', '}'
+

@@ -16,12 +16,12 @@ export const rx_keyword_ops = new RegExp @
 
 const rx_escape_offside_ops = /[@:.\/\\\(\)\{\}\[\]]/g ;
 const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
-const re_space_suffix = /(?:$|[ \t]+)/.source ; // spaces or end of line
+const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
 
 const regexp_from_offside_op = offside_op => ::
   let sz = offside_op.jsy_op
   // escape Offside operator chars to RegExp
-  sz.replace @ rx_escape_offside_ops, '\\$&'
+  sz = sz.replace @ rx_escape_offside_ops, '\\$&'
   // surrounded by newlines or spacees
   sz = re_space_prefix + sz + re_space_suffix
   return `(?:${sz})` // using a non-matching group

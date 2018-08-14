@@ -177,24 +177,24 @@ function * iterArrowCalls() ::
     title: 'call arrow with multiple line paren expression'
     source: @[]
       'fn_target @=> @'
-      '  value'
-      '  second'
+      '    value'
+      '  , second'
     tokens: @[] 'name', '(', '(', ')', '=>', '(', 'name', ',', 'name', ')', ')'
 
   yield @{} expectValid: true
     title: 'call arrow with multiple line hash expression'
     source: @[]
       'fn_target @=> @:'
-      '  value'
-      '  second'
+      '    value'
+      '  , second'
     tokens: @[] 'name', '(', '(', ')', '=>', '(', '{', 'name', ',', 'name', '}', ')', ')'
 
   yield @{} expectValid: true
     title: 'call arrow with multiple line array expression'
     source: @[]
       'fn_target @=> @#'
-      '  value'
-      '  second'
+      '    value'
+      '  , second'
     tokens: @[] 'name', '(', '(', ')', '=>', '(', '[', 'name', ',', 'name', ']', ')', ')'
 
 
@@ -238,23 +238,23 @@ function * iterArrowAsyncCalls() ::
     title: 'call async arrow with multiple line paren expression'
     source: @[]
       'fn_target @=>> @'
-      '  value'
-      '  second'
+      '    value'
+      '  , second'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '(', 'name', ',', 'name', ')', ')'
 
   yield @{} expectValid: true
     title: 'call async arrow with multiple line hash expression'
     source: @[]
       'fn_target @=>> @:'
-      '  value'
-      '  second'
+      '    value'
+      '  , second'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '(', '{', 'name', ',', 'name', '}', ')', ')'
 
   yield @{} expectValid: true
     title: 'call async arrow with multiple line array expression'
     source: @[]
       'fn_target @=>> @#'
-      '  value'
-      '  second'
+      '    value'
+      '  , second'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '(', '[', 'name', ',', 'name', ']', ')', ')'
 

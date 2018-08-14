@@ -1,4 +1,4 @@
-import { at_offside_map, kw_jsy_op, kwex_jsy_op  } from './jsy_operators.jsy'
+import { at_offside_map, kw_jsy_op  } from './jsy_operators.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
 export default transpile_jsy
@@ -40,6 +40,8 @@ export function transpile_jsy(jsy_ast, feedback) ::
 
 function debug_ln(ln) ::
   if ln.is_blank :: return
+  console.log()
+  console.dir @ ln.raw.line
   console.dir @: types: ln.content.map @ e => e.type
 
 const root_head = Object.freeze @: __proto__: null
@@ -67,6 +69,7 @@ const transpile_visitor = @{}
     const head = @{} __proto__: this.head, op, len_indent, loc
     if op.in_kw_block ::
       head.in_kw_block = true
+      head.kw_block_indent = len_indent
 
     head.tail = [this.head].concat(head.tail || [])
     if head.op.pre ::
@@ -81,13 +84,17 @@ const transpile_visitor = @{}
 
 
   v$jsy_kw(p) ::
-    const kw_op = p.explicit ? kwex_jsy_op : kw_jsy_op
+    const kw_op = p.explicit
+      ? kw_jsy_op.explicit
+      : kw_jsy_op.normal
+
     this.stack_push @ kw_op, p
 
   v$jsy_op(p) ::
     const jsy_op = at_offside_map[p.op]
 
-    if jsy_op.is_kw_close ::
+    if jsy_op.is_kw_close && this.head.in_kw_block ::
+      p.len_indent = this.head.kw_block_indent
       while this.head.in_kw_block ::
         this.stack_pop()
 

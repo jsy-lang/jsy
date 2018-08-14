@@ -15,10 +15,10 @@ function * iterBugWithBlankFirstLine() ::
     title: 'Filled first line of block '
     source: @[]
       'const a = @{}'
-      '  v1: 1'
-      '  v2: \'two\''
+      '    v1: 1'
+      '  , v2: \'two\''
       ''
-      '  v3: null'
+      '  , v3: null'
     tokens: @[] 'const', 'name', '=', '{', 'name', ':', 'num', ',', 'name', ':', 'string', ',', 'name', ':', 'null', '}'
 
   yield @{} expectValid: true
@@ -26,9 +26,9 @@ function * iterBugWithBlankFirstLine() ::
     source: @[]
       'const a = @{}'
       ''
-      '  v1: 1'
-      '  v2: \'two\''
+      '    v1: 1'
+      '  , v2: \'two\''
       ''
-      '  v3: null'
+      '  , v3: null'
     tokens: @[] 'const', 'name', '=', '{', 'name', ':', 'num', ',', 'name', ':', 'string', ',', 'name', ':', 'null', '}'
 

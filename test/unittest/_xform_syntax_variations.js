@@ -47,7 +47,8 @@ function genMochaSyntaxTestCases(iterSyntaxVariations, transformVariations) ::
   return @=> ::
     describe @ 'Basic', @=> genSyntaxTestCases @ it, iterSyntaxVariations()
 
-    if false && transformVariations ::
+    //if false && transformVariations ::
+    if transformVariations ::
       for const [name, xform] of Object.entries @ transformVariations ::
         describe @ name, @=> genSyntaxTestCases @ it, xform @ iterSyntaxVariations()
 
@@ -63,6 +64,8 @@ function genSyntaxTestCases(it, iterable_test_cases) ::
 
     if (testCase.only) ::
       it.only @ title, testFn
+    else if (testCase.skip) ::
+      it.skip @ title, testFn
     else if (testCase.todo) ::
       it.todo @ title, testFn
     else ::

@@ -61,14 +61,11 @@ describe @ 'JSY Scanner', @=> ::
 
   it.skip @ 'one-off', @=> ::
     const js_src = transpile_jsy @ `
-        try ::
-          blockStatement
-        catch @ err ::
-          blockStatement
-
-        try ::
-          second
-        catch err ::
-          third
+      const outer_arrow = () => ::
+        const ans = test
+          ? @[] first
+             , first_part_b
+          : @[] second
+             , second_part_b
       `
     console.dir @ js_src.split(/\r?\n/)
