@@ -24,6 +24,7 @@ export function transpile_jsy(jsy_ast, feedback) ::
   for const ln of jsy_ast ::
     if ln.is_blank ::
       visitor.blank_line(ln)
+      lines.push @ ''
       continue
 
     //debug_ln @ ln
@@ -41,7 +42,7 @@ export function transpile_jsy(jsy_ast, feedback) ::
   if feedback.inlineSourceMap ::
     const srcmap = feedback.inlineSourceMap()
     if srcmap ::
-      lines.push @ sourcemap_comment @ srcmap
+      lines.push @ '', sourcemap_comment @ srcmap
 
   return lines.join('\n')
 
