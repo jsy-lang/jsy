@@ -40,11 +40,6 @@ describe @ 'JSY Scanner', @=> ::
             console.log @ q.pop()
       `
 
-  it @ 'has debugging support', @=> ::
-    const walk = offside_ast.walk_offside()
-    const lines = walk.toString().split('\n')
-    assert.equal @ lines.length, 31
-
   it @ 'can self-verify locations match original source', @=> ::
     const to_source = node => node.loc.start.slice @ node.loc.end
     for const ln of offside_ast ::

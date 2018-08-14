@@ -3,7 +3,6 @@ const assert = require('assert')
 const {scan_javascript} = require('jsy-transpile/cjs/scanner/scan_javascript')
 
 describe @ 'Scanners', @=> ::
-  describe @ 'Walk Offside', @=> ::
     let offside_ast
     beforeEach @=> ::
       // source from https://github.com/shanewholloway/js-consistent-fnvxor32/blob/d2554377c4a540258f93f2958d4259c1f4f03ff9/code/fnvxor32.jsy on 2018-08-09
@@ -19,11 +18,6 @@ describe @ 'Scanners', @=> ::
         `.replace(/^\s*\r?\n/, '') // trim off the first newline for test stability
 
 
-    it @ 'has debugging support', @=> ::
-      const walk = offside_ast.walk_offside()
-      const lines = walk.toString().split('\n')
-      assert.equal @ lines.length, 9
-
     it @ 'can self-verify locations match original source', @=> ::
       const to_source = node => node.loc.start.slice @ node.loc.end
       for const ln of offside_ast ::
@@ -32,18 +26,6 @@ describe @ 'Scanners', @=> ::
         assert.equal @ ln.indent.indent, to_source(ln.indent)
         for const part of ln.content ::
           assert.equal @ part.content, to_source(part)
-
-    it @ 'can walk a tree of offside indents', @=> ::
-      const walk = offside_ast.walk_offside()
-      const tree = walk.tree @ w => w.ln_tip.raw.content
-      assert.deepEqual @ tree, @[]
-        @[] 'export function hash_fnv32(sz) ::', @[]
-          @[] '// FNV32, from https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash'
-          @[] 'let h = 0x811C9DC5 // fnv-1a 32 bit initial value'
-          @[] 'for let i=0; i < sz.length; i++ ::', @[]
-            @[] 'h ^= sz.charCodeAt(i)'
-            @[] 'h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)'
-          @[] 'return h'
 
     it @ 'matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 0', offside_ast[0], @{}

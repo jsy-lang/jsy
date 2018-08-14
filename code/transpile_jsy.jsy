@@ -27,7 +27,6 @@ export function transpile_jsy(jsy_ast, feedback) ::
       lines.push @ ''
       continue
 
-    //debug_ln @ ln
     visitor.start_line(ln)
     visitor.v$offside_indent(ln.indent)
 
@@ -47,13 +46,6 @@ export function transpile_jsy(jsy_ast, feedback) ::
   return lines.join('\n')
 
     
-function debug_ln(ln) ::
-  if ln.is_blank :: return
-  console.log()
-  console.dir @ ln.raw.line
-  console.dir @: types: ln.content.map @ e => e.type
-
-
 
 const root_head = Object.freeze @: __proto__: null
 

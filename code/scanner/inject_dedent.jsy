@@ -1,0 +1,26 @@
+
+export default inject_dedent
+export function inject_dedent(offside_lines, trailing_types) ::
+  if 'function' !== typeof trailing_types ::
+    const s_trailing_types = new Set @
+      trailing_types || ['comment_eol']
+    trailing_types = k => s_trailing_types.has(k)
+
+  let len_dedent=0
+  for let i = offside_lines.length-1 ; i>=0 ; i-- ::
+    const ln = offside_lines[i]
+    if ln.is_blank :: continue
+
+    const len_indent = ln.len_indent
+    const offside_dedent = @{}
+      type: 'offside_dedent'
+      len_dedent, len_indent
+
+    len_dedent = ln.len_indent
+
+    const last = ln.content.pop()
+    if last.multiline || trailing_types(last.type) ::
+      ln.content.push @ offside_dedent, last
+    else ::
+      ln.content.push @ last, offside_dedent
+

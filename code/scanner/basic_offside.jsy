@@ -3,7 +3,6 @@ export const rx_indent = /^([ \t]*)(.*)$/ ;
 export const rx_mixed_indent = /[\t][ ]|[ ][\t]/ ;
 
 import createLoc from './_location.jsy'
-import walk_offside from './walk_offside.jsy'
 
 export default basic_offside_scanner
 export function basic_offside_scanner(source, feedback) ::
@@ -12,7 +11,6 @@ export function basic_offside_scanner(source, feedback) ::
       warn(msg, ...args) :: console.warn @ `[Offside Warning]:: ${msg}`, ...args
 
   const all_lines = []
-  all_lines.walk_offside = walk_offside
 
   const q_raw_lines = source.split(rx_lines)
   //const dbg_lines = q_raw_lines.filter @ ln => ! rx_lines.test(ln)

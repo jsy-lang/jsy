@@ -1,12 +1,12 @@
 import { rx_offside_ops, rx_keyword_ops } from './jsy_regexp.jsy'
 import { as_src_ast } from './scanner/common.jsy'
+import inject_dedent from './scanner/inject_dedent.jsy'
 import scan_javascript from './scanner/scan_javascript.jsy'
 
 export default scan_jsy
 export function scan_jsy(source, feedback) ::
   const jsy_ast = scan_javascript(source, feedback)
-  const w = jsy_ast.walk_offside()
-  w.inject_dedent @# 'comment_eol'
+  inject_dedent @ jsy_ast, @[] 'comment_eol'
 
   for const ln of jsy_ast ::
     if ln.is_blank :: continue
