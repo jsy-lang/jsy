@@ -22,9 +22,9 @@
   "bin": {
     "jsy-transpile": "test/transpile.js"
   },
-  "main": "dist/index.js",
-  "browser": "dist/jsy-transpile.umd.js",
-  "module": "dist/jsy-transpile.esm.js",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "browser": "umd/jsy-transpile.js",
   "dependencies": {},
   "devDependencies": {
     "acorn": "^5.7.1",
@@ -42,6 +42,7 @@
     ]
   },
   "scripts": {
+    "clean": "rm -rf cjs/ umd/ esm/",
     "build": "rollup --config",
     "watch": "npm -s run build -- --watch",
     "pretest": "npm -s run build",

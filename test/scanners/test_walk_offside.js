@@ -1,6 +1,6 @@
 require('source-map-support').install()
 const assert = require('assert')
-const {scan_javascript} = require('jsy-transpile/dist/scanner/scan_javascript')
+const {scan_javascript} = require('jsy-transpile/cjs/scanner/scan_javascript')
 
 describe @ 'Scanners', @=> ::
   describe @ 'Walk Offside', @=> ::

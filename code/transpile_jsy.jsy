@@ -2,6 +2,9 @@ import { at_offside_map, kw_jsy_op  } from './jsy_operators.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
 
+transpile_jsy.transpile_jsy = transpile_jsy
+transpile_jsy.jsy_transpile = transpile_jsy
+
 export default transpile_jsy
 export const jsy_transpile = transpile_jsy
 export function transpile_jsy(jsy_ast, feedback) ::
@@ -35,7 +38,7 @@ export function transpile_jsy(jsy_ast, feedback) ::
   if feedback.inlineSourceMap ::
     const srcmap = feedback.inlineSourceMap()
     if srcmap ::
-      lines.push @ sourceMapAsComment @ srcmap
+      lines.push @ sourcemap_comment @ srcmap
 
   return lines.join('\n')
 
@@ -151,7 +154,7 @@ function direct_noloc(p) :: this.emit @ p.content
 
 
 
-export function sourceMapAsComment(srcmap_json) ::
+export function sourcemap_comment(srcmap_json) ::
   if 'string' !== typeof srcmap_json ::
     srcmap_json = JSON.stringify(srcmap_json)
 

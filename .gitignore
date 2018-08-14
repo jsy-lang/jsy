@@ -1,6 +1,7 @@
 syntax: glob
-*.md
+cjs/
+umd/
+esm/
 *.map
 package-lock.json
 test/examples
-dist/scanner/

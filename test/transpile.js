@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs').promises
-const {transpile_jsy} = require('../dist/transpile_jsy')
+const {transpile_jsy} = require('jsy-transpile')
 const {SourceMapGenerator} = require('source-map')
 
 async function main(filename) {
