@@ -71,19 +71,9 @@ describe @ 'JSY Scanner', @=> ::
       addSourceMapping(arg) ::
         arg.source = source
         sourcemap.addMapping(arg)
-      inlineSourceMapping() ::
+      inlineSourceMap() ::
         return sourcemap.toString()
 
     const rx_sourcemap = /^\/\/# sourceMappingURL=/m ;
     assert.ok @ rx_sourcemap.test(js_src)
 
-  it.skip @ 'one-off', @=> ::
-    const js_src = transpile_jsy @ `
-      const outer_arrow = () => ::
-        const ans = test
-          ? @[] first
-             , first_part_b
-          : @[] second
-             , second_part_b
-      `
-    console.dir @ js_src.split(/\r?\n/)
