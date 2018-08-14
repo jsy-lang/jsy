@@ -9,6 +9,38 @@ describe @ 'Previous Syntax Bugs',
 
 function * iterSyntaxVariations() ::
   yield * iterBugWithBlankFirstLine()
+  yield * iterBugWithOptionalCommas()
+
+
+function * iterBugWithOptionalCommas() ::
+  yield @{} expectValid: true
+    title: 'Msg-Fabric plugin/web problem with optional commas'
+    source: @[]
+      'websock.addEventListener @ "open"'
+      '  () => resolve()'
+      '  @{} passive: true, once: true'
+    
+    tokens: @[] 'name', '.', 'name', '(', 'string', ',', '(', ')', '=>', 'name', '(', ')', ',', '{', 'name', ':', 'true', ',', 'name', ':', 'true', '}', ')'
+
+  yield @{} expectValid: true
+    title: 'Msg-Fabric plugin/web problem with optional commas'
+    source: @[]
+      'websock.addEventListener @ "open"'
+      '  (() => resolve())'
+      '  @{} passive: true, once: true'
+    
+    tokens: @[] 'name', '.', 'name', '(', 'string', ',', '(', '(', ')', '=>', 'name', '(', ')', ')', ',', '{', 'name', ':', 'true', ',', 'name', ':', 'true', '}', ')'
+
+
+  yield @{} expectValid: true
+    title: 'Msg-Fabric plugin/web problem with optional commas'
+    source: @[]
+      'websock.addEventListener @ "open"'
+      '  @=> resolve()'
+      '  @{} passive: true, once: true'
+    
+    tokens: @[] 'name', '.', 'name', '(', 'string', ',', '(', '(', ')', '=>', 'name', '(', ')', ')', ',', '{', 'name', ':', 'true', ',', 'name', ':', 'true', '}', ')'
+
 
 function * iterBugWithBlankFirstLine() ::
   yield @{} expectValid: true

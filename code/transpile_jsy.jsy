@@ -1,4 +1,5 @@
 import { at_offside_map, kw_jsy_op  } from './jsy_operators.jsy'
+import checkOptionalComma from './optional_comma.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
 
@@ -69,7 +70,6 @@ const transpile_visitor = @{}
 
   finish_line(ln) ::
     let line_src = this._cur
-    this._cur = this.cur_ln = null
     if 'function' === typeof line_src.finish_commas ::
       line_src = line_src.finish_commas(line_src)
 
@@ -105,23 +105,27 @@ const transpile_visitor = @{}
       cur.push @ indent
       return
 
-    cur.push @ indent || ' '
-
     comma_body.splice @ 0, comma_body.length,
       comma_body.join('').trimLeft()
+
+    if comma_body.len_inner != this.cur_ln.len_indent ::
+      cur.push @ indent
+      return
+
+    cur.push @ indent || ' '
 
     cur.finish_commas = cur => ::
       const pre = comma_body[0]
       if ! pre :: return cur
 
       const post = comma_body.slice(1).join('')
-      const opt_comma = this.checkOptionalCommaSyntax @ comma_body.op, pre, post
+      const opt_comma = this.checkOptionalComma @ comma_body.op, pre, post
       if opt_comma ::
         cur[0] = cur[0].replace(/\s$/, ',')
         comma_body.shift()
       return cur
 
-  checkOptionalCommaSyntax
+  checkOptionalComma
 
   stack_push(op, p) ::
     const {len_indent, loc} = p
@@ -130,9 +134,9 @@ const transpile_visitor = @{}
       nestInner: op.nestInner
 
     if op.implicitCommas ::
-      head.comma_body = []
-      head.comma_body.op = op
-    else head.comma_body = undefined
+      const comma_body = head.comma_body = []
+      comma_body.op = op
+      comma_body.len_inner = this.cur_ln.len_inner
 
     if op.in_kw_block ::
       head.in_kw_block = true
@@ -204,29 +208,6 @@ const transpile_visitor = @{}
 
 function direct_src(p) :: this.emit @ p.content, p.loc.start
 
-
-const rx_comma_tail = /[,.;:]\s*$/ ;
-const rx_comma_head = /^\s*[,.;:]/ ;
-const rx_dangling = /([\{\[\(])\s*$|(=>)\s*$/ ;
-const dangling_pair = {'{':'}', '(':')', '[':']', '=>': 'null'}
-function checkOptionalCommaSyntax(op, pre_body, post_body) ::
-  if rx_comma_tail.test(pre_body) :: return false
-  if rx_comma_head.test(post_body) :: return false
-
-  let dangling = rx_dangling.exec(post_body) ;
-  if dangling ::
-    dangling = [].filter.call(dangling, Boolean)
-    post_body += dangling_pair[dangling[1]]
-
-  return checkSyntax @ `${op.pre} ${pre_body} , ${post_body} ${op.post}`
-
-function checkSyntax(expr) ::
-  // use built-in Function from source to check syntax
-  try ::
-    new Function @ `return ${expr}`
-    return true
-  catch err ::
-    return false
 
 
 export function sourcemap_comment(srcmap_json) ::

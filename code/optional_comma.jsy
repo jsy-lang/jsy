@@ -1,0 +1,46 @@
+
+// From babel-plugin-offside-js
+//     const tt_offside_disrupt_implicit_comma = new Set @#
+//       tt.comma, tt.dot, tt.arrow, tt.colon, tt.semi, tt.question
+//
+
+const rx_disrupt_comma_tail = /[,.;:?]\s*$|=>\s*$/ ;
+const rx_disrupt_comma_head = /^\s*[,.;:?]/ ;
+const rx_dangling = /([\{\[\(])\s*$|(=>)\s*$/ ;
+const dangling_pair = {'{':'}', '(':')', '[':']', '=>': 'null'}
+
+export default checkOptionalComma
+export function checkOptionalComma(op, pre_body, post_body) ::
+  let dbg
+  if post_body.includes @ 'dispatch' ::
+    dbg = true
+    console.log @# op, pre_body.split(/\r?\n/), post_body.split(/\r?\n/)
+
+  if rx_disrupt_comma_tail.test(pre_body) ::
+    if dbg :: console.log @ '  COMMA TAIL'
+    return false
+  if rx_disrupt_comma_head.test(post_body) ::
+    if dbg :: console.log @ '  COMMA HEAD'
+    return false
+
+  let dangling = rx_dangling.exec(post_body) ;
+  if dangling ::
+    if dbg :: console.log @ '  DANGLING:', dangling[1]
+    dangling = [].filter.call(dangling, Boolean)
+    post_body += dangling_pair[dangling[1]]
+
+  const expr = `${op.pre} ${pre_body} , ${post_body} ${op.post}`
+  if dbg :: console.log @ '  EXPR:', expr.split(/\r?\n/)
+  const ans = checkSyntax @ expr
+  if dbg :: console.log @ '  ANS:', ans
+  return ans
+
+function checkSyntax(expr) ::
+  // use built-in Function from source to check syntax
+  try ::
+    new Function @ `return ${expr}`
+    return true
+  catch err ::
+    return false
+
+
