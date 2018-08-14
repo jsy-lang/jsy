@@ -50,8 +50,8 @@ function * iterCalls() ::
     title: 'simple call 2 args multiple lines'
     source: @[]
       'fn_target @'
-      '  one'
-      '  two'
+      '    one'
+      '  , two'
     tokens: @[] 'name', '(', 'name', ',', 'name', ')'
 
 
@@ -91,8 +91,8 @@ function * iterHashCalls() ::
     title: 'call with hash 2 args multiple lines'
     source: @[]
       'fn_target @:'
-      '  one'
-      '  two'
+      '    one'
+      '  , two'
     tokens: @[] 'name', '(', '{', 'name', ',', 'name', '}', ')'
 
 
@@ -132,8 +132,8 @@ function * iterArrayCalls() ::
     title: 'call with array 2 args multiple lines'
     source: @[]
       'fn_target @#'
-      '  one'
-      '  two'
+      '    one'
+      '  , two'
     tokens: @[] 'name', '(', '[', 'name', ',', 'name', ']', ')'
 
 

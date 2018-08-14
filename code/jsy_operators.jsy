@@ -27,6 +27,7 @@ export const at_offside_map = at_offside.reduce @
 
 
 export const kw_jsy_op = @{} jsy_op: 'kw', pre: '(', post: ')', in_kw_block: true
+export const kwex_jsy_op = @{} jsy_op: 'kw', pre: '', post: '', in_kw_block: true
 
 export const keywords_with_args = @[] 'if', 'while', 'for await', 'for', 'switch'
 export const keywords_locator_parts = [].concat @

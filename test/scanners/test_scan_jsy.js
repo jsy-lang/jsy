@@ -59,3 +59,16 @@ describe @ 'JSY Scanner', @=> ::
     const js_src = transpile_jsy @ offside_ast
     new Function(js_src)
 
+  it.skip @ 'one-off', @=> ::
+    const js_src = transpile_jsy @ `
+        try ::
+          blockStatement
+        catch @ err ::
+          blockStatement
+
+        try ::
+          second
+        catch err ::
+          third
+      `
+    console.dir @ js_src.split(/\r?\n/)

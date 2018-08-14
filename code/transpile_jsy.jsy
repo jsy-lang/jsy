@@ -1,7 +1,8 @@
-import { kw_jsy_op, at_offside_map } from './jsy_operators.jsy'
+import { at_offside_map, kw_jsy_op, kwex_jsy_op  } from './jsy_operators.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
 export default transpile_jsy
+export const jsy_transpile = transpile_jsy
 export function transpile_jsy(jsy_ast, feedback) ::
   if 'string' === typeof jsy_ast ::
     jsy_ast = scan_jsy(jsy_ast, feedback)
@@ -16,6 +17,7 @@ export function transpile_jsy(jsy_ast, feedback) ::
   visitor.start()
 
   for const ln of jsy_ast ::
+    //debug_ln @ ln
     visitor.start_line(ln)
     if ! ln.is_blank ::
       perform_part(ln.indent)
@@ -35,6 +37,10 @@ export function transpile_jsy(jsy_ast, feedback) ::
     const key = `v$${part.type}`
     visitor[key] @ part
 
+
+function debug_ln(ln) ::
+  if ln.is_blank :: return
+  console.dir @: types: ln.content.map @ e => e.type
 
 const root_head = Object.freeze @: __proto__: null
 
@@ -59,7 +65,9 @@ const transpile_visitor = @{}
   stack_push(op, p) ::
     const {len_indent, loc} = p
     const head = @{} __proto__: this.head, op, len_indent, loc
-    if op.in_kw_block :: head.in_kw_block = true
+    if op.in_kw_block ::
+      head.in_kw_block = true
+
     head.tail = [this.head].concat(head.tail || [])
     if head.op.pre ::
       this.cur.push @ head.op.pre
@@ -73,7 +81,8 @@ const transpile_visitor = @{}
 
 
   v$jsy_kw(p) ::
-    this.stack_push @ kw_jsy_op, p, true
+    const kw_op = p.explicit ? kwex_jsy_op : kw_jsy_op
+    this.stack_push @ kw_op, p
 
   v$jsy_op(p) ::
     const jsy_op = at_offside_map[p.op]

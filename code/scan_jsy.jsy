@@ -32,27 +32,35 @@ function transform_jsy_ops(parts, ln) ::
       transform_jsy_part(res, p, ln)
     else res.push(p)
 
-  transform_jsy_keyword(res, res[0], ln)
+  transform_jsy_keyword(res, ln)
   return res
 
 
 
-function transform_jsy_keyword(res, first, ln) ::
+function transform_jsy_keyword(res, ln) ::
+  const first = res[0]
+
   rx_keyword_ops.lastIndex = 0
   const kw_match = rx_keyword_ops.exec(first.content)
   if ! kw_match :: return res
+
+  const idx_last = rx_keyword_ops.lastIndex
+  const rest = kw_match.input.slice(idx_last)
+  if '(' === rest[0] ::
+    return res // explicit keyword arguments
 
   const kw_end = first.loc.start.move @ kw_match[0]
 
   const pre_node = as_src_ast @ kw_match[0], first.loc.start, kw_end
 
   const kw = kw_match[0].split(' ').filter(Boolean).join(' ')
+  const explicit = 0===rest.length && res[1] && 'jsy_op' === res[1].type && '@' === res[1].op
   const kw_node = @{}
-    type: 'jsy_kw', kw
+    type: 'jsy_kw', kw, 
     loc: @{} start: kw_end, end: kw_end
     len_indent: ln.len_indent
+    explicit
 
-  const rest = kw_match.input.slice(rx_keyword_ops.lastIndex)
   const post_node = as_src_ast @ rest, kw_end, first.loc.end
 
   res.splice @ 0,1, pre_node, kw_node, post_node

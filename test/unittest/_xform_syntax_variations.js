@@ -8,9 +8,9 @@ function testSyntaxError(testCase) ::
 
     let res = jsy_as_babel_ast @ testCase.source
 
-    if ('code' === testCase.debug) ::
+    if 'code' === testCase.debug ::
       console.dir @ res.code.split('\n'), @{} colors: true, depth: null
-    if ('ast' === testCase.debug) ::
+    if 'ast' === testCase.debug ::
       console.dir @ res.ast, @{} colors: true, depth: null
 
   assert.throws @ block, SyntaxError
@@ -18,7 +18,7 @@ function testSyntaxError(testCase) ::
 function testSourceTransform(testCase) ::
   let res
   try ::
-    if (testCase.debug) ::
+    if testCase.debug ::
       console.dir @ testCase.source, @{} colors: true, depth: null
 
     res = jsy_as_babel_ast @ testCase.source
@@ -26,12 +26,12 @@ function testSourceTransform(testCase) ::
     console.error @ err
     assert.fail @ err.message
 
-  if ('code' === testCase.debug) ::
+  if 'code' === testCase.debug ::
     console.dir @ res.code.split('\n'), @{} colors: true, depth: null
-  if ('ast' === testCase.debug) ::
+  if 'ast' === testCase.debug ::
     console.dir @ res.ast, @{} colors: true, depth: null
 
-  if (testCase.tokens) ::
+  if testCase.tokens ::
     const tokens = res.ast.tokens
       .map @ token => token.type.label
     assert.deepEqual @ tokens.pop(), 'eof'

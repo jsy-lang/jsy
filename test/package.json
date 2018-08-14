@@ -4,6 +4,8 @@
     "jsy-transpile": "file:.."
   },
   "devDependencies": {
+    "babel-plugin-syntax-async-generators": "^6.13.0",
+    "babel-preset-env": "^1.7.0",
     "chokidar-cli": "^1.2.0",
     "mocha": "^5.2.0"
   },
@@ -13,8 +15,8 @@
     ]
   },
   "config": {
-    "unittest_roots": "./scanners",
-    "oow_unittest_roots": "./scanners ./unittest"
+    "oow_unittest_roots": "./scanners",
+    "unittest_roots": "./scanners ./unittest"
   },
   "scripts": {
     "env": "env",

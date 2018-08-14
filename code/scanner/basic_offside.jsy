@@ -36,7 +36,7 @@ export function basic_offside_scanner(source, feedback) ::
 
     const is_mixed = rx_mixed_indent.test(match[1])
     if is_mixed ::
-      feedback.warn @ `Mixed tab and space indent (${loc_indent})`, 
+      throw new SyntaxError @ `Mixed tab and space indent (${loc_indent})`, 
 
     const raw = @{}
       line: src_line

@@ -4,8 +4,8 @@ const regexp_keyword = sz => ::
   sz = sz.replace(/[ ]+/g, '[ ]+') // allow one or more spaces
   return `(?:${sz})` // using a non-matching group
 
-const re_keyword_space_prefix = /^([ \t]*)/.source ; // start of line and indent
-const re_keyword_trailer = /(?:[ \t]+(?=[^(]|$))/.source ; // not followed by () expr
+const re_keyword_space_prefix = /^(?:[ \t]*)/.source ; // start of line and indent
+const re_keyword_trailer = /(?:[ \t]*)/.source ;
 
 export const rx_keyword_ops = new RegExp @
   re_keyword_space_prefix
