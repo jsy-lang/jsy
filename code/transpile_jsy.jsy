@@ -79,6 +79,22 @@ const transpile_visitor = @{}
 
     return line_src
 
+  emit_raw(src) ::
+    this._cur.push @ src
+
+  emit(src, loc_start) ::
+    if loc_start && this.addSourceMapping ::
+      const column = this._cur.join('').length
+      this.addSourceMapping @:
+        generated: @{} line: this.lineno, column
+        original: @{} line: loc_start.line, column: loc_start.column
+
+    const comma_body = this.head.comma_body
+    if undefined !== comma_body ::
+      comma_body.push @ src
+
+    this._cur.push @ src
+
   emit_indent(indent) ::
     const cur = this._cur
     if 0 !== cur.length ::
@@ -106,19 +122,6 @@ const transpile_visitor = @{}
       return cur
 
   checkOptionalCommaSyntax
-
-  emit(src, loc_start) ::
-    if loc_start && this.addSourceMapping ::
-      const column = this._cur.join('').length
-      this.addSourceMapping @:
-        generated: @{} line: this.lineno, column
-        original: @{} line: loc_start.line, column: loc_start.column
-
-    const comma_body = this.head.comma_body
-    if undefined !== comma_body ::
-      comma_body.push @ src
-
-    this._cur.push @ src
 
   stack_push(op, p) ::
     const {len_indent, loc} = p
@@ -192,27 +195,28 @@ const transpile_visitor = @{}
   v$offside_indent(p) ::
     this.emit_indent @ p.indent
 
-  v$src: direct_srcmap
-  v$str_single: direct_srcmap
-  v$str_double: direct_srcmap
-  v$str_multi: direct_srcmap
-  v$comment_eol: direct_noloc
-  v$comment_multi: direct_noloc
+  v$src: direct_src
+  v$str_single: direct_src
+  v$str_double: direct_src
+  v$str_multi: direct_src
+  v$comment_eol(p) :: this.emit_raw @ p.content
+  v$comment_multi(p) :: this.emit_raw @ p.content
 
-function direct_srcmap(p) :: this.emit @ p.content, p.loc.start
-function direct_noloc(p) :: this.emit @ p.content
+function direct_src(p) :: this.emit @ p.content, p.loc.start
 
 
+const rx_comma_tail = /[,.;:]\s*$/ ;
+const rx_comma_head = /^\s*[,.;:]/ ;
 const rx_dangling = /([\{\[\(])\s*$|(=>)\s*$/ ;
 const dangling_pair = {'{':'}', '(':')', '[':']', '=>': 'null'}
 function checkOptionalCommaSyntax(op, pre_body, post_body) ::
+  if rx_comma_tail.test(pre_body) :: return false
+  if rx_comma_head.test(post_body) :: return false
+
   let dangling = rx_dangling.exec(post_body) ;
   if dangling ::
     dangling = [].filter.call(dangling, Boolean)
     post_body += dangling_pair[dangling[1]]
-
-  if checkSyntax @ `${op.pre} ${pre_body} ${post_body} ${op.post}` ::
-    return false
 
   return checkSyntax @ `${op.pre} ${pre_body} , ${post_body} ${op.post}`
 

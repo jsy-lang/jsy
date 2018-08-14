@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs').promises
-const {transpile_jsy} = require('jsy-transpile')
-const {SourceMapGenerator} = require('source-map')
+const { jsy_transpile } = require('jsy-transpile')
+const { SourceMapGenerator } = require('source-map')
 
 async function main(filename) {
   if (!filename) throw new Error('Expected filename')
@@ -11,7 +11,7 @@ async function main(filename) {
   const sourcemap = new SourceMapGenerator()
   //sourcemap.setSourceContent(filename, jsy_src)
 
-  const src = transpile_jsy(jsy_src, {
+  const src = jsy_transpile(jsy_src, {
     addSourceMapping(arg) {
       arg.source = filename
       sourcemap.addMapping(arg)
