@@ -22,14 +22,17 @@ export function transpile_jsy(jsy_ast, feedback) ::
   visitor.start()
 
   for const ln of jsy_ast ::
+    if ln.is_blank ::
+      visitor.blank_line(ln)
+      continue
+
     //debug_ln @ ln
     visitor.start_line(ln)
-    if ! ln.is_blank ::
-      visitor.v$offside_indent(ln.indent)
+    visitor.v$offside_indent(ln.indent)
 
-      for const part of ln.content ::
-        const key = `v$${part.type}`
-        visitor[key] @ part
+    for const part of ln.content ::
+      const key = `v$${part.type}`
+      visitor[key] @ part
 
     lines.push @ visitor.finish_line(ln).join('')
 
@@ -63,15 +66,53 @@ const transpile_visitor = @{}
     if root_head !== this.head ::
       throw new Error @ 'Excess stack at finish'
 
+  blank_line(ln) ::
+    this.lineno ++
+
   start_line(ln) ::
     this.lineno ++
     this.cur_ln = ln
     this._cur = []
 
   finish_line(ln) ::
-    const line_src = this._cur
+    let line_src = this._cur
     this._cur = this.cur_ln = null
+    if 'function' === typeof line_src.finish_commas ::
+      line_src = line_src.finish_commas(line_src)
+
+    const comma_body = this.head.comma_body
+    if undefined !== comma_body ::
+      comma_body.push @ '\n'
+
     return line_src
+
+  emit_indent(indent) ::
+    const cur = this._cur
+    if 0 !== cur.length ::
+      throw new Error @ `Indent must be first element of cur list`
+
+    const comma_body = this.head.comma_body
+    if undefined === comma_body ::
+      cur.push @ indent
+      return
+
+    cur.push @ indent || ' '
+
+    comma_body.splice @ 0, comma_body.length,
+      comma_body.join('').trimLeft()
+
+    cur.finish_commas = cur => ::
+      const pre = comma_body[0]
+      if ! pre :: return cur
+
+      const post = comma_body.slice(1).join('')
+      const opt_comma = this.checkOptionalCommaSyntax @ comma_body.op, pre, post
+      if opt_comma ::
+        cur[0] = cur[0].replace(/\s$/, ',')
+        comma_body.shift()
+      return cur
+
+  checkOptionalCommaSyntax
 
   emit(src, loc_start) ::
     if loc_start && this.addSourceMapping ::
@@ -79,6 +120,10 @@ const transpile_visitor = @{}
       this.addSourceMapping @:
         generated: @{} line: this.lineno, column
         original: @{} line: loc_start.line, column: loc_start.column
+
+    const comma_body = this.head.comma_body
+    if undefined !== comma_body ::
+      comma_body.push @ src
 
     this._cur.push @ src
 
@@ -88,20 +133,28 @@ const transpile_visitor = @{}
       op, len_indent, loc
       nestInner: op.nestInner
 
+    if op.implicitCommas ::
+      head.comma_body = []
+      head.comma_body.op = op
+    else head.comma_body = undefined
+
     if op.in_kw_block ::
       head.in_kw_block = true
       head.kw_block_indent = len_indent
 
     head.tail = [this.head].concat(head.tail || [])
-    if head.op.pre ::
-      this.emit @ head.op.pre
-    return this.head = head
+
+    const src = head.op.pre
+    if src :: this.emit @ src
+
+    this.head = head
 
   stack_pop() ::
     const head = this.head
-    if head.op.post ::
-      this.emit @ head.op.post
-    return this.head = head.tail[0]
+    this.head = head.tail[0]
+
+    const src = head.op.post
+    if src :: this.emit @ src
 
 
   v$jsy_kw(p) ::
@@ -143,7 +196,8 @@ const transpile_visitor = @{}
       this.stack_pop()
 
 
-  v$offside_indent(p) :: this.emit @ p.indent
+  v$offside_indent(p) ::
+    this.emit_indent @ p.indent
 
   v$src: direct_srcmap
   v$str_single: direct_srcmap
@@ -155,6 +209,27 @@ const transpile_visitor = @{}
 function direct_srcmap(p) :: this.emit @ p.content, p.loc.start
 function direct_noloc(p) :: this.emit @ p.content
 
+
+const rx_dangling = /([\{\[\(])\s*$|(=>)\s*$/ ;
+const dangling_pair = {'{':'}', '(':')', '[':']', '=>': 'null'}
+function checkOptionalCommaSyntax(op, pre_body, post_body) ::
+  let dangling = rx_dangling.exec(post_body) ;
+  if dangling ::
+    dangling = [].filter.call(dangling, Boolean)
+    post_body += dangling_pair[dangling[1]]
+
+  if checkSyntax @ `${op.pre} ${pre_body} ${post_body} ${op.post}` ::
+    return false
+
+  return checkSyntax @ `${op.pre} ${pre_body} , ${post_body} ${op.post}`
+
+function checkSyntax(expr) ::
+  // use built-in Function from source to check syntax
+  try ::
+    new Function @ `return ${expr}`
+    return true
+  catch err ::
+    return false
 
 
 export function sourcemap_comment(srcmap_json) ::

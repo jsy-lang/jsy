@@ -6,7 +6,7 @@ describe @ 'Complex Multiline Statements',
 
 
 function * iterSyntaxVariations() ::
-  yield * iterExpectedSyntaxErrors()
+  //yield * iterExpectedSyntaxErrors()
   yield * iterBlockStatements()
 
 function * iterExpectedSyntaxErrors() ::

@@ -1,9 +1,8 @@
 require('source-map-support').install()
 
 const {genMochaSyntaxTestCases, standardTransforms} = require('./_xform_syntax_variations')
-describe.skip @ 'Optional Commas',
+describe @ 'Optional Commas',
   genMochaSyntaxTestCases @ iterSyntaxVariations, standardTransforms
-
 
 
 
