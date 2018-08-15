@@ -203,6 +203,7 @@ const transpile_visitor = @{}
   v$str_single: direct_src
   v$str_double: direct_src
   v$str_multi: direct_src
+  v$regexp: direct_src
   v$comment_eol(p) :: this.emit_raw @ p.content
   v$comment_multi(p) :: this.emit_raw @ p.content
 

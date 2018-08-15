@@ -25,6 +25,5 @@ function rpi_bound_jsy_lite(config=default_config) {
           src_map.addMapping(arg)
         },
       })
-      console.log({res: res.split('\n')})
       return { code: res, map: src_map.toJSON() } },
 } }
