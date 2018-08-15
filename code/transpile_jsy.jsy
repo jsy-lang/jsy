@@ -133,10 +133,11 @@ const transpile_visitor = @{}
       op, len_indent, loc
       nestInner: op.nestInner
 
-    if op.implicitCommas ::
+    if true === op.implicitCommas ::
       const comma_body = head.comma_body = []
       comma_body.op = op
       comma_body.len_inner = this.cur_ln.len_inner
+    else head.comma_body = undefined
 
     if op.in_kw_block ::
       head.in_kw_block = true

@@ -45,32 +45,19 @@ const keywords_locator_parts = [].concat(
 
 const rx_disrupt_comma_tail = /[,.;:?]\s*$|=>\s*$/ ;
 const rx_disrupt_comma_head = /^\s*[,.;:?]/ ;
-const rx_dangling = /([\{\[\(])\s*$|(=>)\s*$/ ;
-const dangling_pair = {'{':'}', '(':')', '[':']', '=>': 'null'};
+
+const rx_last_bits = /[()\[\]{}]/ ;
 function checkOptionalComma(op, pre_body, post_body){
-  let dbg;
-  if( post_body.includes( 'dispatch')){
-    dbg = true;
-    console.log([ op, pre_body.split(/\r?\n/), post_body.split(/\r?\n/)]);}
+  const pre_end = pre_body.split(rx_last_bits).pop();
+  const post_start = post_body.split(rx_last_bits).shift();
 
-  if( rx_disrupt_comma_tail.test(pre_body)){
-    if( dbg){ console.log( '  COMMA TAIL');}
-    return false}
-  if( rx_disrupt_comma_head.test(post_body)){
-    if( dbg){ console.log( '  COMMA HEAD');}
-    return false}
+  if( rx_disrupt_comma_tail.test(pre_end)){ return false}
+  if( rx_disrupt_comma_head.test(post_start)){ return false}
 
-  let dangling = rx_dangling.exec(post_body) ;
-  if( dangling){
-    if( dbg){ console.log( '  DANGLING:', dangling[1]);}
-    dangling = [].filter.call(dangling, Boolean);
-    post_body += dangling_pair[dangling[1]];}
+  const a1 = checkSyntax( `${op.pre} ${pre_body} , post_body ${op.post}`);
+  const a2 = checkSyntax( `${op.pre} pre_body, ${post_body} ${op.post}`);
 
-  const expr = `${op.pre} ${pre_body} , ${post_body} ${op.post}`;
-  if( dbg){ console.log( '  EXPR:', expr.split(/\r?\n/));}
-  const ans = checkSyntax( expr);
-  if( dbg){ console.log( '  ANS:', ans);}
-  return ans}
+  return a1 || a2}
 
 function checkSyntax(expr){
   // use built-in Function from source to check syntax
@@ -679,10 +666,11 @@ const transpile_visitor ={
      ,op, len_indent, loc
      ,nestInner: op.nestInner};
 
-    if( op.implicitCommas){
+    if( true === op.implicitCommas){
       const comma_body = head.comma_body = [];
       comma_body.op = op;
       comma_body.len_inner = this.cur_ln.len_inner;}
+    else head.comma_body = undefined;
 
     if( op.in_kw_block){
       head.in_kw_block = true;
