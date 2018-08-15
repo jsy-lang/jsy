@@ -6,7 +6,7 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
-    "babel-plugin-offside-js": "^0.10.3",
+    "babel-plugin-offside-js": "^0.10.4",
     "babel-plugin-syntax-async-generators": "^6.13.0",
     "babel-preset-env": "^1.7.0",
     "chokidar-cli": "^1.2.0",

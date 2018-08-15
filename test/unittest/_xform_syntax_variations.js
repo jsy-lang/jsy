@@ -62,12 +62,12 @@ function genSyntaxTestCases(it, iterable_test_cases) ::
     else ::
       testFn = @=> testSourceTransform(testCase)
 
-    if (testCase.only) ::
-      it.only @ title, testFn
-    else if (testCase.skip) ::
+    if (testCase.skip) ::
       it.skip @ title, testFn
     else if (testCase.todo) ::
       it.todo @ title, testFn
+    else if (testCase.only) ::
+      it.only @ title, testFn
     else ::
       it @ title, testFn
 
@@ -85,6 +85,10 @@ function bindIterableTransform(title_suffix, prefix, postfix, options={}) ::
   return function * (iterable_test_cases) ::
     for (const testCase of iterable_test_cases) ::
       const title = `${testCase.title} WITHIN ${title_suffix}`
+
+      if 'string' === typeof testCase.source ::
+        testCase.source = [testCase.source]
+
       const source = [].concat @
         [prefix || '']
         testCase.source.map @ line => indent + line
