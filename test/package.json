@@ -6,16 +6,10 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
-    "babel-plugin-offside-js": "^0.10.4",
     "babel-plugin-syntax-async-generators": "^6.13.0",
-    "babel-preset-env": "^1.7.0",
     "chokidar-cli": "^1.2.0",
-    "mocha": "^5.2.0"
-  },
-  "babel": {
-    "plugins": [
-      "offside-js"
-    ]
+    "mocha": "^5.2.0",
+    "pirates": "^4.0.0"
   },
   "config": {
     "oow_unittest_roots": "./scanners",
@@ -24,9 +18,9 @@
   "scripts": {
     "pretest:one": "test -d ./node_modules || npm -s install",
     "test": "npm -s run test:one",
-    "test:one": "mocha --require babel-core/register $npm_package_config_unittest_roots",
-    "test:lean": "TEST_LEAN=true mocha --require babel-core/register $npm_package_config_unittest_roots",
-    "test:min": "TEST_LEAN=true mocha --reporter=min --require babel-core/register $npm_package_config_unittest_roots",
+    "test:one": "mocha --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
+    "test:lean": "TEST_LEAN=true mocha --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
+    "test:min": "TEST_LEAN=true mocha --reporter=min --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
     "watch": "chokidar --initial -t 10000 '../cjs/**' $npm_package_config_unittest_roots -c 'npm -s run test:min'"
   }
 }

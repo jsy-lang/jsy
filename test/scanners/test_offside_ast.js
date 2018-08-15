@@ -15,7 +15,8 @@ describe @ 'Scanners', @=> ::
             h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)
           return h
 
-        `.replace(/^\s*\r?\n/, '') // trim off the first newline for test stability
+        `
+        .replace(/^\s*\r?\n/, '') // trim off the first newline for test stability
 
 
     it @ 'can self-verify locations match original source', @=> ::
@@ -27,7 +28,7 @@ describe @ 'Scanners', @=> ::
         for const part of ln.content ::
           assert.equal @ part.content, to_source(part)
 
-    it @ 'matches this offside AST structure', @=> ::
+    it @ 'line 0 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 0', offside_ast[0], @{}
         type: 'offside_line'
         loc: @{} start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 41, line_pos: 0 }
@@ -44,6 +45,7 @@ describe @ 'Scanners', @=> ::
              content: 'export function hash_fnv32(sz) ::'
 
 
+    it @ 'line 1 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 1', offside_ast[1], @{}
         type: 'offside_line'
         loc: @{} start: { line: 2, pos: 42, line_pos: 42 }, end: { line: 2, pos: 153, line_pos: 42 }
@@ -59,6 +61,7 @@ describe @ 'Scanners', @=> ::
              loc: @{} start: { line: 2, pos: 52, line_pos: 42 }, end: { line: 2, pos: 153, line_pos: 42 }
              content: '// FNV32, from https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash'
 
+    it @ 'line 2 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 2', offside_ast[2], @{}
         type: 'offside_line'
         loc: @{} start: { line: 3, pos: 154, line_pos: 154 }, end: { line: 3, pos: 213, line_pos: 154 }
@@ -78,6 +81,7 @@ describe @ 'Scanners', @=> ::
              loc: { start: { line: 3, pos: 183, line_pos: 154 }, end: { line: 3, pos: 213, line_pos: 154 } },
              content: '// fnv-1a 32 bit initial value'
 
+    it @ 'line 3 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 3', offside_ast[3], @{}
         type: 'offside_line',
         loc: { start: { line: 4, pos: 214, line_pos: 214 }, end: { line: 4, pos: 258, line_pos: 214 } },
@@ -93,6 +97,7 @@ describe @ 'Scanners', @=> ::
              loc: { start: { line: 4, pos: 224, line_pos: 214 }, end: { line: 4, pos: 258, line_pos: 214 } },
              content: 'for let i=0; i < sz.length; i++ ::'
 
+    it @ 'line 4 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 4', offside_ast[4], @{}
         type: 'offside_line',
         loc: { start: { line: 5, pos: 259, line_pos: 259 }, end: { line: 5, pos: 292, line_pos: 259 } },
@@ -108,6 +113,7 @@ describe @ 'Scanners', @=> ::
              loc: { start: { line: 5, pos: 271, line_pos: 259 }, end: { line: 5, pos: 292, line_pos: 259 } },
              content: 'h ^= sz.charCodeAt(i)'
 
+    it @ 'line 5 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 5', offside_ast[5], @{}
         type: 'offside_line'
         loc: { start: { line: 6, pos: 293, line_pos: 293 }, end: { line: 6, pos: 363, line_pos: 293 } },
@@ -123,6 +129,7 @@ describe @ 'Scanners', @=> ::
              loc: { start: { line: 6, pos: 305, line_pos: 293 }, end: { line: 6, pos: 363, line_pos: 293 } },
              content: 'h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)'
 
+    it @ 'line 6 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 6', offside_ast[6], @{}
         type: 'offside_line'
         loc: { start: { line: 7, pos: 364, line_pos: 364 }, end: { line: 7, pos: 382, line_pos: 364 } },
@@ -138,6 +145,7 @@ describe @ 'Scanners', @=> ::
              loc: { start: { line: 7, pos: 374, line_pos: 364 }, end: { line: 7, pos: 382, line_pos: 364 } },
              content: 'return h'
 
+    it @ 'line 7 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 7', offside_ast[7], @{}
         type: 'offside_blank_line'
         loc: { start: { line: 8, pos: 383, line_pos: 383 }, end: { line: 8, pos: 383, line_pos: 383 } },
