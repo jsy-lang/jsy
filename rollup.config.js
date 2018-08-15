@@ -1,13 +1,16 @@
 const pkg = require('./package.json')
-import rpi_babel from 'rollup-plugin-babel'
-import rpi_jsy_bound from './rpi_jsy'
+const jsy_transpile = require('./stable/index.js')
+
+import rpi_bound_jsy_lite from './rpi_jsy'
 
 const configs = []
 export default configs
 
 const sourcemap = true
 const external = []
-const plugins = [jsy_babel()]
+
+const rpi_jsy = rpi_bound_jsy_lite({jsy_transpile})
+const plugins = [rpi_jsy]
 const plugins_browser = plugins.slice()
 
 import {terser as rpi_terser} from 'rollup-plugin-terser'
@@ -53,6 +56,9 @@ function add_jsy(name) {
 }
 
 
+/*
+import rpi_babel from 'rollup-plugin-babel'
+//const plugins = [jsy_babel()]
 function jsy_babel() {
   return rpi_babel({
     presets: [],
@@ -60,3 +66,4 @@ function jsy_babel() {
     babelrc: false,
     exclude: 'node_modules/**',
   }) }
+*/
