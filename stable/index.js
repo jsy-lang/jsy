@@ -49,27 +49,27 @@ const rx_dangling = /([\{\[\(])\s*$|(=>)\s*$/ ;
 const dangling_pair = {'{':'}', '(':')', '[':']', '=>': 'null'};
 function checkOptionalComma(op, pre_body, post_body){
   let dbg;
-  if (post_body.includes( 'dispatch')){
+  if( post_body.includes( 'dispatch')){
     dbg = true;
     console.log([ op, pre_body.split(/\r?\n/), post_body.split(/\r?\n/)]);}
 
-  if (rx_disrupt_comma_tail.test(pre_body)){
-    if (dbg){ console.log( '  COMMA TAIL');}
+  if( rx_disrupt_comma_tail.test(pre_body)){
+    if( dbg){ console.log( '  COMMA TAIL');}
     return false}
-  if (rx_disrupt_comma_head.test(post_body)){
-    if (dbg){ console.log( '  COMMA HEAD');}
+  if( rx_disrupt_comma_head.test(post_body)){
+    if( dbg){ console.log( '  COMMA HEAD');}
     return false}
 
   let dangling = rx_dangling.exec(post_body) ;
-  if (dangling){
-    if (dbg){ console.log( '  DANGLING:', dangling[1]);}
+  if( dangling){
+    if( dbg){ console.log( '  DANGLING:', dangling[1]);}
     dangling = [].filter.call(dangling, Boolean);
     post_body += dangling_pair[dangling[1]];}
 
   const expr = `${op.pre} ${pre_body} , ${post_body} ${op.post}`;
-  if (dbg){ console.log( '  EXPR:', expr.split(/\r?\n/));}
+  if( dbg){ console.log( '  EXPR:', expr.split(/\r?\n/));}
   const ans = checkSyntax( expr);
-  if (dbg){ console.log( '  ANS:', ans);}
+  if( dbg){ console.log( '  ANS:', ans);}
   return ans}
 
 function checkSyntax(expr){
@@ -77,7 +77,7 @@ function checkSyntax(expr){
   try{
     new Function( `return ${expr}`);
     return true}
-  catch (err){
+  catch( err){
     return false}}
 
 const regexp_keyword = sz =>{
@@ -85,7 +85,7 @@ const regexp_keyword = sz =>{
   return `(?:${sz})` };// using a non-matching group
 
 const re_keyword_space_prefix = /^(?:[ \t]*)/.source ; // start of line and indent
-const re_keyword_trailer = /(?:[ \t]*)/.source ;
+const re_keyword_trailer = /(?:[ \t]*(?=\W|$))/.source ;
 
 const rx_keyword_ops = new RegExp(
   re_keyword_space_prefix
@@ -118,31 +118,31 @@ function inject_dedent(offside_lines, trailing_types){
 
   let len_dedent=0;
   const len_stack = [0];
-  for (let i = offside_lines.length-1 ; i>=0 ; i--){
+  for( let i = offside_lines.length-1 ; i>=0 ; i--){
     const ln = offside_lines[i];
-    if (ln.is_blank){ continue}
+    if( ln.is_blank){ continue}
 
     const len_indent = ln.len_indent;
 
     let len_inner;
-    while (len_stack[0] > len_indent){
+    while( len_stack[0] > len_indent){
       len_inner = len_stack.shift();}
 
-    if (len_stack[0] < len_indent){
+    if( len_stack[0] < len_indent){
       len_stack.unshift( len_indent);}
 
     const offside_dedent ={
       type: 'offside_dedent'
      ,len_dedent, len_indent};
 
-    if (len_inner){
+    if( len_inner){
       ln.len_inner = len_inner;
       offside_dedent.len_inner = len_inner;}
 
     len_dedent = len_indent;
 
     const last = ln.content.pop();
-    if (last.multiline || trailing_types(last.type)){
+    if( last.multiline || trailing_types(last.type)){
       ln.content.push( offside_dedent, last);}
     else{
       ln.content.push( last, offside_dedent);}}}
@@ -190,7 +190,7 @@ const SourceLocation ={
     return { lines, chars}}
 
  ,slice(other){
-    if (this.source !== other.source){
+    if( this.source !== other.source){
       throw new Error( `Locations from different sources`)}
     return this.source.slice( this.pos, other.pos)}};
 
@@ -200,7 +200,7 @@ const rx_lines = /(\r\n|\r|\n)/ ;
 const rx_indent = /^([ \t]*)(.*)$/ ;
 const rx_mixed_indent = /[\t][ ]|[ ][\t]/ ;
 function basic_offside_scanner(source, feedback){
-  if (null == feedback){
+  if( null == feedback){
     feedback ={
       warn(msg, ...args){ console.warn( `[Offside Warning]:: ${msg}`, ...args);}};}
 
@@ -212,7 +212,7 @@ function basic_offside_scanner(source, feedback){
 
   let loc_tip = createLoc(source);
 
-  while (0 !== q_raw_lines.length){
+  while( 0 !== q_raw_lines.length){
     const loc ={ start: loc_tip = loc_tip.nextLine()};
 
     const src_line = q_raw_lines.shift() || '';
@@ -227,7 +227,7 @@ function basic_offside_scanner(source, feedback){
     const is_blank = 0 === match[2].length;
 
     const is_mixed = rx_mixed_indent.test(match[1]);
-    if (is_mixed){
+    if( is_mixed){
       throw new SyntaxError( `Mixed tab and space indent (${loc_indent})`, )}
 
     const raw ={
@@ -237,7 +237,7 @@ function basic_offside_scanner(source, feedback){
      ,content: match[2]};
 
     let node;
-    if (is_blank){
+    if( is_blank){
       node ={
         type: 'offside_blank_line', loc
        ,is_blank};}
@@ -276,11 +276,11 @@ function bind_context_scanner(context_scanners){
     throw new TypeError( `Expected a frozen array of context scanners`)}
 
   const cache = bind_context_scanner.cache || new WeakMap();
-  if (cache !== bind_context_scanner.cache){
+  if( cache !== bind_context_scanner.cache){
     bind_context_scanner.cache = cache;}
 
   let res = cache.get(context_scanners);
-  if (undefined === res){
+  if( undefined === res){
     res = compile_context_scanner(context_scanners);
     cache.set(context_scanners, res);}
   return res}
@@ -295,8 +295,8 @@ function compile_context_scanner(context_scanners){
 
   function context_scanner(offside_lines){
     let ctx = {};
-    for (const ln of offside_lines){
-      if (ln.is_blank){
+    for( const ln of offside_lines){
+      if( ln.is_blank){
         delete ln.content;
         continue}
 
@@ -307,9 +307,9 @@ function compile_context_scanner(context_scanners){
       ctx.ln_source = ln.content.content;
       ctx.lastIndex = 0;
 
-      if (ctx.continue_scan){
+      if( ctx.continue_scan){
         ctx.continue_scan = ctx.continue_scan( ln, parts, ctx);
-        if (undefined !== ctx.continue_scan){
+        if( undefined !== ctx.continue_scan){
           ln.content = parts;
           continue}
 
@@ -318,7 +318,7 @@ function compile_context_scanner(context_scanners){
 
       ctx.continue_scan = context_line_scanner( ln, parts, ctx);
 
-      if (0 === parts.length){
+      if( 0 === parts.length){
         const {loc, content} = ln.content;
         parts.push( as_src_ast( content, loc.start, loc.end));}
 
@@ -329,13 +329,13 @@ function compile_context_scanner(context_scanners){
 
   function context_line_scanner(ln, parts, ctx){
     rx_scanner.lastIndex = ctx.lastIndex;
-    while (true){
+    while( true){
 
       let start = ctx.loc_tip, idx0 = rx_scanner.lastIndex;
       const match = rx_scanner.exec(ctx.ln_source);
 
-      if (null === match){
-        if (idx0 === ctx.ln_source.length){
+      if( null === match){
+        if( idx0 === ctx.ln_source.length){
           return }// no more content
 
         // last source of the current line
@@ -344,7 +344,7 @@ function compile_context_scanner(context_scanners){
         parts.push( as_src_ast( content, start, end));
         return}
 
-      if (idx0 !== match.index){
+      if( idx0 !== match.index){
         const content = ctx.ln_source.slice(idx0, match.index);
         const end = ctx.loc_tip = ctx.loc_tip.move(content);
         parts.push( as_src_ast( content, start, end));
@@ -373,7 +373,7 @@ function compile_context_scanner(context_scanners){
 
     function multiline_scan(ln, parts, ctx){
       const match = rx_cont.exec(ctx.ln_source);
-      if (undefined === match){
+      if( undefined === match){
         throw new Error( `Invalid multiline scan`)}
 
       const content = match[0];
@@ -399,12 +399,12 @@ function compile_context_scanner(context_scanners){
 
   function build_composite_regexp(){
     const regexp_all = [];
-    for (const ctx_scan of context_scanners){
+    for( const ctx_scan of context_scanners){
       regexp_all.push(
         `(?:${ctx_scan.rx_open.source}${ctx_scan.rx_close.source})`);
 
       scn_ops[ctx_scan.kind] = ctx_scan.op;
-      if (true === ctx_scan.multiline){
+      if( true === ctx_scan.multiline){
         scn_multiline[ctx_scan.op] = bind_multiline_scan_for( ctx_scan);}
 
       else if ('function' === typeof ctx_scan.multiline){
@@ -446,15 +446,15 @@ function scan_jsy(source, feedback){
   const jsy_ast = scan_javascript(source, feedback);
   inject_dedent( jsy_ast,[ 'comment_eol']);
 
-  for (const ln of jsy_ast){
-    if (ln.is_blank){ continue}
+  for( const ln of jsy_ast){
+    if( ln.is_blank){ continue}
 
     const parts = transform_jsy_ops(ln.content, ln);
     ln.content = parts;
 
     const idx_dedent = parts.findIndex( p => 'offside_dedent' === p.type);
     const last = parts[idx_dedent - 1];
-    if (undefined !== last && 'jsy_op' === last.type){
+    if( undefined !== last && 'jsy_op' === last.type){
       parts[idx_dedent].ends_with_jsy_op = true;
       last.ending_jsy_op = true;}}
 
@@ -465,25 +465,34 @@ function scan_jsy(source, feedback){
 function transform_jsy_ops(parts, ln){
   const res = [];
 
-  for (let p, i=0; undefined !== (p = parts[i]) ; i++){
+  for( let p, i=0; undefined !== (p = parts[i]) ; i++){
     if ('src' === p.type){
       transform_jsy_part(res, p, ln);}
     else res.push(p);}
 
-  transform_jsy_keyword(res, ln);
+
+  // allow keywords at the start and in code blocks after "::"
+  let kw_allowed = true;
+  for( let idx=0 ; undefined !== res[idx] ; idx ++){
+    if( kw_allowed){
+      transform_jsy_keyword(res, idx, ln);
+      kw_allowed = false;}
+
+    else if ('jsy_op' === res[idx].type){
+      kw_allowed = '::' === res[idx].op;}}
+
   return res}
 
 
 
-function transform_jsy_keyword(res, ln){
-  const first = res[0];
+function transform_jsy_keyword(res, idx, ln){
+  const first = res[idx];
 
   rx_keyword_ops.lastIndex = 0;
   const kw_match = rx_keyword_ops.exec(first.content);
-  if (! kw_match){ return res}
+  if (! kw_match){ return}
 
-  const idx_last = rx_keyword_ops.lastIndex;
-  const rest = kw_match.input.slice(idx_last);
+  const rest = kw_match.input.slice( rx_keyword_ops.lastIndex);
   if ('(' === rest[0]){
     return res }// explicit keyword arguments
 
@@ -492,7 +501,10 @@ function transform_jsy_keyword(res, ln){
   const pre_node = as_src_ast$1( kw_match[0], first.loc.start, kw_end);
 
   const kw = kw_match[0].split(' ').filter(Boolean).join(' ');
-  const explicit = 0===rest.length && res[1] && 'jsy_op' === res[1].type && '@' === res[1].op;
+
+  const after = rest ? null : res[1+idx];
+  const explicit = after && 'jsy_op' === after.type && '@' === after.op;
+
   const kw_node ={
     type: 'jsy_kw', kw, 
     loc:{ start: kw_end, end: kw_end}
@@ -501,8 +513,7 @@ function transform_jsy_keyword(res, ln){
 
   const post_node = as_src_ast$1( rest, kw_end, first.loc.end);
 
-  res.splice( 0,1, pre_node, kw_node, post_node);
-  return res}
+  res.splice( idx, 1, pre_node, kw_node, post_node);}
 
 
 
@@ -510,12 +521,12 @@ function transform_jsy_part(res, part, ln){
   rx_offside_ops.lastIndex = 0;
 
   let loc_tip = part.loc.start;
-  while (true){
+  while( true){
     let start = loc_tip, idx0 = rx_offside_ops.lastIndex;
     const op_match = rx_offside_ops.exec(part.content);
 
-    if (null != op_match){
-      if (idx0 < op_match.index){
+    if( null != op_match){
+      if( idx0 < op_match.index){
         const pre = part.content.slice(idx0, op_match.index);
         const end = loc_tip = loc_tip.move(pre);
         res.push( as_src_ast$1( pre, start, end));
@@ -532,7 +543,7 @@ function transform_jsy_part(res, part, ln){
 
     else{
       const rest = part.content.slice(idx0);
-      if (rest){
+      if( rest){
         const end = loc_tip = loc_tip.move(rest);
         res.push( as_src_ast$1( rest, start, end));}
 
@@ -550,15 +561,15 @@ function transpile_jsy(jsy_ast, feedback){
 
   const visitor ={ __proto__: transpile_visitor};
 
-  if (feedback.addSourceMapping){
+  if( feedback.addSourceMapping){
     Object.defineProperties( visitor,{
       addSourceMapping:{ value: feedback.addSourceMapping}});}
 
   const lines = [];
   visitor.start();
 
-  for (const ln of jsy_ast){
-    if (ln.is_blank){
+  for( const ln of jsy_ast){
+    if( ln.is_blank){
       visitor.blank_line(ln);
       lines.push( '');
       continue}
@@ -566,7 +577,7 @@ function transpile_jsy(jsy_ast, feedback){
     visitor.start_line(ln);
     visitor.v$offside_indent(ln.indent);
 
-    for (const part of ln.content){
+    for( const part of ln.content){
       const key = `v$${part.type}`;
       visitor[key]( part);}
 
@@ -574,9 +585,9 @@ function transpile_jsy(jsy_ast, feedback){
 
   visitor.finish();
 
-  if (feedback.inlineSourceMap){
+  if( feedback.inlineSourceMap){
     const srcmap = feedback.inlineSourceMap();
-    if (srcmap){
+    if( srcmap){
       lines.push( '', sourcemap_comment( srcmap));}}
 
   return lines.join('\n')}
@@ -592,7 +603,7 @@ const transpile_visitor ={
     this.head = root_head;}
 
  ,finish(){
-    if (root_head !== this.head){
+    if( root_head !== this.head){
       throw new Error( 'Excess stack at finish')}}
 
  ,blank_line(ln){
@@ -609,7 +620,7 @@ const transpile_visitor ={
       line_src = line_src.finish_commas(line_src);}
 
     const comma_body = this.head.comma_body;
-    if (undefined !== comma_body){
+    if( undefined !== comma_body){
       comma_body.push( '\n');}
 
     return line_src}
@@ -618,32 +629,32 @@ const transpile_visitor ={
     this._cur.push( src);}
 
  ,emit(src, loc_start){
-    if (loc_start && this.addSourceMapping){
+    if( loc_start && this.addSourceMapping){
       const column = this._cur.join('').length;
       this.addSourceMapping({
         generated:{ line: this.lineno, column}
        ,original:{ line: loc_start.line, column: loc_start.column}});}
 
     const comma_body = this.head.comma_body;
-    if (undefined !== comma_body){
+    if( undefined !== comma_body){
       comma_body.push( src);}
 
     this._cur.push( src);}
 
  ,emit_indent(indent){
     const cur = this._cur;
-    if (0 !== cur.length){
+    if( 0 !== cur.length){
       throw new Error( `Indent must be first element of cur list`)}
 
     const comma_body = this.head.comma_body;
-    if (undefined === comma_body){
+    if( undefined === comma_body){
       cur.push( indent);
       return}
 
     comma_body.splice( 0, comma_body.length,
       comma_body.join('').trimLeft());
 
-    if (comma_body.len_inner != this.cur_ln.len_indent){
+    if( comma_body.len_inner != this.cur_ln.len_indent){
       cur.push( indent);
       return}
 
@@ -655,7 +666,7 @@ const transpile_visitor ={
 
       const post = comma_body.slice(1).join('');
       const opt_comma = this.checkOptionalComma( comma_body.op, pre, post);
-      if (opt_comma){
+      if( opt_comma){
         cur[0] = cur[0].replace(/\s$/, ',');
         comma_body.shift();}
       return cur};}
@@ -668,19 +679,19 @@ const transpile_visitor ={
      ,op, len_indent, loc
      ,nestInner: op.nestInner};
 
-    if (op.implicitCommas){
+    if( op.implicitCommas){
       const comma_body = head.comma_body = [];
       comma_body.op = op;
       comma_body.len_inner = this.cur_ln.len_inner;}
 
-    if (op.in_kw_block){
+    if( op.in_kw_block){
       head.in_kw_block = true;
       head.kw_block_indent = len_indent;}
 
     head.tail = [this.head].concat(head.tail || []);
 
     const src = head.op.pre;
-    if (src){ this.emit( src);}
+    if( src){ this.emit( src);}
 
     this.head = head;}
 
@@ -689,7 +700,7 @@ const transpile_visitor ={
     this.head = head.tail[0];
 
     const src = head.op.post;
-    if (src){ this.emit( src);}}
+    if( src){ this.emit( src);}}
 
 
  ,v$jsy_kw(p){
@@ -702,9 +713,9 @@ const transpile_visitor ={
  ,v$jsy_op(p){
     const jsy_op = at_offside_map[p.op];
 
-    if (jsy_op.is_kw_close && this.head.in_kw_block){
+    if( jsy_op.is_kw_close && this.head.in_kw_block){
       p.len_indent = this.head.kw_block_indent;
-      while (this.head.in_kw_block){
+      while( this.head.in_kw_block){
         this.stack_pop();}}
 
     this.stack_push( jsy_op, p);}
@@ -718,16 +729,16 @@ const transpile_visitor ={
       .filter( t => t.loc && line === t.loc.start.line)
       .pop();
 
-    if (undefined === t){ return}
+    if( undefined === t){ return}
 
-    while (t !== this.head && this.head.nestInner){
+    while( t !== this.head && this.head.nestInner){
       this.stack_pop();}}
 
  ,v$offside_dedent(p){
     if (! p.ends_with_jsy_op){
       this._dedent_multi_ops();}
 
-    while (this.head.len_indent >= p.len_dedent){
+    while( this.head.len_indent >= p.len_dedent){
       this.stack_pop();}}
 
 
