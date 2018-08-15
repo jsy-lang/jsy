@@ -1,5 +1,5 @@
 require('source-map-support').install()
-const {basic_offside_scanner} = require('jsy-transpile/cjs/scanner/basic_offside')
+const {basic_offside_scanner} = require('jsy-transpile/cjs/scanner')
 
 describe @ 'Scanners', @=> ::
   describe @ 'Basic Offside Line Scanner', @=> ::

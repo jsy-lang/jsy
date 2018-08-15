@@ -1,6 +1,6 @@
-import scan_offside_context from './basic_offside_context.jsy'
+import scan_offside_contexts from './basic_offside_contexts.jsy'
 
-export const context_scanners = Object.freeze @#
+export const clike_context_scanners = Object.freeze @#
   @{} op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,
 
   @{} op: 'comment_multi', kind:'/*', rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,
@@ -15,5 +15,5 @@ export const context_scanners = Object.freeze @#
 
 export default scan_clike
 export function scan_clike(source, feedback) ::
-  return scan_offside_context(source, feedback, context_scanners)
+  return scan_offside_contexts(source, feedback, clike_context_scanners)
 

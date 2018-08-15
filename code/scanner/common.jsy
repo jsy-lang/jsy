@@ -1,7 +1,0 @@
-const rx_whitespace = /^[ \t]+$/ ;
-
-export function as_src_ast(content, start, end) ::
-  const res = @{} type: 'src', loc: {start, end}, content
-  if rx_whitespace.test(content) :: res.is_ws = true
-  return res
-

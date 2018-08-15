@@ -1,8 +1,8 @@
 import basic_offside_scanner from './basic_offside.jsy'
 import bind_context_scanner from './basic_contexts.jsy'
 
-export default scan_offside_context
-export function scan_offside_context(source, feedback, context_scanners) ::
+export default scan_offside_contexts
+export function scan_offside_contexts(source, feedback, context_scanners) ::
   // see scan_javascript and scan_clike for good context_scanners
   const context_scanner = bind_context_scanner(context_scanners)
   return context_scanner @ basic_offside_scanner(source, feedback)

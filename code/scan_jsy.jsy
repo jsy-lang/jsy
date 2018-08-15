@@ -1,5 +1,4 @@
 import { rx_offside_ops, rx_keyword_ops } from './jsy_regexp.jsy'
-import { as_src_ast } from './scanner/common.jsy'
 import inject_dedent from './scanner/inject_dedent.jsy'
 import scan_javascript from './scanner/scan_javascript.jsy'
 
@@ -99,3 +98,7 @@ function transform_jsy_part(res, part, ln) ::
         res.push @ as_src_ast @ rest, start, end
 
       return res
+
+function as_src_ast(content, start, end) ::
+  return @{} type: 'src', loc: {start, end}, content
+

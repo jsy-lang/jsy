@@ -1,16 +1,18 @@
-import * as pkg from './package.json'
+const pkg = require('./package.json')
 import rpi_babel from 'rollup-plugin-babel'
+import rpi_jsy_bound from './rpi_jsy'
 
 const configs = []
 export default configs
 
-const sourcemap = 'inline'
+const sourcemap = true
 const external = []
 const plugins = [jsy_babel()]
 const plugins_browser = plugins.slice()
 
 import {terser as rpi_terser} from 'rollup-plugin-terser'
-plugins_browser.push(rpi_terser())
+if (plugins_browser)
+  plugins_browser.push(rpi_terser())
 
 configs.push(
   { input: 'code/index.jsy',
@@ -20,36 +22,35 @@ configs.push(
     ],
     plugins, external})
 
-configs.push(
-  { input: 'code/index.jsy',
-    output: { file: pkg.browser, sourcemap, format: 'umd', name:'jsy_transpile' },
-    plugins: plugins_browser, external})
+if (plugins_browser)
+  configs.push(
+    { input: 'code/index.jsy',
+      output: { file: pkg.browser, sourcemap, format: 'umd', name:'jsy_transpile' },
+      plugins: plugins_browser, external})
 
 
 const direct = [
-  'scanner/basic_offside',
-  'scanner/scan_clike',
-  'scanner/scan_javascript',
-  'scan_jsy',
+  'scanner/index',
   'all',
 ].forEach(add_jsy)
 
 
 
 function add_jsy(name) {
-  configs.push(
-    { input: `code/${name}.jsy`,
-      output: [
-        { file: `cjs/${name}.js`, format: 'cjs', exports:'named', sourcemap },
-        { file: `esm/${name}.js`, format: 'es', sourcemap },
-      ],
-      plugins, external },
+  configs.push({
+    input: `code/${name}.jsy`,
+    output: [
+      { file: `cjs/${name}.js`, format: 'cjs', exports:'named', sourcemap },
+      { file: `esm/${name}.js`, format: 'es', sourcemap },
+    ],
+    plugins, external })
 
-    { input: `code/${name}.jsy`,
+  if (plugins_browser)
+    configs.push({
+      input: `code/${name}.jsy`,
       output: { file: `umd/${name}.js`, format: 'umd', name, exports:'named', sourcemap },
-      plugins: plugins_browser, external },
-    
-  ) }
+      plugins: plugins_browser, external })
+}
 
 
 function jsy_babel() {
