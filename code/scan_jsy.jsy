@@ -33,7 +33,7 @@ function transform_jsy_ops(parts, ln) ::
 
 
   // allow keywords at the start and in code blocks after "::"
-  let kw_allowed = true
+  let kw_allowed = 'src' === res[0].type
   for let idx=0 ; undefined !== res[idx] ; idx ++ ::
     if kw_allowed ::
       transform_jsy_keyword(res, idx, ln)

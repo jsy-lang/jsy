@@ -46,7 +46,7 @@ const keywords_locator_parts = [].concat(
 const rx_disrupt_comma_tail = /[,.;:?]\s*$|=>\s*$/ ;
 const rx_disrupt_comma_head = /^\s*[,.;:?]/ ;
 
-const rx_last_bits = /[()\[\]{}]/ ;
+const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
 function checkOptionalComma(op, pre_body, post_body){
   const pre_end = pre_body.split(rx_last_bits).pop();
   const post_start = post_body.split(rx_last_bits).shift();
@@ -459,7 +459,7 @@ function transform_jsy_ops(parts, ln){
 
 
   // allow keywords at the start and in code blocks after "::"
-  let kw_allowed = true;
+  let kw_allowed = 'src' === res[0].type;
   for( let idx=0 ; undefined !== res[idx] ; idx ++){
     if( kw_allowed){
       transform_jsy_keyword(res, idx, ln);
