@@ -31,20 +31,29 @@ function transform_jsy_ops(parts, ln) ::
       transform_jsy_part(res, p, ln)
     else res.push(p)
 
-  transform_jsy_keyword(res, ln)
+
+  // allow keywords at the start and in code blocks after "::"
+  let kw_allowed = true
+  for let idx=0 ; undefined !== res[idx] ; idx ++ ::
+    if kw_allowed ::
+      transform_jsy_keyword(res, idx, ln)
+      kw_allowed = false
+
+    else if 'jsy_op' === res[idx].type ::
+      kw_allowed = '::' === res[idx].op
+
   return res
 
 
 
-function transform_jsy_keyword(res, ln) ::
-  const first = res[0]
+function transform_jsy_keyword(res, idx, ln) ::
+  const first = res[idx]
 
   rx_keyword_ops.lastIndex = 0
   const kw_match = rx_keyword_ops.exec(first.content)
-  if ! kw_match :: return res
+  if ! kw_match :: return
 
-  const idx_last = rx_keyword_ops.lastIndex
-  const rest = kw_match.input.slice(idx_last)
+  const rest = kw_match.input.slice @ rx_keyword_ops.lastIndex
   if '(' === rest[0] ::
     return res // explicit keyword arguments
 
@@ -53,7 +62,10 @@ function transform_jsy_keyword(res, ln) ::
   const pre_node = as_src_ast @ kw_match[0], first.loc.start, kw_end
 
   const kw = kw_match[0].split(' ').filter(Boolean).join(' ')
-  const explicit = 0===rest.length && res[1] && 'jsy_op' === res[1].type && '@' === res[1].op
+
+  const after = rest ? null : res[1+idx]
+  const explicit = after && 'jsy_op' === after.type && '@' === after.op
+
   const kw_node = @{}
     type: 'jsy_kw', kw, 
     loc: @{} start: kw_end, end: kw_end
@@ -62,8 +74,7 @@ function transform_jsy_keyword(res, ln) ::
 
   const post_node = as_src_ast @ rest, kw_end, first.loc.end
 
-  res.splice @ 0,1, pre_node, kw_node, post_node
-  return res
+  res.splice @ idx, 1, pre_node, kw_node, post_node
 
 
 

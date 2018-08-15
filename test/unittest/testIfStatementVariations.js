@@ -82,6 +82,11 @@ function * iterCompoundExpressions() ::
                   '  blockStatement'
       tokens: @[] "if", "(", "name", "&&", "name", "(", "name", ",", "name", ",", "name", ")", ")", "{", "name", "}"
 
+  // keyword after :: block
+  yield @{} expectValid: true
+      title: 'if a :: if b :: block'
+      source: 'if a :: if b :: block'
+      tokens: @[] "if", "(", "name", ")", "{", "if", "(", "name", ")", "{", "name", "}", "}"
 
 
 function * iterIfElseStmts() ::
