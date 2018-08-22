@@ -33,6 +33,10 @@ export function transpile_jsy(jsy_ast, feedback) ::
 
     for const part of ln.content ::
       const key = `v$${part.type}`
+
+      if undefined === visitor[key] ::
+        throw new Error @ `JSY transpile function "${key}" not found`
+
       visitor[key] @ part
 
     lines.push @ visitor.finish_line(ln).join('')
@@ -205,9 +209,11 @@ const transpile_visitor = @{}
   v$str_double: direct_src
   v$str_multi: direct_src
   v$regexp: direct_src
-  v$comment_eol(p) :: this.emit_raw @ p.content
-  v$comment_multi(p) :: this.emit_raw @ p.content
+  v$hashbang: raw_src
+  v$comment_eol: raw_src
+  v$comment_multi: raw_src
 
+function raw_src(p) :: this.emit_raw @ p.content
 function direct_src(p) :: this.emit @ p.content, p.loc.start
 
 

@@ -275,7 +275,7 @@ function bind_context_scanner(context_scanners){
 
 function compile_context_scanner(context_scanners){
   const scn_multiline={}, scn_ops={};
-  const rx_scanner = build_composite_regexp();
+  const {rx_firstline, rx_content} = build_composite_regexp();
 
   return context_scanner
 
@@ -293,6 +293,13 @@ function compile_context_scanner(context_scanners){
       ctx.loc_tip = ln.content.loc.start;
       ctx.ln_source = ln.content.content;
       ctx.lastIndex = 0;
+
+      if( 1 === ctx.loc_tip.line){
+        ctx.continue_scan = context_line_scanner( ln, parts, ctx, true);
+
+        if( 0 !== parts.length){
+          ln.content = parts;
+          continue}}
 
       if( ctx.continue_scan){
         ctx.continue_scan = ctx.continue_scan( ln, parts, ctx);
@@ -313,17 +320,21 @@ function compile_context_scanner(context_scanners){
 
     return offside_lines}
 
-
-  function context_line_scanner(ln, parts, ctx){
+  function context_line_scanner(ln, parts, ctx, is_firstline){
+    const rx_scanner = is_firstline ? rx_firstline : rx_content;
     rx_scanner.lastIndex = ctx.lastIndex;
     while( true){
 
       let start = ctx.loc_tip, idx0 = rx_scanner.lastIndex;
       const match = rx_scanner.exec(ctx.ln_source);
 
+
       if( null === match){
         if( idx0 === ctx.ln_source.length){
           return }// no more content
+
+        else if( is_firstline){
+          return }// no default emit
 
         // last source of the current line
         const content = ctx.ln_source.slice(idx0);
@@ -385,19 +396,26 @@ function compile_context_scanner(context_scanners){
 
 
   function build_composite_regexp(){
-    const regexp_all = [];
+    const regexp_all = [], regexp_firstline = [];
     for( const ctx_scan of context_scanners){
-      regexp_all.push(
-        `(?:${ctx_scan.rx_open.source}${ctx_scan.rx_close.source})`);
-
+      const re = `(?:${ctx_scan.rx_open.source}${ctx_scan.rx_close.source})`;
       scn_ops[ctx_scan.kind] = ctx_scan.op;
+
+      if( ctx_scan.firstline){
+        regexp_firstline.push( re);
+        continue}
+
+      regexp_all.push( re);
+
       if( true === ctx_scan.multiline){
         scn_multiline[ctx_scan.op] = bind_multiline_scan_for( ctx_scan);}
 
       else if ('function' === typeof ctx_scan.multiline){
         scn_multiline[ctx_scan.op] = ctx_scan.multiline.bind(ctx_scan);}}
 
-    return new RegExp( regexp_all.join('|'), 'g')}}
+    return {
+      rx_firstline: new RegExp( regexp_firstline.join('|'), 'g')
+     ,rx_content: new RegExp( regexp_all.join('|'), 'g')}}}
 
 
 function as_src_ast(content, start, end){
@@ -409,7 +427,10 @@ function scan_offside_contexts(source, feedback, context_scanners){
   return context_scanner( basic_offside_scanner(source, feedback))}
 
 const clike_context_scanners = Object.freeze([
-  { op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,}
+  { op: 'hashbang', kind:'#!', rx_open: /^(#!)/, rx_close: /.*($)/,
+      firstline: true}
+
+ ,{ op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,}
 
  ,{ op: 'comment_multi', kind:'/*', rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,
       multiline: true}
@@ -566,6 +587,10 @@ function transpile_jsy(jsy_ast, feedback){
 
     for( const part of ln.content){
       const key = `v$${part.type}`;
+
+      if( undefined === visitor[key]){
+        throw new Error( `JSY transpile function "${key}" not found`)}
+
       visitor[key]( part);}
 
     lines.push( visitor.finish_line(ln).join(''));}
@@ -738,9 +763,11 @@ const transpile_visitor ={
  ,v$str_double: direct_src
  ,v$str_multi: direct_src
  ,v$regexp: direct_src
- ,v$comment_eol(p){ this.emit_raw( p.content);}
- ,v$comment_multi(p){ this.emit_raw( p.content);}};
+ ,v$hashbang: raw_src
+ ,v$comment_eol: raw_src
+ ,v$comment_multi: raw_src};
 
+function raw_src(p){ this.emit_raw( p.content);}
 function direct_src(p){ this.emit( p.content, p.loc.start);}
 
 

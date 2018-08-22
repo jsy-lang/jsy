@@ -1,6 +1,9 @@
 import scan_offside_contexts from './basic_offside_contexts.jsy'
 
 export const clike_context_scanners = Object.freeze @#
+  @{} op: 'hashbang', kind:'#!', rx_open: /^(#!)/, rx_close: /.*($)/,
+      firstline: true
+
   @{} op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,
 
   @{} op: 'comment_multi', kind:'/*', rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,

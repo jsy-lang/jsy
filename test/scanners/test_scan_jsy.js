@@ -4,7 +4,7 @@ const assert = require('assert')
 const { transpile_jsy, scan_jsy } = require('jsy-transpile/cjs/all')
 const { SourceMapGenerator } = require('source-map')
 
-describe @ 'JSY Scanner', @=> ::
+describe @ 'JSY Scanner (doc example)', @=> ::
   let offside_ast, offside_src
   beforeEach @=> ::
     // source from https://github.com/shanewholloway/js-consistent-fnvxor32/blob/d2554377c4a540258f93f2958d4259c1f4f03ff9/code/fnvxor32.jsy on 2018-08-09
@@ -71,3 +71,21 @@ describe @ 'JSY Scanner', @=> ::
     const rx_sourcemap = /^\/\/# sourceMappingURL=/m ;
     assert.ok @ rx_sourcemap.test(js_src)
 
+
+describe @ 'JSY Scanner (misc)', @=> ::
+  it @ 'hashbang', @=> ::
+    const offside_ast = scan_jsy @
+      @[] '#!/usr/bin/env jsy-node'
+          ''
+          'if test() ::'
+          '  console.log @'
+          '    "hello JSY world!"'
+      .join('\n')
+
+    const js_src = transpile_jsy @ offside_ast
+    assert.deepEqual @ js_src.split('\n'), @[]
+      '#!/usr/bin/env jsy-node'
+      ''
+      'if( test()){'
+      '  console.log('
+      '    "hello JSY world!")}'

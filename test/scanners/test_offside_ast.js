@@ -3,6 +3,7 @@ const assert = require('assert')
 const {scan_javascript} = require('jsy-transpile/cjs/scanner')
 
 describe @ 'Scanners', @=> ::
+  describe @ 'hash_fnv32 example', @=> ::
     let offside_ast
     beforeEach @=> ::
       // source from https://github.com/shanewholloway/js-consistent-fnvxor32/blob/d2554377c4a540258f93f2958d4259c1f4f03ff9/code/fnvxor32.jsy on 2018-08-09
@@ -150,6 +151,32 @@ describe @ 'Scanners', @=> ::
         type: 'offside_blank_line'
         loc: { start: { line: 8, pos: 383, line_pos: 383 }, end: { line: 8, pos: 383, line_pos: 383 } },
         is_blank: true
+
+
+  it @ 'hashbang', @=> ::
+    const offside_ast = scan_javascript @
+      @[] '#!/usr/bin/env jsy-node'
+          ''
+          'if test() ::'
+          '  console.log @'
+          '    "hello JSY world!"'
+      .join('\n')
+
+    check_ast_entry @ 'line 0', offside_ast[0], @{}
+      type: 'offside_line'
+      loc: { start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 23, line_pos: 0 } },
+      len_indent: 0
+
+      indent: @{}
+         type: 'offside_indent'
+         loc: { start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 0, line_pos: 0 } },
+         len_indent: 0, indent: ''
+
+      content: @[]
+       @{} type: 'hashbang'
+           loc: { start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 23, line_pos: 0 } }
+           content: '#!/usr/bin/env jsy-node'
+
 
 
 function check_ast_entry(lineno, ast, structure) ::
