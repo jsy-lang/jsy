@@ -123,7 +123,7 @@ function * iterAdvancedCallMethods() ::
       '  function * (a) ::'
       '    yield a'
       '    yield b'
-    tokens: @[] 'name', '(', 'name', ',', 'function', '*', '(', 'name', ')', '{', 'yield', '*', 'name', '}', ',', 'name', ',', 'function', '*', '(', 'name', ')', '{', 'yield', 'name', 'yield', 'name', '}', ')'
+    tokens: @[] 'name', '(', 'name', ',', 'function', '*', '(', 'name', ')', '{', 'name', '*', 'name', '}', ',', 'name', ',', 'function', '*', '(', 'name', ')', '{', 'name', 'name', 'name', 'name', '}', ')'
 
   yield @: expectValid: true
     title: 'advanced call methods -- generator with implicit commas, v2'
@@ -134,7 +134,7 @@ function * iterAdvancedCallMethods() ::
       '  function * (a) ::'
       '    yield a'
       '    yield b'
-    tokens: @[] 'name', '(', 'function', '*', '(', 'name', ')', '{', 'yield', '*', 'name', '}', ',', 'function', '*', '(', 'name', ')', '{', 'yield', 'name', 'yield', 'name', '}', ')'
+    tokens: @[] 'name', '(', 'function', '*', '(', 'name', ')', '{', 'name', '*', 'name', '}', ',', 'function', '*', '(', 'name', ')', '{', 'name', 'name', 'name', 'name', '}', ')'
 
 
 function * iterObjectMethods() ::
@@ -174,7 +174,7 @@ function * iterObjectMethods() ::
       '  method() ::'
       '  , * iter_method(iterable) ::'
       '    yield * iterable'
-    tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', '*', 'name', '(', 'name', ')', '{', 'yield', '*', 'name', '}', '}'
+    tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', '*', 'name', '(', 'name', ')', '{', 'name', '*', 'name', '}', '}'
 
   yield @: expectValid: true
     title: 'object methods -- generator with implicit comma'
@@ -183,5 +183,5 @@ function * iterObjectMethods() ::
       '  method() ::'
       '  * iter_method(iterable) ::'
       '    yield * iterable'
-    tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', '*', 'name', '(', 'name', ')', '{', 'yield', '*', 'name', '}', '}'
+    tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', '*', 'name', '(', 'name', ')', '{', 'name', '*', 'name', '}', '}'
 

@@ -4,10 +4,7 @@
     "jsy-transpile": "file:.."
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-plugin-syntax-async-generators": "^6.13.0",
-    "chokidar-cli": "^1.2.0",
+    "acorn-node": "^1.5.2",
     "mocha": "^5.2.0",
     "pirates": "^4.0.0"
   },
@@ -20,7 +17,6 @@
     "test": "npm -s run test:one",
     "test:one": "mocha --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
     "test:lean": "TEST_LEAN=true mocha --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
-    "test:min": "TEST_LEAN=true mocha --reporter=min --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
-    "watch": "chokidar --initial -t 10000 '../cjs/**' $npm_package_config_unittest_roots -c 'npm -s run test:min'"
+    "test:min": "TEST_LEAN=true mocha --reporter=min --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots"
   }
 }

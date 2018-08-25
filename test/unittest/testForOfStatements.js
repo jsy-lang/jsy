@@ -23,7 +23,7 @@ function * iterForOfStatements() ::
   yield @{} expectValid: true
       title: 'vanilla for/of let statement'
       source: @[] 'for (let each of iterable) { blockStatement }'
-      tokens: @[] 'for', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'vanilla for/of const statement'
@@ -45,7 +45,7 @@ function * iterForOfStatements() ::
       title: 'offside for/of let statement, multiline'
       source: @[] 'for (let each of iterable) ::'
                   '  blockStatement'
-      tokens: @[] 'for', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
 
 
@@ -58,7 +58,7 @@ function * iterKeywordOffsideForOfStatements() ::
   yield @{} expectValid: true
       title: 'keyword offside let for/of statement'
       source: @[] 'for let each of iterable :: blockStatement'
-      tokens: @[] 'for', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'keyword offside for/of statement, multiline'
@@ -90,7 +90,7 @@ function * iterKeywordOffsideForOfWithCallStatements() ::
       title: 'keyword offside for/of let statement with call'
       source: @[] 'for let each of fn_call @ x, y ::'
                   '  blockStatement'
-      tokens: @[] 'for', '(', 'let', 'name', 'name', 'name', '(', 'name', ',', 'name', ')', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', 'name', 'name', '(', 'name', ',', 'name', ')', ')', '{', 'name', '}'
 
 
   yield @{} expectValid: true
@@ -111,7 +111,7 @@ function * iterKeywordAtOffsideForOfStatements() ::
       title: 'keyword @ offside for/of let statement, multiline'
       source: @[] 'for @ let each of iterable ::'
                   '  blockStatement'
-      tokens: @[] 'for', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'keyword @ offside for/of statement, multiline'

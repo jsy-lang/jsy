@@ -1,6 +1,6 @@
 require('source-map-support').install()
 
-const {genMochaSyntaxTestCases, standardTransforms} = require('./_xform_syntax_variations')
+const {genMochaSyntaxTestCases, standardTransforms, tkns} = require('./_xform_syntax_variations')
 describe @ 'Complex Multiline Statements',
   genMochaSyntaxTestCases @ iterSyntaxVariations, standardTransforms
 
@@ -95,7 +95,7 @@ function * iterBlockStatements() ::
       source: @[] 'for let ea of'
                   '      fn_init @ a, b ::'
                   '  blockStatement'
-      tokens: @[] 'for', '(', 'let', 'name', 'name', 'name', '(', 'name', ',', 'name', ')', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', 'name', 'name', '(', 'name', ',', 'name', ')', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'keyword offside for/step let statement, extended multiline'
@@ -103,7 +103,7 @@ function * iterBlockStatements() ::
                   '    ; i < n'
                   '    ; i++ ::'
                   '  blockStatement'
-      tokens: @[] 'for', '(', 'let', 'name', '=', 'num', ';', 'name', '</>', 'name', ';', 'name', '++/--', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', '=', 'num', ';', 'name', tkns.cmp, 'name', ';', 'name', '++/--', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'keyword offside for/step let statement, extended multiline'
@@ -111,5 +111,5 @@ function * iterBlockStatements() ::
                   '    ; fn_test @ i, n'
                   '    ; i++ ::'
                   '  blockStatement'
-      tokens: @[] 'for', '(', 'let', 'name', '=', 'name', '(', 'name', ',', 'name', ')', ';', 'name', '(', 'name', ',', 'name', ')', ';', 'name', '++/--', ')', '{', 'name', '}'
+      tokens: @[] 'for', '(', 'name', 'name', '=', 'name', '(', 'name', ',', 'name', ')', ';', 'name', '(', 'name', ',', 'name', ')', ';', 'name', '++/--', ')', '{', 'name', '}'
 

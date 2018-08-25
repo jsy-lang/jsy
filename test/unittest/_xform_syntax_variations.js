@@ -1,17 +1,16 @@
 const assert = require('assert')
-const jsy_as_babel_ast = require('./_jsy_as_babel_ast')
+const acorn = require('acorn-node')
+const jsy_as_ast = require('./_jsy_as_ast')
 
 function testSyntaxError(testCase) ::
   const block = () => ::
     if (testCase.debug) ::
       console.dir @ testCase.source, @{} colors: true, depth: null
 
-    let res = jsy_as_babel_ast @ testCase.source
+    let res = jsy_as_ast @ testCase.source
 
     if 'code' === testCase.debug ::
       console.dir @ res.code.split('\n'), @{} colors: true, depth: null
-    if 'ast' === testCase.debug ::
-      console.dir @ res.ast, @{} colors: true, depth: null
 
   assert.throws @ block, SyntaxError
 
@@ -21,26 +20,34 @@ function testSourceTransform(testCase) ::
     if testCase.debug ::
       console.dir @ testCase.source, @{} colors: true, depth: null
 
-    res = jsy_as_babel_ast @ testCase.source
+    res = jsy_as_ast @ testCase.source
   catch (err) ::
     console.error @ err
     assert.fail @ err.message
 
   if 'code' === testCase.debug ::
     console.dir @ res.code.split('\n'), @{} colors: true, depth: null
-  if 'ast' === testCase.debug ::
-    console.dir @ res.ast, @{} colors: true, depth: null
 
   if testCase.tokens ::
-    const tokens = res.ast.tokens
-      .map @ token => token.type.label
-    assert.deepEqual @ tokens.pop(), 'eof'
+    testTokens(testCase, res.code)
 
-    if ('tokens' === testCase.debug) ::
-      console.log @ tokens
-    const expected_tokens = Array.from(testCase.tokens)
-      .filter @ token => token !== 'eof'
-    assert.deepEqual @ tokens, expected_tokens
+
+function testTokens(testCase, code) ::
+  const ignore_tokens = new Set @# ';', 'eof'
+
+  const tokens =
+    Array.from @
+      acorn.tokenizer(code)
+      token => token.type.label
+    .filter @ token => token && ! ignore_tokens.has(token)
+
+  if ('tokens' === testCase.debug) ::
+    console.log @ tokens
+
+  const expected_tokens = Array.from(testCase.tokens)
+    .filter @ token => ! ignore_tokens.has(token)
+
+  assert.deepEqual @ tokens, expected_tokens
 
 
 const TEST_LEAN = !! process.env.TEST_LEAN
@@ -167,7 +174,11 @@ const asyncFunctionTransforms = @{}
 const standardTransforms = Object.assign @ {},
   blockTransforms, functionTransforms, asyncFunctionTransforms
 
+const tkns = @{}
+  cmp: '</>/<=/>='
+
 Object.assign @ exports, @{}
+  tkns
   genMochaSyntaxTestCases
   genSyntaxTestCases
   bindIterableTransform

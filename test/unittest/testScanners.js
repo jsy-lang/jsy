@@ -32,4 +32,4 @@ function * iterSyntaxVariations() ::
         '      h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)'
         '    return h'
         '  */'
-      tokens: @[] 'name', '=', 'name', undefined
+      tokens: @[] 'name', '=', 'name'

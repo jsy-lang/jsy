@@ -27,7 +27,7 @@ function * iterForAwaitOfStatements() ::
   yield @{} expectValid: true
       title: 'vanilla for await of let statement'
       source: @[] 'for await (let each of iterable) { blockStatement }'
-      tokens: @[] 'for', 'name', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', 'name', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'vanilla for await of const statement'
@@ -49,7 +49,7 @@ function * iterForAwaitOfStatements() ::
       title: 'offside for await of let statement, multiline'
       source: @[] 'for await (let each of iterable) ::'
                   '  blockStatement'
-      tokens: @[] 'for', 'name', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', 'name', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
 
 
@@ -62,7 +62,7 @@ function * iterKeywordOffsideForAwaitOfStatements() ::
   yield @{} expectValid: true
       title: 'keyword offside let for await of statement'
       source: @[] 'for await let each of iterable :: blockStatement'
-      tokens: @[] 'for', 'name', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', 'name', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'keyword offside for await of statement, multiline'
@@ -94,7 +94,7 @@ function * iterKeywordOffsideForAwaitOfWithCallStatements() ::
       title: 'keyword offside for await of let statement with call'
       source: @[] 'for await let each of fn_call @ x, y ::'
                   '  blockStatement'
-      tokens: @[] 'for', 'name', '(', 'let', 'name', 'name', 'name', '(', 'name', ',', 'name', ')', ')', '{', 'name', '}'
+      tokens: @[] 'for', 'name', '(', 'name', 'name', 'name', 'name', '(', 'name', ',', 'name', ')', ')', '{', 'name', '}'
 
 
   yield @{} expectValid: true
@@ -115,7 +115,7 @@ function * iterKeywordAtOffsideForAwaitOfStatements() ::
       title: 'keyword @ offside for await of let statement, multiline'
       source: @[] 'for await @ let each of iterable ::'
                   '  blockStatement'
-      tokens: @[] 'for', 'name', '(', 'let', 'name', 'name', 'name', ')', '{', 'name', '}'
+      tokens: @[] 'for', 'name', '(', 'name', 'name', 'name', 'name', ')', '{', 'name', '}'
 
   yield @{} expectValid: true
       title: 'keyword @ offside for await of statement, multiline'
