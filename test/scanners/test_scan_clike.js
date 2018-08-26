@@ -1,5 +1,5 @@
-require('source-map-support').install()
-const {scan_clike} = require('jsy-transpile/cjs/scanner')
+const { assert } = require('chai')
+import {scan_clike} from 'jsy-transpile/esm/scanner'
 
 describe @ 'Scanners', @=> ::
   describe @ 'C-Like Line Scanner', @=> ::

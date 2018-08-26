@@ -4,19 +4,15 @@
     "jsy-transpile": "file:.."
   },
   "devDependencies": {
-    "acorn-node": "^1.5.2",
-    "mocha": "^5.2.0",
-    "pirates": "^4.0.0"
-  },
-  "config": {
-    "oow_unittest_roots": "./scanners",
-    "unittest_roots": "./scanners ./unittest"
+    "acorn": "^5.7.1",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0"
   },
   "scripts": {
     "pretest:one": "test -d ./node_modules || npm -s install",
     "test": "npm -s run test:one",
-    "test:one": "mocha --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
-    "test:lean": "TEST_LEAN=true mocha --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots",
-    "test:min": "TEST_LEAN=true mocha --reporter=min --require ./jsy_pirate_hook.js $npm_package_config_unittest_roots"
+    "test:one": "mocha ./__unittest.cjs.js",
+    "test:lean": "TEST_LEAN=true mocha ./__unittest.cjs.js",
+    "test:min": "TEST_LEAN=true mocha --reporter=min ./__unittest.cjs.js"
   }
 }

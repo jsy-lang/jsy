@@ -1,0 +1,24 @@
+require('source-map-support').install()
+
+import './scanners/test_basic_offside.js'
+import './scanners/test_offside_ast.js'
+import './scanners/test_scan_clike.js'
+import './scanners/test_scan_jsy.js'
+
+import './unittest/testScanners.js'
+import './unittest/testSyntaxBugs.js'
+
+import './unittest/testFunctionCall.js'
+
+import './unittest/testIfStatementVariations.js'
+import './unittest/testWhileStatements.js'
+import './unittest/testForOfStatements.js'
+import './unittest/testForStepStatements.js'
+import './unittest/testForAwaitOfStatements.js'
+import './unittest/testMiscKeywordVariations.js'
+import './unittest/testCatchStatements.js'
+import './unittest/testSwitchStatements.js'
+
+import './unittest/testComplexMultiline.js'
+
+import './unittest/testOptionalComma.js'

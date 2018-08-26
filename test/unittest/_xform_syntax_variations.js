@@ -1,8 +1,8 @@
-const assert = require('assert')
-const acorn = require('acorn-node')
-const jsy_as_ast = require('./_jsy_as_ast')
+const {assert} = require('chai')
+import * as acorn from 'acorn'
+import jsy_as_ast from './_jsy_as_ast'
 
-function testSyntaxError(testCase) ::
+export function testSyntaxError(testCase) ::
   const block = () => ::
     if (testCase.debug) ::
       console.dir @ testCase.source, @{} colors: true, depth: null
@@ -14,7 +14,7 @@ function testSyntaxError(testCase) ::
 
   assert.throws @ block, SyntaxError
 
-function testSourceTransform(testCase) ::
+export function testSourceTransform(testCase) ::
   let res
   try ::
     if testCase.debug ::
@@ -32,12 +32,12 @@ function testSourceTransform(testCase) ::
     testTokens(testCase, res.code)
 
 
-function testTokens(testCase, code) ::
+export function testTokens(testCase, code) ::
   const ignore_tokens = new Set @# ';', 'eof'
 
   const tokens =
     Array.from @
-      acorn.tokenizer(code)
+      acorn.tokenizer(code, {ecmaVersion: 9})
       token => token.type.label
     .filter @ token => token && ! ignore_tokens.has(token)
 
@@ -50,8 +50,8 @@ function testTokens(testCase, code) ::
   assert.deepEqual @ tokens, expected_tokens
 
 
-const TEST_LEAN = !! process.env.TEST_LEAN
-function genMochaSyntaxTestCases(iterSyntaxVariations, transformVariations) ::
+const TEST_LEAN = 'undefined' !== typeof process && process.env.TEST_LEAN
+export function genMochaSyntaxTestCases(iterSyntaxVariations, transformVariations) ::
   return @=> ::
     describe @ 'Basic', @=> genSyntaxTestCases @ it, iterSyntaxVariations()
 
@@ -60,7 +60,7 @@ function genMochaSyntaxTestCases(iterSyntaxVariations, transformVariations) ::
         describe @ name, @=> genSyntaxTestCases @ it, xform @ iterSyntaxVariations()
 
 
-function genSyntaxTestCases(it, iterable_test_cases) ::
+export function genSyntaxTestCases(it, iterable_test_cases) ::
   for (const testCase of iterable_test_cases) ::
     let testFn, title=testCase.title
     if (testCase.expectSyntaxError) ::
@@ -78,7 +78,7 @@ function genSyntaxTestCases(it, iterable_test_cases) ::
     else ::
       it @ title, testFn
 
-function bindIterableTransform(title_suffix, prefix, postfix, options={}) ::
+export function bindIterableTransform(title_suffix, prefix, postfix, options={}) ::
   if 'string' !== typeof prefix ::
     throw new Error("Expected prefix to be a string")
   if postfix && 'string' !== typeof postfix ::
@@ -109,7 +109,7 @@ function bindIterableTransform(title_suffix, prefix, postfix, options={}) ::
       yield Object.assign @ {}, testCase, @{} title, source, tokens
 
 
-const blockTransforms = @{}
+export const blockTransforms = @{}
   inBlock: bindIterableTransform @ 'vanilla block', '{', '}',
     @{} pre_tokens: @[] '{'
         post_tokens: @[] '}'
@@ -142,7 +142,7 @@ const blockTransforms = @{}
     @{} pre_tokens: @[] 'try', '{'
         post_tokens: @[] '}', 'catch', '(', 'name', ')', '{', 'name', '}'
 
-const functionTransforms = @{}
+export const functionTransforms = @{}
   inFunction: bindIterableTransform @ 'vanilla function', 'function outer_fn() {', '}',
     @{} pre_tokens: @[] 'function', 'name', '(', ')', '{'
         post_tokens: @[] '}'
@@ -156,7 +156,7 @@ const functionTransforms = @{}
     @{} pre_tokens: @[] 'const', 'name', '=', '(', ')', '=>', '{'
         post_tokens: @[] '}'
 
-const asyncFunctionTransforms = @{}
+export const asyncFunctionTransforms = @{}
   inAsyncFunction: bindIterableTransform @ 'vanilla async function', 'async function outer_fn() {', '}',
     @{} pre_tokens: @[] 'name', 'function', 'name', '(', ')', '{'
         post_tokens: @[] '}'
@@ -171,21 +171,9 @@ const asyncFunctionTransforms = @{}
         post_tokens: @[] '}'
 
 
-const standardTransforms = Object.assign @ {},
+export const standardTransforms = Object.assign @ {},
   blockTransforms, functionTransforms, asyncFunctionTransforms
 
-const tkns = @{}
+export const tkns = @{}
   cmp: '</>/<=/>='
-
-Object.assign @ exports, @{}
-  tkns
-  genMochaSyntaxTestCases
-  genSyntaxTestCases
-  bindIterableTransform
-  standardTransforms
-  blockTransforms
-  functionTransforms
-  asyncFunctionTransforms
-  testSourceTransform
-  testSyntaxError
 

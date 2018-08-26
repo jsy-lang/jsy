@@ -1,6 +1,5 @@
-require('source-map-support').install()
 
-const {genSyntaxTestCases, asyncFunctionTransforms} = require('./_xform_syntax_variations')
+import { genSyntaxTestCases, asyncFunctionTransforms } from './_xform_syntax_variations'
 
 describe @ 'For Await Of Statements', @=> ::
   const {inAsyncFunction} = asyncFunctionTransforms

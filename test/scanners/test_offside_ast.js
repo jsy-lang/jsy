@@ -1,6 +1,5 @@
-require('source-map-support').install()
-const assert = require('assert')
-const {scan_javascript} = require('jsy-transpile/cjs/scanner')
+const { assert } = require('chai')
+import { scan_javascript } from 'jsy-transpile/esm/scanner'
 
 describe @ 'Scanners', @=> ::
   describe @ 'hash_fnv32 example', @=> ::

@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>JSY Transpile Mocha Tests</title>
+<link rel='stylesheet' href='https://unpkg.com/mocha@5.2.0/mocha.css' />
+
+<script crossorigin src='https://unpkg.com/mocha@5.2.0/mocha.js'></script>
+<script crossorigin src='https://unpkg.com/chai@4.1.2/chai.js'></script>
+<script crossorigin src='https://unpkg.com/acorn@5.7.2/dist/acorn.js'></script>
+<script crossorigin src='https://unpkg.com/source-map@0.7.3/dist/source-map.js'></script>
+<script src='./umd/jsy-transpile.js'></script>
+
+<div id="mocha"></div>
+
+<script>
+  window.require = module => window[module]
+
+  window['source-map-support'] = { install(){} }
+  window['source-map'] = window.sourceMap
+  window.assert = window.chai.assert
+
+  mocha.setup({ ui: 'bdd' })
+</script>
+<script src='./test/__unittest.iife.js'></script>
+<script>
+  mocha.run()
+</script>

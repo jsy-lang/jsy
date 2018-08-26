@@ -1,21 +1,19 @@
-'use strict';
-
 const at_outer_offside =[
-  { jsy_op: '::@', pre: '(', post: ')', nestInner: false, implicitCommas: false,}
- ,{ jsy_op: '::()', pre: '(', post: ')', nestInner: false, implicitCommas: false,}
- ,{ jsy_op: '::{}', pre: '{', post: '}', nestInner: false, implicitCommas: false,}
- ,{ jsy_op: '::[]', pre: '[', post: ']', nestInner: false, implicitCommas: false,}
+  { jsy_op: '::@', pre: '(', post: ')', nestInner: false, implicitCommas: false}
+ ,{ jsy_op: '::()', pre: '(', post: ')', nestInner: false, implicitCommas: false}
+ ,{ jsy_op: '::{}', pre: '{', post: '}', nestInner: false, implicitCommas: false}
+ ,{ jsy_op: '::[]', pre: '[', post: ']', nestInner: false, implicitCommas: false}
  ,{ jsy_op: '::', pre: '{', post: '}', nestInner: false, implicitCommas: false, is_kw_close: true}];
 
 const at_inner_offside =[
   { jsy_op: '@:', pre: '({', post: '})', nestInner: true, implicitCommas: true}
- ,{ jsy_op: '@#', pre: '([', post: '])', nestInner: true, implicitCommas: true,}
- ,{ jsy_op: '@=>>', pre: '(async ()=>', post: ')', nestInner: true, implicitCommas: false,}
- ,{ jsy_op: '@=>', pre: '(()=>', post: ')', nestInner: true, implicitCommas: false,}
- ,{ jsy_op: '@()', pre: '(', post: ')', nestInner: true, implicitCommas: true,}
+ ,{ jsy_op: '@#', pre: '([', post: '])', nestInner: true, implicitCommas: true}
+ ,{ jsy_op: '@=>>', pre: '(async ()=>', post: ')', nestInner: true, implicitCommas: false}
+ ,{ jsy_op: '@=>', pre: '(()=>', post: ')', nestInner: true, implicitCommas: false}
+ ,{ jsy_op: '@()', pre: '(', post: ')', nestInner: true, implicitCommas: true}
  ,{ jsy_op: '@{}', pre: '{', post: '}', nestInner: true, implicitCommas: true}
- ,{ jsy_op: '@[]', pre: '[', post: ']', nestInner: true, implicitCommas: true,}
- ,{ jsy_op: '@', pre: '(', post: ')', nestInner: true, implicitCommas: true,}];
+ ,{ jsy_op: '@[]', pre: '[', post: ']', nestInner: true, implicitCommas: true}
+ ,{ jsy_op: '@', pre: '(', post: ')', nestInner: true, implicitCommas: true}];
 
 const at_offside = [].concat(
   at_outer_offside
@@ -782,5 +780,5 @@ function sourcemap_comment(srcmap_json){
 
   return `//# sourceMappingURL=data:application/json;charset=utf-8;base64,${b64}`}
 
-module.exports = transpile_jsy;
-//# sourceMappingURL=index.js.map
+export default transpile_jsy;
+//# sourceMappingURL=esm.js.map

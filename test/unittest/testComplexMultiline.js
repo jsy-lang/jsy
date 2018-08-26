@@ -1,6 +1,5 @@
-require('source-map-support').install()
 
-const {genMochaSyntaxTestCases, standardTransforms, tkns} = require('./_xform_syntax_variations')
+import { genMochaSyntaxTestCases, standardTransforms, tkns } from './_xform_syntax_variations'
 describe @ 'Complex Multiline Statements',
   genMochaSyntaxTestCases @ iterSyntaxVariations, standardTransforms
 

@@ -1,6 +1,7 @@
-const pkg = require('./package.json')
-const jsy_transpile = require('./stable/index.js')
-
+import pkg from './package.json'
+import rpi_resolve from 'rollup-plugin-node-resolve'
+import rpi_commonjs from 'rollup-plugin-commonjs'
+import jsy_transpile_stable from './stable/esm'
 import rpi_bound_jsy_lite from './rpi_jsy'
 
 const configs = []
@@ -9,7 +10,7 @@ export default configs
 const sourcemap = true
 const external = []
 
-const rpi_jsy = rpi_bound_jsy_lite({jsy_transpile})
+const rpi_jsy = rpi_bound_jsy_lite({jsy_transpile: jsy_transpile_stable})
 const plugins = [rpi_jsy]
 const plugins_browser = plugins.slice()
 
@@ -56,14 +57,16 @@ function add_jsy(name) {
 }
 
 
-/*
-import rpi_babel from 'rollup-plugin-babel'
-//const plugins = [jsy_babel()]
-function jsy_babel() {
-  return rpi_babel({
-    presets: [],
-    plugins: ['offside-js'],
-    babelrc: false,
-    exclude: 'node_modules/**',
-  }) }
-*/
+// unittesting compile rollup
+const test_plugins = plugins.concat([
+  rpi_resolve({ module: true, main: true }),
+  rpi_commonjs({ include: 'node_modules/**'}),
+])
+
+configs.push(
+  { input: `test/unittest.jsy`, context: 'window', plugins: test_plugins,
+    output: { file: 'test/__unittest.iife.js', format: 'iife', name: `test_jsy_transpile`, sourcemap:'inline' } },
+
+  { input: `test/unittest.jsy`, plugins: test_plugins,
+    output: { file: 'test/__unittest.cjs.js', format: 'cjs', sourcemap:'inline' } },
+)
