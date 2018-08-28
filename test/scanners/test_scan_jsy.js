@@ -19,7 +19,7 @@ describe @ 'JSY Scanner (doc example)', @=> ::
               , body: JSON.stringify @ body
 
             return await res.json()
-            
+
           Object.assign @ this, @{}
               add: data => apiCall @ 'add', data
             , modify: data => apiCall @ 'send', data
@@ -32,7 +32,7 @@ describe @ 'JSY Scanner (doc example)', @=> ::
             console.log @ 'JSY rocks!'
           else ::
             console.log @ 'JSY is still awesome!'
-            
+
         print_q(q) ::
           while 0 != q.length ::
             console.log @ q.pop()
@@ -72,18 +72,30 @@ describe @ 'JSY Scanner (doc example)', @=> ::
 
 describe @ 'JSY Scanner (misc)', @=> ::
   it @ 'hashbang', @=> ::
-    const offside_ast = scan_jsy @
-      @[] '#!/usr/bin/env jsy-node'
-          ''
-          'if test() ::'
-          '  console.log @'
-          '    "hello JSY world!"'
-      .join('\n')
+    const jsy_src = @[]
+      '#!/usr/bin/env jsy-node'
+      ''
+      'if test() ::'
+      '  console.log @'
+      '    "hello JSY world!"'
 
-    const js_src = transpile_jsy @ offside_ast
+    const js_src = transpile_jsy @ scan_jsy @ jsy_src.join('\n')
     assert.deepEqual @ js_src.split('\n'), @[]
       '#!/usr/bin/env jsy-node'
       ''
       'if( test()){'
       '  console.log('
       '    "hello JSY world!")}'
+
+  it.skip @ 'nested template strings', @=> ::
+    const jsy_src = @[]
+      "const classes = `header ${ isLargeScreen() ? '' :"
+      "  `icon-${item.isCollapsed ? 'expander' : 'collapser'}` } extra`"
+
+    const offside_ast = @
+      scan_jsy @ jsy_src.join('\n')
+      .map @ ln =>
+        ln.content
+          .map @ p => [p.type, p.content]
+
+    console.dir @ offside_ast, @{} depth: null
