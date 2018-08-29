@@ -1,19 +1,41 @@
+import { SourceCodeScanner, RegExpScanner, MultiLineScanner } from './context_scanner.jsy'
 import scan_offside_contexts from './basic_offside_contexts.jsy'
 
 export const clike_context_scanners = Object.freeze @#
-  @{} op: 'hashbang', kind:'#!', rx_open: /^(#!)/, rx_close: /.*($)/,
+  new SourceCodeScanner @:
+      description: 'Source Code Scanner'
+      op: 'src'
+
+  new RegExpScanner @:
+      description: 'Hashbang directive'
+      example: '#!/usr/bin/env node'
+      op: 'hashbang', kind:'#!'
+      rx_open: /^(#!)/, rx_close: /.*($)/,
       firstline: true
 
-  @{} op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,
+  new RegExpScanner @:
+      description: 'Comment to end of line'
+      example: '// comment'
+      op: 'comment_eol', kind:'//'
+      rx_open: /(\/\/)/, rx_close: /.*($)/,
 
-  @{} op: 'comment_multi', kind:'/*', rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,
-      multiline: true
+  new MultiLineScanner @:
+      description: 'Multi-line comment'
+      example: '/* comment */'
+      op: 'comment_multi', kind:'/*'
+      rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,
 
-  @{} op: 'str_single', kind:"'", rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,
-      multiline(ln) :: throw new SyntaxError @ `Newline in single quote string (${ln.loc.end.toString()})`
+  new RegExpScanner @:
+      description: 'Single quote string literal'
+      example: "'single quote'"
+      op: 'str_single', kind:"'"
+      rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,
 
-  @{} op: 'str_double', kind:'"', rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
-      multiline(ln) :: throw new SyntaxError @ `Newline in double quote string (${ln.loc.end.toString()})`
+  new RegExpScanner @:
+      description: 'Double quote string literal'
+      example: '"double quote"'
+      op: 'str_double', kind:'"'
+      rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
 
 
 export default scan_clike

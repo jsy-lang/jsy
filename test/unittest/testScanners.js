@@ -17,7 +17,8 @@ function * iterSyntaxVariations() ::
         '      h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)'
         '    return h'
         '  `'
-      tokens: @[] 'name', '=', 'name', '(', '`', 'template', '`', ')'
+        '; after'
+      tokens: @[] 'name', '=', 'name', '(', '`', 'template', '`', ')', ';', 'name'
 
   yield @{} expectValid: true
       title: 'Multi-line comment string (/* */)'
@@ -31,4 +32,5 @@ function * iterSyntaxVariations() ::
         '      h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)'
         '    return h'
         '  */'
-      tokens: @[] 'name', '=', 'name'
+        '; after'
+      tokens: @[] 'name', '=', 'name', ';', 'name'

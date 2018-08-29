@@ -1,0 +1,254 @@
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class DispatchScanner ::
+  startCompile() ::
+    Object.defineProperties @ this, @{}
+      regexp: @{} value: []
+    this.by_kind = {}
+    this.by_op = {}
+    return this
+
+  addScanner(scanner) ::
+    if scanner.withDispatch ::
+      scanner = scanner.withDispatch(this)
+
+    this.by_op[scanner.op] = scanner
+    return scanner
+
+  addRegExpScanner(scanner, kind, re_disp) ::
+    this.by_kind[kind] = scanner.op
+    this.regexp.push @ `(?:${re_disp})`
+
+  finishCompile(ds_body) ::
+    if ! ds_body :: ds_body = this.by_op.src
+    const rx = new RegExp @ this.regexp.join('|'), 'g'
+
+    return Object.defineProperties @ this, @{}
+      rx: @{} value: rx
+      ds_body: @{} value: ds_body, writable: true
+
+
+  cloneWithOps(by_op_override) ::
+    const self = Object.create(this)
+    self.by_op = Object.assign @ {}, this.by_op, by_op_override
+    self.ds_body = self.by_op.src
+    self.level = 1 + 0|self.level
+    self.description = self.description.replace @
+      /\(\d+\)/, `(${self.level})`
+    return self
+
+
+  newline(ctx) ::
+
+  scan(ctx, idx0) ::
+    const rx = this.rx
+    rx.lastIndex = idx0
+
+    const source = ctx.ln_source
+    const match = rx.exec(source)
+
+    if null === match ::
+      return this.ds_body.scan(ctx, idx0)
+
+    const idx1 = match.index
+    if idx0 !== idx1 ::
+      return this.ds_body.scan_fragment @
+        ctx, source.slice(idx0, idx1)
+
+    const kind = match.filter(Boolean)[1]
+    const op = this.by_kind[kind]
+    const op_scanner = this.by_op[op]
+    if ! op_scanner ::
+      //console.warn @: kind, op, match
+      throw new Error @ `No scanner registered for « ${kind} »`
+
+    return op_scanner.scan(ctx, idx1)
+
+  scan_fragment(ctx, content) ::
+    throw new Error @ `Dispatch scanner does not support fragments`
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class DispatchFirstlineScanner extends DispatchScanner ::
+  scan(ctx, idx0) ::
+    ctx.scanner = this.ds_body
+    return super.scan(ctx, idx0)
+
+  scan_fragment(ctx, content) ::
+    throw new Error @ `First line dispatch scanner does not support fragments`
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class BaseSourceScanner ::
+  constructor(options) ::
+    Object.assign(this, options)
+
+  withDispatch(ds) ::
+    const self = Object.create @ this, @{}
+      dispatch: {value: ds}
+    return self
+
+  emit_ast(ctx, content, ast_type) ::
+    const start = ctx.loc_tip
+    const end = ctx.loc_tip = start.move(content)
+    const ast = @{} type: ast_type || this.op, loc: {start, end}, content
+    ctx.parts.push @ ast
+    return ast
+
+
+  newline(ctx) ::
+  scan_fragment(ctx, content) ::
+    throw new Error @ `Scanner (${this.description}) does not support fragments`
+  scan(ctx, idx0) ::
+    throw new Error @ `Scanner (${this.description}) does not support scans`
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class SourceCodeScanner extends BaseSourceScanner ::
+  scan_fragment(ctx, content) ::
+    this.scan_content @ ctx, content
+
+  scan(ctx, idx0) ::
+    this.scan_content @ ctx, ctx.ln_source.slice(idx0)
+
+  scan_content(ctx, content) ::
+    this.emit_ast @ ctx, content
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class NestedCodeScanner extends SourceCodeScanner ::
+  constructor(options) ::
+    super(options)
+    if ! this.char_pairs ::
+      throw new Error @ 'Missing required char_pairs mapping'
+
+    const chars = Object.keys(this.char_pairs).join('\\')
+    this.rx = new RegExp(`([${chars}])`)
+
+  withOuter(options) ::
+    const scanner = options.scanner
+    if 'function' !== typeof scanner.scan ::
+      throw new Error @ `Expected valid outer scanner`
+    delete options.scanner
+
+    const self = Object.create @ this, @{}
+      restore_scanner: @{} value: scanner
+    Object.assign @ self, options
+    return self
+
+  scan_content(ctx, nested_content) ::
+    const {stack, char_pairs} = this
+
+    let content = ''
+    for const tok of nested_content.split(this.rx) ::
+      const p = 1 === tok.length ? char_pairs[tok] : undefined
+
+      if undefined === p ::
+        content += tok
+        continue
+
+      if true === p ::
+        content += tok
+        stack.push @ tok
+        continue
+
+      const tip = stack.pop()
+      if tip !== p ::
+        const loc = ctx.loc_tip.move(content)
+        throw new SyntaxError @ `Mismatched nesting in ${this.description} (${loc.toString()})`
+
+      if 0 !== stack.length ::
+        content += tok
+        continue
+
+      this.emit_ast @ ctx, content
+      this.emit_ast @ ctx, tok, this.ast_end || 'nested_end'
+      ctx.scanner = this.restore_scanner
+      return
+
+    // all tokens with non-zero stack
+    this.emit_ast @ ctx, content
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class RegExpScanner extends BaseSourceScanner ::
+  withDispatch(ds) ::
+    if undefined === this.nesting :: this.nesting = {}
+    const self = super.withDispatch(ds)
+    self.compileForDispatch(ds)
+    return self
+
+  compileForDispatch(ds) ::
+    const re_disp = `${this.rx_open.source}${this.rx_close.source}`
+    const rx_disp = new RegExp @ re_disp
+
+    const rx_resume = new RegExp @ `^${this.rx_close.source}`
+
+    const match = rx_disp.exec @ this.example
+    if this.kind !== match[1] || null == match[2] ::
+      //console.warn @: example: this.example, rx_disp, match
+      throw new Error @ `Invalid scanner regexp and/or example ()`
+
+    Object.defineProperties @ this, @{}
+      rx_disp: @{} value: rx_disp
+      rx_resume: @{} value: rx_resume
+
+    ds.addRegExpScanner @ this, this.kind, re_disp
+
+
+  newline(ctx) ::
+    throw new SyntaxError @ `Newline in ${this.description} (${ctx.ln.loc.end.toString()})`
+
+  scan(ctx, idx0) ::
+    const match = this.rx_disp.exec @ ctx.ln_source.slice(idx0)
+    const [content, open, close] = match
+
+    this.emit_ast(ctx, content)
+    this._post_scan(ctx, close)
+
+  scan_continue(ctx, idx0) ::
+    const match = this.rx_resume.exec @ ctx.ln_source.slice(idx0)
+    const [content, close] = match
+
+    this.emit_ast(ctx, content)
+    return this._post_scan(ctx, close)
+
+  _post_scan(ctx, close) ::
+    if ! close :: return
+
+    const nested = this.nesting[close]
+    if 'function' === typeof nested ::
+      return nested @ ctx, this.dispatch, this._continueScanner(ctx)
+    else if undefined !== nested ::
+      return nested
+    else return true // pop ctx.scanner
+
+  _continueScanner(ctx) ::
+    const restore_scanner = ctx.scanner
+    return @{}
+      __proto__: this
+      description: `${this.description} (cont)`
+
+      scan(ctx, idx0) ::
+        if true === this.scan_continue(ctx, idx0) ::
+          ctx.scanner = restore_scanner
+
+      _continueScanner(ctx) :: return this
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class MultiLineScanner extends RegExpScanner ::
+  newline(ctx) ::
+
+  _post_scan(ctx, close, restore_scanner) ::
+    if close ::
+      return super._post_scan(ctx, close, restore_scanner)
+
+    ctx.scanner = this._continueScanner(ctx)

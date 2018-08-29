@@ -208,6 +208,8 @@ const transpile_visitor = @{}
   v$str_single: direct_src
   v$str_double: direct_src
   v$str_multi: direct_src
+  v$template_param: direct_src
+  v$template_param_end: direct_src
   v$regexp: direct_src
   v$hashbang: raw_src
   v$comment_eol: raw_src

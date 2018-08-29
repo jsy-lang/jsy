@@ -1,5 +1,6 @@
 const { assert } = require('chai')
 import { transpile_jsy, scan_jsy } from 'jsy-transpile/esm/all'
+import { test_ast_tokens_content, ast_tokens_content } from './_ast_test_utils'
 const { SourceMapGenerator } = require('source-map')
 
 describe @ 'JSY Scanner (doc example)', @=> ::
@@ -51,7 +52,7 @@ describe @ 'JSY Scanner (doc example)', @=> ::
 
   it @ 'transpiles to valid JavaScript', @=> ::
     const js_src = transpile_jsy @ offside_ast
-    new Function(js_src)
+    new Function(`{\njs_src\n}`)
 
   it @ 'has source-maps', @=> ::
     const sourcemap = new SourceMapGenerator()
@@ -87,15 +88,47 @@ describe @ 'JSY Scanner (misc)', @=> ::
       '  console.log('
       '    "hello JSY world!")}'
 
-  it.skip @ 'nested template strings', @=> ::
+  it @ 'single template strings', @=> ::
+    const jsy_src = @[]
+      "const classes = `header ${ inner() } extra`"
+
+    const offside_ast = scan_jsy @ jsy_src.join('\n')
+
+    test_ast_tokens_content @ offside_ast, @[]
+      @[] @[] 'src', 'const classes = '
+          @[] 'str_multi', '`header ${'
+          @[] 'template_param', ''
+          @[] 'src', ' inner() '
+          @[] 'template_param_end', '}'
+          @[] 'str_multi', ' extra`'
+          @[] 'offside_dedent', undefined
+
+  it @ 'nested template strings', @=> ::
     const jsy_src = @[]
       "const classes = `header ${ isLargeScreen() ? '' :"
       "  `icon-${item.isCollapsed ? 'expander' : 'collapser'}` } extra`"
 
-    const offside_ast = @
-      scan_jsy @ jsy_src.join('\n')
-      .map @ ln =>
-        ln.content
-          .map @ p => [p.type, p.content]
+    const offside_ast = scan_jsy @ jsy_src.join('\n')
 
-    console.dir @ offside_ast, @{} depth: null
+    test_ast_tokens_content @ offside_ast, @[]
+      @[] @[] 'src', 'const classes = '
+          @[] 'str_multi', '`header ${'
+          @[] 'template_param', ''
+          @[] 'src', ' isLargeScreen() ? '
+          @[] 'str_single', "''"
+          @[] 'src', ' :'
+          @[] 'offside_dedent', undefined
+
+      @[] @[] 'str_multi', '`icon-${'
+          @[] 'template_param', ''
+          @[] 'src', 'item.isCollapsed ? '
+          @[] 'str_single', "'expander'"
+          @[] 'src', ' : '
+          @[] 'str_single', "'collapser'"
+          @[] 'template_param_end', '}'
+          @[] 'str_multi', '`'
+          @[] 'src', ' '
+          @[] 'template_param_end', '}'
+          @[] 'str_multi', ' extra`'
+          @[] 'offside_dedent', undefined
+
