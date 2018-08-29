@@ -1,4 +1,4 @@
-import { at_offside_map, kw_jsy_op  } from './jsy_operators.jsy'
+import { at_offside_map, extra_jsy_ops  } from './jsy_operators.jsy'
 import checkOptionalComma from './optional_comma.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
@@ -84,7 +84,7 @@ const transpile_visitor = @{}
     return line_src
 
   emit_raw(src) ::
-    this._cur.push @ src
+    if src :: this._cur.push @ src
 
   emit(src, loc_start) ::
     if loc_start && this.addSourceMapping ::
@@ -143,9 +143,9 @@ const transpile_visitor = @{}
       comma_body.len_inner = this.cur_ln.len_inner
     else head.comma_body = undefined
 
-    if op.in_kw_block ::
-      head.in_kw_block = true
-      head.kw_block_indent = len_indent
+    if op.in_nested_block ::
+      head.in_nested_block = true
+      head.nested_block_indent = len_indent
 
     head.tail = [this.head].concat(head.tail || [])
 
@@ -164,21 +164,29 @@ const transpile_visitor = @{}
 
   v$jsy_kw(p) ::
     const kw_op = p.explicit
-      ? kw_jsy_op.explicit
-      : kw_jsy_op.normal
+      ? extra_jsy_ops.kw_explicit
+      : extra_jsy_ops.kw_normal
 
     this.stack_push @ kw_op, p
 
   v$jsy_op(p) ::
     const jsy_op = at_offside_map[p.op]
 
-    if jsy_op.is_kw_close && this.head.in_kw_block ::
-      p.len_indent = this.head.kw_block_indent
-      while this.head.in_kw_block ::
-        this.stack_pop()
+    if jsy_op.is_kw_close ::
+      this._dedent_nested_block(p)
 
     this.stack_push @ jsy_op, p
 
+  _dedent_nested_block(p) ::
+    let c = 0
+    if ! this.head.in_nested_block :: return c
+
+    if null != p ::
+      p.len_indent = this.head.nested_block_indent
+
+    while this.head.in_nested_block ::
+      ++c; this.stack_pop()
+    return c
 
   _dedent_multi_ops() ::
     if ! this.head.loc :: return
@@ -204,16 +212,25 @@ const transpile_visitor = @{}
   v$offside_indent(p) ::
     this.emit_indent @ p.indent
 
+
+  v$template_param(p) ::
+    this.stack_push @ extra_jsy_ops.tmpl_param, p
+    this.emit_raw @ p.content
+
+  v$template_param_end(p) ::
+    this._dedent_nested_block(p)
+    this.emit_raw @ p.content
+
+
   v$src: direct_src
   v$str_single: direct_src
   v$str_double: direct_src
   v$str_multi: direct_src
-  v$template_param: direct_src
-  v$template_param_end: direct_src
   v$regexp: direct_src
   v$hashbang: raw_src
   v$comment_eol: raw_src
   v$comment_multi: raw_src
+
 
 function raw_src(p) :: this.emit_raw @ p.content
 function direct_src(p) :: this.emit @ p.content, p.loc.start

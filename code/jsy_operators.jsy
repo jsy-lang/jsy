@@ -26,9 +26,10 @@ export const at_offside_map = at_offside.reduce @
   {}
 
 
-export const kw_jsy_op = @{}
-  normal: @{} jsy_op: 'kw', pre: '(', post: ')', in_kw_block: true
-  explicit: @{} jsy_op: 'kw', pre: '', post: '', in_kw_block: true
+export const extra_jsy_ops = @{}
+  kw_normal: @{} jsy_op: 'kw', pre: '(', post: ')', in_nested_block: true
+  kw_explicit: @{} jsy_op: 'kw', pre: '', post: '', in_nested_block: true
+  tmpl_param: @{} jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true
 
 export const keywords_with_args = @[] 'if', 'while', 'for await', 'for', 'switch'
 export const keywords_locator_parts = [].concat @

@@ -88,6 +88,7 @@ describe @ 'JSY Scanner (misc)', @=> ::
       '  console.log('
       '    "hello JSY world!")}'
 
+
   it @ 'single template strings', @=> ::
     const jsy_src = @[]
       "const classes = `header ${ inner() } extra`"
@@ -102,6 +103,27 @@ describe @ 'JSY Scanner (misc)', @=> ::
           @[] 'template_param_end', '}'
           @[] 'str_multi', ' extra`'
           @[] 'offside_dedent', undefined
+
+
+  it @ 'single template strings with jsy_ops', @=> ::
+    const jsy_src = @[]
+      "const classes = `header ${ first @ second @# third, 42 } extra`"
+
+    const offside_ast = scan_jsy @ jsy_src.join('\n')
+
+    test_ast_tokens_content @ offside_ast, @[]
+      @[] @[] 'src', 'const classes = '
+          @[] 'str_multi', '`header ${'
+          @[] 'template_param', ''
+          @[] 'src', ' first'
+          @[] 'jsy_op', ' @'
+          @[] 'src', ' second'
+          @[] 'jsy_op', ' @#'
+          @[] 'src', ' third, 42 '
+          @[] 'template_param_end', '}'
+          @[] 'str_multi', ' extra`'
+          @[] 'offside_dedent', undefined
+
 
   it @ 'nested template strings', @=> ::
     const jsy_src = @[]
