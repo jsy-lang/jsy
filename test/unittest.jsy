@@ -1,5 +1,3 @@
-require('source-map-support').install()
-
 import './scanners/test_basic_offside.js'
 import './scanners/test_offside_ast.js'
 import './scanners/test_scan_clike.js'

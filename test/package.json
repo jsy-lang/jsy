@@ -12,7 +12,7 @@
     "pretest:one": "test -d ./node_modules || npm -s install",
     "test": "npm -s run test:one",
     "test:one": "mocha ./__unittest.cjs.js",
-    "test:lean": "TEST_LEAN=true mocha ./__unittest.cjs.js",
-    "test:min": "TEST_LEAN=true mocha --reporter=min ./__unittest.cjs.js"
+    "test:lean": "TEST_LEAN=true mocha ./nodejs_unittest.js",
+    "test:min": "TEST_LEAN=true mocha --reporter=min ./nodejs_unittest.js"
   }
 }
