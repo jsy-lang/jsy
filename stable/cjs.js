@@ -28,9 +28,10 @@ const at_offside_map = at_offside.reduce(
  ,{});
 
 
-const kw_jsy_op ={
-  normal:{ jsy_op: 'kw', pre: '(', post: ')', in_kw_block: true}
- ,explicit:{ jsy_op: 'kw', pre: '', post: '', in_kw_block: true}};
+const extra_jsy_ops ={
+  kw_normal:{ jsy_op: 'kw', pre: '(', post: ')', in_nested_block: true}
+ ,kw_explicit:{ jsy_op: 'kw', pre: '', post: '', in_nested_block: true}
+ ,tmpl_param:{ jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true}};
 
 const keywords_with_args =[ 'if', 'while', 'for await', 'for', 'switch'];
 const keywords_locator_parts = [].concat(
@@ -133,6 +134,260 @@ function inject_dedent(offside_lines, trailing_types){
       ln.content.push( offside_dedent, last);}
     else{
       ln.content.push( last, offside_dedent);}}}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class DispatchScanner{
+  startCompile(){
+    Object.defineProperties( this,{
+      regexp:{ value: []}});
+    this.by_kind = {};
+    this.by_op = {};
+    return this}
+
+  addScanner(scanner){
+    if( scanner.withDispatch){
+      scanner = scanner.withDispatch(this);}
+
+    this.by_op[scanner.op] = scanner;
+    return scanner}
+
+  addRegExpScanner(scanner, kind, re_disp){
+    this.by_kind[kind] = scanner.op;
+    this.regexp.push( `(?:${re_disp})`);}
+
+  finishCompile(ds_body){
+    if (! ds_body){ ds_body = this.by_op.src;}
+    const rx = new RegExp( this.regexp.join('|'), 'g');
+
+    return Object.defineProperties( this,{
+      rx:{ value: rx}
+     ,ds_body:{ value: ds_body, writable: true}})}
+
+
+  cloneWithOps(by_op_override){
+    const self = Object.create(this);
+    self.by_op = Object.assign( {}, this.by_op, by_op_override);
+    self.ds_body = self.by_op.src;
+    self.level = 1 + 0|self.level;
+    self.description = self.description.replace(
+      /\(\d+\)/, `(${self.level})`);
+    return self}
+
+
+  newline(ctx){}
+
+  scan(ctx, idx0){
+    const rx = this.rx;
+    rx.lastIndex = idx0;
+
+    const source = ctx.ln_source;
+    const match = rx.exec(source);
+
+    if( null === match){
+      return this.ds_body.scan(ctx, idx0)}
+
+    const idx1 = match.index;
+    if( idx0 !== idx1){
+      return this.ds_body.scan_fragment(
+        ctx, source.slice(idx0, idx1))}
+
+    const kind = match.filter(Boolean)[1];
+    const op = this.by_kind[kind];
+    const op_scanner = this.by_op[op];
+    if (! op_scanner){
+      //console.warn @: kind, op, match
+      throw new Error( `No scanner registered for « ${kind} »`)}
+
+    return op_scanner.scan(ctx, idx1)}
+
+  scan_fragment(ctx, content){
+    throw new Error( `Dispatch scanner does not support fragments`)}}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class DispatchFirstlineScanner extends DispatchScanner{
+  scan(ctx, idx0){
+    ctx.scanner = this.ds_body;
+    return super.scan(ctx, idx0)}
+
+  scan_fragment(ctx, content){
+    throw new Error( `First line dispatch scanner does not support fragments`)}}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class BaseSourceScanner{
+  constructor(options){
+    Object.assign(this, options);}
+
+  withDispatch(ds){
+    const self = Object.create( this,{
+      dispatch: {value: ds}});
+    return self}
+
+  emit_ast(ctx, content, ast_type){
+    const start = ctx.loc_tip;
+    const end = ctx.loc_tip = start.move(content);
+    const ast ={ type: ast_type || this.op, loc: {start, end}, content};
+    ctx.parts.push( ast);
+    return ast}
+
+
+  newline(ctx){}
+  scan_fragment(ctx, content){
+    throw new Error( `Scanner (${this.description}) does not support fragments`)}
+  scan(ctx, idx0){
+    throw new Error( `Scanner (${this.description}) does not support scans`)}}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class SourceCodeScanner extends BaseSourceScanner{
+  scan_fragment(ctx, content){
+    this.scan_content( ctx, content);}
+
+  scan(ctx, idx0){
+    this.scan_content( ctx, ctx.ln_source.slice(idx0));}
+
+  scan_content(ctx, content){
+    this.emit_ast( ctx, content);}}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class NestedCodeScanner extends SourceCodeScanner{
+  constructor(options){
+    super(options);
+    if (! this.char_pairs){
+      throw new Error( 'Missing required char_pairs mapping')}
+
+    const chars = Object.keys(this.char_pairs).join('\\');
+    this.rx = new RegExp(`([${chars}])`);}
+
+  withOuter(options){
+    const scanner = options.scanner;
+    if ('function' !== typeof scanner.scan){
+      throw new Error( `Expected valid outer scanner`)}
+    delete options.scanner;
+
+    const self = Object.create( this,{
+      restore_scanner:{ value: scanner}});
+    Object.assign( self, options);
+    return self}
+
+  scan_content(ctx, nested_content){
+    const {stack, char_pairs} = this;
+
+    let content = '';
+    for( const tok of nested_content.split(this.rx)){
+      const p = 1 === tok.length ? char_pairs[tok] : undefined;
+
+      if( undefined === p){
+        content += tok;
+        continue}
+
+      if( true === p){
+        content += tok;
+        stack.push( tok);
+        continue}
+
+      const tip = stack.pop();
+      if( tip !== p){
+        const loc = ctx.loc_tip.move(content);
+        throw new SyntaxError( `Mismatched nesting in ${this.description} (${loc.toString()})`)}
+
+      if( 0 !== stack.length){
+        content += tok;
+        continue}
+
+      this.emit_ast( ctx, content);
+      this.emit_ast( ctx, tok, this.ast_end || 'nested_end');
+      ctx.scanner = this.restore_scanner;
+      return}
+
+    // all tokens with non-zero stack
+    this.emit_ast( ctx, content);}}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class RegExpScanner extends BaseSourceScanner{
+  withDispatch(ds){
+    if( undefined === this.nesting){ this.nesting = {};}
+    const self = super.withDispatch(ds);
+    self.compileForDispatch(ds);
+    return self}
+
+  compileForDispatch(ds){
+    const re_disp = `${this.rx_open.source}${this.rx_close.source}`;
+    const rx_disp = new RegExp( re_disp);
+
+    const rx_resume = new RegExp( `^${this.rx_close.source}`);
+
+    const match = rx_disp.exec( this.example);
+    if( this.kind !== match[1] || null == match[2]){
+      //console.warn @: example: this.example, rx_disp, match
+      throw new Error( `Invalid scanner regexp and/or example ()`)}
+
+    Object.defineProperties( this,{
+      rx_disp:{ value: rx_disp}
+     ,rx_resume:{ value: rx_resume}});
+
+    ds.addRegExpScanner( this, this.kind, re_disp);}
+
+
+  newline(ctx){
+    throw new SyntaxError( `Newline in ${this.description} (${ctx.ln.loc.end.toString()})`)}
+
+  scan(ctx, idx0){
+    const match = this.rx_disp.exec( ctx.ln_source.slice(idx0));
+    const [content, open, close] = match;
+
+    this.emit_ast(ctx, content);
+    this._post_scan(ctx, close);}
+
+  scan_continue(ctx, idx0){
+    const match = this.rx_resume.exec( ctx.ln_source.slice(idx0));
+    const [content, close] = match;
+
+    this.emit_ast(ctx, content);
+    return this._post_scan(ctx, close)}
+
+  _post_scan(ctx, close){
+    if (! close){ return}
+
+    const nested = this.nesting[close];
+    if ('function' === typeof nested){
+      return nested( ctx, this.dispatch, this._continueScanner(ctx))}
+    else if( undefined !== nested){
+      return nested}
+    else return true }// pop ctx.scanner
+
+  _continueScanner(ctx){
+    const restore_scanner = ctx.scanner;
+    return {
+      __proto__: this
+     ,description: `${this.description} (cont)`,
+
+      scan(ctx, idx0){
+        if( true === this.scan_continue(ctx, idx0)){
+          ctx.scanner = restore_scanner;}}
+
+     ,_continueScanner(ctx){ return this}}}}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class MultiLineScanner extends RegExpScanner{
+  newline(ctx){}
+
+  _post_scan(ctx, close, restore_scanner){
+    if( close){
+      return super._post_scan(ctx, close, restore_scanner)}
+
+    ctx.scanner = this._continueScanner(ctx);}}
 
 const SourceLocation ={
   __proto__: null
@@ -274,152 +529,58 @@ function bind_context_scanner(context_scanners){
 
 
 function compile_context_scanner(context_scanners){
-  const scn_multiline={}, scn_ops={};
-  const {rx_firstline, rx_content} = build_composite_regexp();
-
+  const ds_first = build_composite_scanner(context_scanners);
   return context_scanner
 
-
   function context_scanner(offside_lines){
-    let ctx = {};
+    const ctx ={ scanner: ds_first};
+
     for( const ln of offside_lines){
       if( ln.is_blank){
         delete ln.content;
+        ctx.scanner.newline(ctx);
         continue}
 
-      const parts = [];
 
+      ctx.parts = [];
       ctx.ln = ln;
-      ctx.loc_tip = ln.content.loc.start;
-      ctx.ln_source = ln.content.content;
-      ctx.lastIndex = 0;
 
-      if( 1 === ctx.loc_tip.line){
-        ctx.continue_scan = context_line_scanner( ln, parts, ctx, true);
+      scan_source(ctx, ln.content);
 
-        if( 0 !== parts.length){
-          ln.content = parts;
-          continue}}
+      if( 0 === ctx.parts.length){
+        throw new Error( `No parts generated by context scanner`)}
 
-      if( ctx.continue_scan){
-        ctx.continue_scan = ctx.continue_scan( ln, parts, ctx);
-        if( undefined !== ctx.continue_scan){
-          ln.content = parts;
-          continue}
-
-        // catch lastIndex up to where continue_scan left off
-        ctx.lastIndex = ctx.loc_tip.pos - ctx.loc_tip.line_pos;}
-
-      ctx.continue_scan = context_line_scanner( ln, parts, ctx);
-
-      if( 0 === parts.length){
-        const {loc, content} = ln.content;
-        parts.push( as_src_ast( content, loc.start, loc.end));}
-
-      ln.content = parts;}
+      ln.content = ctx.parts;
+      ctx.scanner.newline(ctx);}
 
     return offside_lines}
 
-  function context_line_scanner(ln, parts, ctx, is_firstline){
-    const rx_scanner = is_firstline ? rx_firstline : rx_content;
-    rx_scanner.lastIndex = ctx.lastIndex;
+
+  function scan_source(ctx, ln_content){
+    const ln_source = ctx.ln_source = ln_content.content;
+    const loc_start = ctx.loc_tip = ctx.loc_start = ln_content.loc.start;
+    const pos0 = loc_start.pos;
+
     while( true){
+      const idx0 = ctx.loc_tip.pos - pos0;
+      if( idx0 >= ln_source.length){
+        return }// done with this line
 
-      let start = ctx.loc_tip, idx0 = rx_scanner.lastIndex;
-      const match = rx_scanner.exec(ctx.ln_source);
-
-
-      if( null === match){
-        if( idx0 === ctx.ln_source.length){
-          return }// no more content
-
-        else if( is_firstline){
-          return }// no default emit
-
-        // last source of the current line
-        const content = ctx.ln_source.slice(idx0);
-        const end = ctx.loc_tip = ctx.loc_tip.move(content);
-        parts.push( as_src_ast( content, start, end));
-        return}
-
-      if( idx0 !== match.index){
-        const content = ctx.ln_source.slice(idx0, match.index);
-        const end = ctx.loc_tip = ctx.loc_tip.move(content);
-        parts.push( as_src_ast( content, start, end));
-        start = ctx.loc_tip; idx0 = match.index;}
-
-      const op = scanner_op(match);
-
-      const content = op.close ? match[0] : ctx.ln_source.slice(idx0);
-      const end = ctx.loc_tip = ctx.loc_tip.move(content);
-      const entry ={
-        type: op.op
-       ,loc:{ start, end}
-       ,content: content};
-
-      parts.push( entry);
-
-      if (! op.close && op.multiline){
-        entry.multiline = true;
-        return op.multiline}}}
+      ctx.scanner.scan( ctx, idx0);}}
 
 
-  function bind_multiline_scan_for(ctx_scan){
-    const rx_cont = new RegExp( `^${ctx_scan.rx_close.source}`);
-    multiline_scan.ctx_scan = ctx_scan;
-    return multiline_scan
+  function build_composite_scanner(){
+    const ds_body = new DispatchScanner().startCompile();
+    ds_body.description = 'Dispatch scanner (0)';
+    const ds_first = new DispatchFirstlineScanner().startCompile();
+    ds_first.description = 'Firstline Dispatch scanner (0)';
 
-    function multiline_scan(ln, parts, ctx){
-      const match = rx_cont.exec(ctx.ln_source);
-      if( undefined === match){
-        throw new Error( `Invalid multiline scan`)}
+    for( const scanner of context_scanners){
+      const ds = scanner.firstline ? ds_first : ds_body;
+      ds.addScanner(scanner);}
 
-      const content = match[0];
-      const start = ctx.loc_tip;
-      const end = ctx.loc_tip = ctx.loc_tip.move(content);
-
-      parts.push({
-        type: ctx_scan.op
-       ,loc:{ start, end}
-       ,content: content});
-
-      const closed = match[1];
-      if (! closed){ return multiline_scan}}}
-
-
-  function scanner_op(match){
-    const pairs = [].filter.call(match, Boolean);
-    const open = pairs[1], close = pairs[2];
-    const op = scn_ops[open];
-    const multiline = scn_multiline[op];
-    return { op, open, close, multiline}}
-
-
-  function build_composite_regexp(){
-    const regexp_all = [], regexp_firstline = [];
-    for( const ctx_scan of context_scanners){
-      const re = `(?:${ctx_scan.rx_open.source}${ctx_scan.rx_close.source})`;
-      scn_ops[ctx_scan.kind] = ctx_scan.op;
-
-      if( ctx_scan.firstline){
-        regexp_firstline.push( re);
-        continue}
-
-      regexp_all.push( re);
-
-      if( true === ctx_scan.multiline){
-        scn_multiline[ctx_scan.op] = bind_multiline_scan_for( ctx_scan);}
-
-      else if ('function' === typeof ctx_scan.multiline){
-        scn_multiline[ctx_scan.op] = ctx_scan.multiline.bind(ctx_scan);}}
-
-    return {
-      rx_firstline: new RegExp( regexp_firstline.join('|'), 'g')
-     ,rx_content: new RegExp( regexp_all.join('|'), 'g')}}}
-
-
-function as_src_ast(content, start, end){
-  return { type: 'src', loc: {start, end}, content}}
+    ds_body.finishCompile();
+    return ds_first.finishCompile(ds_body)}}
 
 function scan_offside_contexts(source, feedback, context_scanners){
   // see scan_javascript and scan_clike for good context_scanners
@@ -427,28 +588,75 @@ function scan_offside_contexts(source, feedback, context_scanners){
   return context_scanner( basic_offside_scanner(source, feedback))}
 
 const clike_context_scanners = Object.freeze([
-  { op: 'hashbang', kind:'#!', rx_open: /^(#!)/, rx_close: /.*($)/,
-      firstline: true}
+  new SourceCodeScanner({
+      description: 'Source Code Scanner'
+     ,op: 'src'})
 
- ,{ op: 'comment_eol', kind:'//', rx_open: /(\/\/)/, rx_close: /.*($)/,}
+ ,new RegExpScanner({
+      description: 'Hashbang directive'
+     ,example: '#!/usr/bin/env node'
+     ,op: 'hashbang', kind:'#!'
+     ,rx_open: /^(#!)/, rx_close: /.*($)/,
+      firstline: true})
 
- ,{ op: 'comment_multi', kind:'/*', rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,
-      multiline: true}
+ ,new RegExpScanner({
+      description: 'Comment to end of line'
+     ,example: '// comment'
+     ,op: 'comment_eol', kind:'//'
+     ,rx_open: /(\/\/)/, rx_close: /.*($)/,})
 
- ,{ op: 'str_single', kind:"'", rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,
-      multiline(ln){ throw new SyntaxError( `Newline in single quote string (${ln.loc.end.toString()})`)}}
+ ,new MultiLineScanner({
+      description: 'Multi-line comment'
+     ,example: '/* comment */'
+     ,op: 'comment_multi', kind:'/*'
+     ,rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,})
 
- ,{ op: 'str_double', kind:'"', rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
-      multiline(ln){ throw new SyntaxError( `Newline in double quote string (${ln.loc.end.toString()})`)}}]);
+ ,new RegExpScanner({
+      description: 'Single quote string literal'
+     ,example: "'single quote'"
+     ,op: 'str_single', kind:"'"
+     ,rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,})
+
+ ,new RegExpScanner({
+      description: 'Double quote string literal'
+     ,example: '"double quote"'
+     ,op: 'str_double', kind:'"'
+     ,rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,})]);
 
 const js_context_scanners = Object.freeze( clike_context_scanners.concat([
-  { op: 'regexp', kind:'/', rx_open: /(\/)(?=[^\/])/, rx_close: /(?:\\.|[^\/])*(\/|$)/,
-      multiline(ln){ throw new SyntaxError( `Newline in regular expression (${ln.loc.end.toString()})`)}}
+  new RegExpScanner({
+      description: 'RegExp literal'
+     ,example: '/regexp/'
+     ,op: 'regexp', kind:'/'
+     ,rx_open: /(\/)(?=[^\/])/, rx_close: /(?:\\.|[^\/])*(\/|$)/,})
 
- ,{ op: 'str_multi', kind:'`', rx_open: /(`)/, rx_close: /(?:\\.|[^`])*(`|$)/,
-      multiline: true}]));
+ ,new MultiLineScanner({
+      description: 'Template string literal'
+     ,example: '`template string`'
+     ,op: 'str_multi', kind:'`'
+     ,rx_open: /(`)/, rx_close: /(?:\\.|\$[^{]|[^\$`])*(`|\${|$)/,           // ` comment hack to reset syntax highligher…
+      nesting:{
+        '${': templateArgNesting}})]));
+
+const nested_src = new NestedCodeScanner({
+  op: 'src', description: 'Template parameter source'
+ ,char_pairs:{
+    '{': true, '}': '{'
+   ,'(': true, ')': '('
+   ,'[': true, ']': '['}});
 function scan_javascript(source, feedback){
   return scan_offside_contexts(source, feedback, js_context_scanners)}
+
+
+function templateArgNesting(ctx, dispatch, scanner){
+  const src = nested_src.withOuter({
+    scanner
+   ,stack:[ '{' ]// from the template parameter opening
+   ,ast_end: 'template_param_end'});
+
+  src.emit_ast( ctx, '', 'template_param');
+
+  ctx.scanner = dispatch.cloneWithOps({ src});}
 
 function scan_jsy(source, feedback){
   const jsy_ast = scan_javascript(source, feedback);
@@ -506,7 +714,7 @@ function transform_jsy_keyword(res, idx, ln){
 
   const kw_end = first.loc.start.move( kw_match[0]);
 
-  const pre_node = as_src_ast$1( kw_match[0], first.loc.start, kw_end);
+  const pre_node = as_src_ast( kw_match[0], first.loc.start, kw_end);
 
   const kw = kw_match[0].split(' ').filter(Boolean).join(' ');
 
@@ -519,7 +727,7 @@ function transform_jsy_keyword(res, idx, ln){
    ,len_indent: ln.len_indent
    ,explicit};
 
-  const post_node = as_src_ast$1( rest, kw_end, first.loc.end);
+  const post_node = as_src_ast( rest, kw_end, first.loc.end);
 
   res.splice( idx, 1, pre_node, kw_node, post_node);}
 
@@ -537,7 +745,7 @@ function transform_jsy_part(res, part, ln){
       if( idx0 < op_match.index){
         const pre = part.content.slice(idx0, op_match.index);
         const end = loc_tip = loc_tip.move(pre);
-        res.push( as_src_ast$1( pre, start, end));
+        res.push( as_src_ast( pre, start, end));
         start = end; idx0 = rx_offside_ops.lastIndex;}
 
 
@@ -553,11 +761,11 @@ function transform_jsy_part(res, part, ln){
       const rest = part.content.slice(idx0);
       if( rest){
         const end = loc_tip = loc_tip.move(rest);
-        res.push( as_src_ast$1( rest, start, end));}
+        res.push( as_src_ast( rest, start, end));}
 
       return res}}}
 
-function as_src_ast$1(content, start, end){
+function as_src_ast(content, start, end){
   return { type: 'src', loc: {start, end}, content}}
 
 transpile_jsy.transpile_jsy = transpile_jsy;
@@ -638,7 +846,7 @@ const transpile_visitor ={
     return line_src}
 
  ,emit_raw(src){
-    this._cur.push( src);}
+    if( src){ this._cur.push( src);}}
 
  ,emit(src, loc_start){
     if( loc_start && this.addSourceMapping){
@@ -697,9 +905,9 @@ const transpile_visitor ={
       comma_body.len_inner = this.cur_ln.len_inner;}
     else head.comma_body = undefined;
 
-    if( op.in_kw_block){
-      head.in_kw_block = true;
-      head.kw_block_indent = len_indent;}
+    if( op.in_nested_block){
+      head.in_nested_block = true;
+      head.nested_block_indent = len_indent;}
 
     head.tail = [this.head].concat(head.tail || []);
 
@@ -718,21 +926,29 @@ const transpile_visitor ={
 
  ,v$jsy_kw(p){
     const kw_op = p.explicit
-      ? kw_jsy_op.explicit
-      : kw_jsy_op.normal;
+      ? extra_jsy_ops.kw_explicit
+      : extra_jsy_ops.kw_normal;
 
     this.stack_push( kw_op, p);}
 
  ,v$jsy_op(p){
     const jsy_op = at_offside_map[p.op];
 
-    if( jsy_op.is_kw_close && this.head.in_kw_block){
-      p.len_indent = this.head.kw_block_indent;
-      while( this.head.in_kw_block){
-        this.stack_pop();}}
+    if( jsy_op.is_kw_close){
+      this._dedent_nested_block(p);}
 
     this.stack_push( jsy_op, p);}
 
+ ,_dedent_nested_block(p){
+    let c = 0;
+    if (! this.head.in_nested_block){ return c}
+
+    if( null != p){
+      p.len_indent = this.head.nested_block_indent;}
+
+    while( this.head.in_nested_block){
+      ++c; this.stack_pop();}
+    return c}
 
  ,_dedent_multi_ops(){
     if (! this.head.loc){ return}
@@ -758,6 +974,16 @@ const transpile_visitor ={
  ,v$offside_indent(p){
     this.emit_indent( p.indent);}
 
+
+ ,v$template_param(p){
+    this.stack_push( extra_jsy_ops.tmpl_param, p);
+    this.emit_raw( p.content);}
+
+ ,v$template_param_end(p){
+    this._dedent_nested_block(p);
+    this.emit_raw( p.content);}
+
+
  ,v$src: direct_src
  ,v$str_single: direct_src
  ,v$str_double: direct_src
@@ -766,6 +992,7 @@ const transpile_visitor ={
  ,v$hashbang: raw_src
  ,v$comment_eol: raw_src
  ,v$comment_multi: raw_src};
+
 
 function raw_src(p){ this.emit_raw( p.content);}
 function direct_src(p){ this.emit( p.content, p.loc.start);}

@@ -232,8 +232,8 @@ export class RegExpScanner extends BaseSourceScanner ::
   _continueScanner(ctx) ::
     const restore_scanner = ctx.scanner
     return @{}
-      __proto__: this
-      description: `${this.description} (cont)`
+      __proto__: this,
+      description: `${this.description} (cont)`,
 
       scan(ctx, idx0) ::
         if true === this.scan_continue(ctx, idx0) ::
