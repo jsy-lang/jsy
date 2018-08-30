@@ -15,6 +15,10 @@ export function transpile_jsy(jsy_ast, feedback) ::
 
   const visitor = @{} __proto__: transpile_visitor
 
+  if feedback.checkOptionalComma ::
+    visitor._checkOptionalComma = visitor.checkOptionalComma
+    visitor.checkOptionalComma = feedback.checkOptionalComma
+
   if feedback.addSourceMapping ::
     Object.defineProperties @ visitor, @{}
       addSourceMapping: @{} value: feedback.addSourceMapping
@@ -220,6 +224,11 @@ const transpile_visitor = @{}
   v$template_param_end(p) ::
     this._dedent_nested_block(p)
     this.emit_raw @ p.content
+
+    const comma_body = this.head.comma_body
+    if undefined !== comma_body ::
+      // fixup comma_body with simplified template param
+      comma_body.push @ 'null }'
 
 
   v$src: direct_src

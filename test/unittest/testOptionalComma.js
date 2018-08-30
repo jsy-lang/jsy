@@ -9,6 +9,7 @@ function * iterSyntaxVariations() ::
   yield * iterCallArgumentVariations()
   yield * iterAdvancedCallMethods()
   yield * iterObjectMethods()
+  yield * iterOptionalCommaBugs()
 
 function * iterCallArgumentVariations() ::
   yield @: expectValid: true
@@ -184,3 +185,18 @@ function * iterObjectMethods() ::
       '    yield * iterable'
     tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', '*', 'name', '(', 'name', ')', '{', 'name', '*', 'name', '}', '}'
 
+
+function * iterOptionalCommaBugs() ::
+  yield @: expectValid: true
+    title: 'object with arrow functions and template strings'
+    source: @[]
+      'const api = bind_api @:'
+      '  first: a => `${a}`'
+      '  second: b => `${b}`'
+      '  third: c => `${c}`'
+
+    tokens: @[] 'const' , 'name' , '=' , 'name' , '(' , '{' ,
+            'name' , ':' , 'name' , '=>' , '`' , 'template' , '${' , 'name' , '}' , 'template' , '`' ,
+      ',' , 'name' , ':' , 'name' , '=>' , '`' , 'template' , '${' , 'name' , '}' , 'template' , '`' ,
+      ',' , 'name' , ':' , 'name' , '=>' , '`' , 'template' , '${' , 'name' , '}' , 'template' , '`' ,
+      '}' , ')'
