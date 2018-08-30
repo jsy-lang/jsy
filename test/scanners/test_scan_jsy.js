@@ -16,17 +16,17 @@ describe @ 'JSY Scanner (doc example)', @=> ::
         constructor( credentials ) ::
           const apiCall = async ( pathName, body ) => ::
             const res = await fetch @ \`$\{apiUrl}/$\{pathName}\`, @{}
-                method: 'POST'
-              , headers: @{}
+              method: 'POST'
+              headers: @{}
                 'Content-Type': 'application/json'
-              , body: JSON.stringify @ body
+              body: JSON.stringify @ body
 
             return await res.json()
 
           Object.assign @ this, @{}
-              add: data => apiCall @ 'add', data
-            , modify: data => apiCall @ 'send', data
-            , retrieve: data => apiCall @ 'get', data
+            add: data => apiCall @ 'add', data
+            modify: data => apiCall @ 'send', data
+            retrieve: data => apiCall @ 'get', data
 
         compare(a,b) ::
           if a > b ::
@@ -86,9 +86,9 @@ describe @ 'JSY Scanner (misc)', @=> ::
     assert.deepEqual @ js_src.split('\n'), @[]
       '#!/usr/bin/env jsy-node'
       ''
-      'if( test()){'
+      'if (test()) {'
       '  console.log('
-      '    "hello JSY world!")}'
+      '    "hello JSY world!") }'
 
 
   it @ 'single template strings', @=> ::

@@ -2,6 +2,7 @@ import { at_offside_map, extra_jsy_ops  } from './jsy_operators.jsy'
 import checkOptionalComma from './optional_comma.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
+const rx_leading_space = /^[ \t]+/ ;
 
 transpile_jsy.transpile_jsy = transpile_jsy
 transpile_jsy.jsy_transpile = transpile_jsy
@@ -35,13 +36,15 @@ export function transpile_jsy(jsy_ast, feedback) ::
     visitor.start_line(ln)
     visitor.v$offside_indent(ln.indent)
 
+    let prev = ln.indent
     for const part of ln.content ::
       const key = `v$${part.type}`
 
       if undefined === visitor[key] ::
         throw new Error @ `JSY transpile function "${key}" not found`
 
-      visitor[key] @ part
+      visitor[key] @ part, ln, prev
+      prev = part
 
     lines.push @ visitor.finish_line(ln).join('')
 
@@ -129,7 +132,9 @@ const transpile_visitor = @{}
       const post = comma_body.slice(1).join('')
       const opt_comma = this.checkOptionalComma @ comma_body.op, pre, post
       if opt_comma ::
-        cur[0] = cur[0].replace(/\s$/, ',')
+        if cur[0].length > 1 ::
+          cur[0] = cur[0].replace(/\s\s$/, ', ')
+        else cur[0] = ','
         comma_body.shift()
       return cur
 
@@ -158,12 +163,13 @@ const transpile_visitor = @{}
 
     this.head = head
 
-  stack_pop() ::
+  stack_pop(c) ::
     const head = this.head
     this.head = head.tail[0]
 
     const src = head.op.post
-    if src :: this.emit @ src
+    if src ::
+      this.emit @ c ? ' '+src : src
 
 
   v$jsy_kw(p) ::
@@ -182,15 +188,14 @@ const transpile_visitor = @{}
     this.stack_push @ jsy_op, p
 
   _dedent_nested_block(p) ::
-    let c = 0
-    if ! this.head.in_nested_block :: return c
+    if ! this.head.in_nested_block :: return
 
     if null != p ::
       p.len_indent = this.head.nested_block_indent
 
+    let c = 0
     while this.head.in_nested_block ::
-      ++c; this.stack_pop()
-    return c
+      this.stack_pop @ c++
 
   _dedent_multi_ops() ::
     if ! this.head.loc :: return
@@ -202,15 +207,17 @@ const transpile_visitor = @{}
 
     if undefined === t :: return
 
+    let c = 0
     while t !== this.head && this.head.nestInner ::
-      this.stack_pop()
+      this.stack_pop @ c++
 
   v$offside_dedent(p) ::
     if ! p.ends_with_jsy_op ::
       this._dedent_multi_ops()
 
+    let c = 0
     while this.head.len_indent >= p.len_dedent ::
-      this.stack_pop()
+      this.stack_pop @ c++
 
 
   v$offside_indent(p) ::
@@ -231,7 +238,13 @@ const transpile_visitor = @{}
       comma_body.push @ 'null }'
 
 
-  v$src: direct_src
+  v$src(p, ln, p0) ::
+    let content = p.content
+    if {jsy_op:1, jsy_kw:1}[p0.type] && rx_leading_space.test(content) ::
+      content = content.replace(rx_leading_space, '')
+
+    this.emit @ content, p.loc.start
+
   v$str_single: direct_src
   v$str_double: direct_src
   v$str_multi: direct_src
