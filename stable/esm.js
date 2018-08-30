@@ -102,30 +102,17 @@ function inject_dedent(offside_lines, trailing_types) {
       trailing_types || ['comment_eol']);
     trailing_types = k => s_trailing_types.has(k);}
 
-  let len_dedent=0;
-  const len_stack = [0];
-  for (let i = offside_lines.length-1 ; i>=0 ; i--) {
-    const ln = offside_lines[i];
+  for (const ln of offside_lines) {
     if (ln.is_blank) {continue}
 
-    const len_indent = ln.len_indent;
-
-    let len_inner;
-    while (len_stack[0] > len_indent) {
-      len_inner = len_stack.shift();}
-
-    if (len_stack[0] < len_indent) {
-      len_stack.unshift(len_indent); }
+    const {len_dedent, len_indent, len_inner} = ln;
 
     const offside_dedent ={
       type: 'offside_dedent'
     , len_dedent, len_indent};
 
     if (len_inner) {
-      ln.len_inner = len_inner;
       offside_dedent.len_inner = len_inner;}
-
-    len_dedent = len_indent;
 
     const last = ln.content.pop();
     if (last.multiline || trailing_types(last.type)) {
@@ -229,9 +216,11 @@ class BaseSourceScanner {
     const start = ctx.loc_tip;
     const end = ctx.loc_tip = start.move(content);
     const ast ={type: ast_type || this.op, loc: {start, end}, content};
+    this._ast_extend(ctx, ast);
     ctx.parts.push(ast);
     return ast}
 
+  _ast_extend(ctx, ast) {}
 
   newline(ctx) {}
   scan_fragment(ctx, content) {
@@ -366,10 +355,11 @@ class RegExpScanner extends BaseSourceScanner {
   _continueScanner(ctx) {
     const restore_scanner = ctx.scanner;
     return {
-      __proto__: this,
-      description: `${this.description} (cont)`,
+      __proto__: this
+    , description: `${this.description} (cont)`
+    , ln_first: ctx.ln
 
-      scan(ctx, idx0) {
+    , scan(ctx, idx0) {
         if (true === this.scan_continue(ctx, idx0)) {
           ctx.scanner = restore_scanner;} }
 
@@ -380,6 +370,12 @@ class RegExpScanner extends BaseSourceScanner {
 
 class MultiLineScanner extends RegExpScanner {
   newline(ctx) {}
+
+  _ast_extend(ctx, ast) {
+    const ln = this.ln_first || ctx.ln;
+    if (undefined !== ln.len_inner) {
+      ast.block_indent = ln.len_inner;}
+    return ast}
 
   _post_scan(ctx, close, restore_scanner) {
     if (close) {
@@ -509,7 +505,31 @@ function basic_offside_scanner(source, feedback) {
     Object.defineProperties(node,{raw: {value: raw}});
     all_lines.push(node); }
 
+  add_indent_info(all_lines);
   return all_lines}
+
+
+function add_indent_info(all_lines) {
+  let len_dedent=0;
+  const len_stack = [0];
+  for (let i = all_lines.length-1 ; i>=0 ; i--) {
+    const ln = all_lines[i];
+    if (ln.is_blank) {continue}
+
+    ln.len_dedent = len_dedent;
+    const len_indent = ln.len_indent;
+
+    let len_inner;
+    while (len_stack[0] > len_indent) {
+      len_inner = len_stack.shift();}
+
+    if (len_stack[0] < len_indent) {
+      len_stack.unshift(len_indent); }
+
+    if (len_inner) {
+      ln.len_inner = len_inner;}
+
+    len_dedent = len_indent;} }
 
 function bind_context_scanner(context_scanners) {
   if  (! Object.isFrozen(context_scanners) || ! Array.isArray(context_scanners)) {
@@ -998,6 +1018,12 @@ const transpile_visitor ={
       // fixup comma_body with simplified template param
       comma_body.push('null }'); } }
 
+, v$str_multi(p, ln, p0) {
+    if (p0 === ln.indent && p.block_indent) {
+      const indent = this._cur.pop();
+      this._cur.push(indent.slice(p.block_indent)); }
+
+    this.emit(p.content, p.loc.start); }
 
 , v$src(p, ln, p0) {
     let content = p.content;
@@ -1008,7 +1034,6 @@ const transpile_visitor ={
 
 , v$str_single: direct_src
 , v$str_double: direct_src
-, v$str_multi: direct_src
 , v$regexp: direct_src
 , v$hashbang: raw_src
 , v$comment_eol: raw_src
