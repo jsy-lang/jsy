@@ -237,6 +237,12 @@ const transpile_visitor = @{}
       // fixup comma_body with simplified template param
       comma_body.push @ 'null }'
 
+  v$str_multi(p, ln, p0) ::
+    if p0 === ln.indent && p.block_indent ::
+      const indent = this._cur.pop()
+      this._cur.push @ indent.slice(p.block_indent)
+
+    this.emit @ p.content, p.loc.start
 
   v$src(p, ln, p0) ::
     let content = p.content
@@ -247,7 +253,6 @@ const transpile_visitor = @{}
 
   v$str_single: direct_src
   v$str_double: direct_src
-  v$str_multi: direct_src
   v$regexp: direct_src
   v$hashbang: raw_src
   v$comment_eol: raw_src

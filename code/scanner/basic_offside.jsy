@@ -75,5 +75,28 @@ export function basic_offside_scanner(source, feedback) ::
     Object.defineProperties @ node, @{} raw: {value: raw}
     all_lines.push @ node
 
+  add_indent_info(all_lines)
   return all_lines
 
+
+function add_indent_info(all_lines) ::
+  let len_dedent=0
+  const len_stack = [0]
+  for let i = all_lines.length-1 ; i>=0 ; i-- ::
+    const ln = all_lines[i]
+    if ln.is_blank :: continue
+
+    ln.len_dedent = len_dedent
+    const len_indent = ln.len_indent
+
+    let len_inner
+    while len_stack[0] > len_indent ::
+      len_inner = len_stack.shift()
+
+    if len_stack[0] < len_indent ::
+      len_stack.unshift @ len_indent
+
+    if len_inner ::
+      ln.len_inner = len_inner
+
+    len_dedent = len_indent

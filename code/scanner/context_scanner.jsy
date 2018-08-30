@@ -95,9 +95,11 @@ export class BaseSourceScanner ::
     const start = ctx.loc_tip
     const end = ctx.loc_tip = start.move(content)
     const ast = @{} type: ast_type || this.op, loc: {start, end}, content
+    this._ast_extend(ctx, ast)
     ctx.parts.push @ ast
     return ast
 
+  _ast_extend(ctx, ast) ::
 
   newline(ctx) ::
   scan_fragment(ctx, content) ::
@@ -232,8 +234,9 @@ export class RegExpScanner extends BaseSourceScanner ::
   _continueScanner(ctx) ::
     const restore_scanner = ctx.scanner
     return @{}
-      __proto__: this,
-      description: `${this.description} (cont)`,
+      __proto__: this
+      description: `${this.description} (cont)`
+      ln_first: ctx.ln
 
       scan(ctx, idx0) ::
         if true === this.scan_continue(ctx, idx0) ::
@@ -246,6 +249,12 @@ export class RegExpScanner extends BaseSourceScanner ::
 
 export class MultiLineScanner extends RegExpScanner ::
   newline(ctx) ::
+
+  _ast_extend(ctx, ast) ::
+    const ln = this.ln_first || ctx.ln
+    if undefined !== ln.len_inner ::
+      ast.block_indent = ln.len_inner
+    return ast
 
   _post_scan(ctx, close, restore_scanner) ::
     if close ::

@@ -32,7 +32,7 @@ describe @ 'Scanners', @=> ::
       check_ast_entry @ 'line 0', offside_ast[0], @{}
         type: 'offside_line'
         loc: @{} start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 41, line_pos: 0 }
-        len_indent: 8
+        len_indent: 8, len_dedent: 10, len_inner: 10
 
         indent: @{}
            type: 'offside_indent'
@@ -49,7 +49,7 @@ describe @ 'Scanners', @=> ::
       check_ast_entry @ 'line 1', offside_ast[1], @{}
         type: 'offside_line'
         loc: @{} start: { line: 2, pos: 42, line_pos: 42 }, end: { line: 2, pos: 153, line_pos: 42 }
-        len_indent: 10
+        len_indent: 10, len_dedent: 10
 
         indent: @{}
            type: 'offside_indent',
@@ -65,7 +65,7 @@ describe @ 'Scanners', @=> ::
       check_ast_entry @ 'line 2', offside_ast[2], @{}
         type: 'offside_line'
         loc: @{} start: { line: 3, pos: 154, line_pos: 154 }, end: { line: 3, pos: 213, line_pos: 154 }
-        len_indent: 10
+        len_indent: 10, len_dedent: 10
 
         indent: @{}
           type: 'offside_indent',
@@ -85,7 +85,7 @@ describe @ 'Scanners', @=> ::
       check_ast_entry @ 'line 3', offside_ast[3], @{}
         type: 'offside_line',
         loc: { start: { line: 4, pos: 214, line_pos: 214 }, end: { line: 4, pos: 258, line_pos: 214 } },
-        len_indent: 10
+        len_indent: 10, len_dedent: 12, len_inner: 12
 
         indent: @{}
            type: 'offside_indent',
@@ -101,7 +101,7 @@ describe @ 'Scanners', @=> ::
       check_ast_entry @ 'line 4', offside_ast[4], @{}
         type: 'offside_line',
         loc: { start: { line: 5, pos: 259, line_pos: 259 }, end: { line: 5, pos: 292, line_pos: 259 } },
-        len_indent: 12
+        len_indent: 12, len_dedent: 12
 
         indent: @{}
            type: 'offside_indent'
@@ -117,7 +117,7 @@ describe @ 'Scanners', @=> ::
       check_ast_entry @ 'line 5', offside_ast[5], @{}
         type: 'offside_line'
         loc: { start: { line: 6, pos: 293, line_pos: 293 }, end: { line: 6, pos: 363, line_pos: 293 } },
-        len_indent: 12
+        len_indent: 12, len_dedent: 10
 
         indent: @{}
            type: 'offside_indent'
@@ -133,7 +133,7 @@ describe @ 'Scanners', @=> ::
       check_ast_entry @ 'line 6', offside_ast[6], @{}
         type: 'offside_line'
         loc: { start: { line: 7, pos: 364, line_pos: 364 }, end: { line: 7, pos: 382, line_pos: 364 } },
-        len_indent: 10
+        len_indent: 10, len_dedent: 0
 
         indent: @{}
            type: 'offside_indent'
@@ -164,7 +164,7 @@ describe @ 'Scanners', @=> ::
     check_ast_entry @ 'line 0', offside_ast[0], @{}
       type: 'offside_line'
       loc: { start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 23, line_pos: 0 } },
-      len_indent: 0
+      len_indent: 0, len_dedent: 0
 
       indent: @{}
          type: 'offside_indent'

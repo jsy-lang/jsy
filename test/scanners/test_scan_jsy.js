@@ -91,6 +91,25 @@ describe @ 'JSY Scanner (misc)', @=> ::
       '    "hello JSY world!") }'
 
 
+  it @ 'dedent multi-line strings', @=> ::
+    const jsy_src = @[]
+      'test @ `'
+      '     Wouldn\'t it be nice to have your multi-line strings'
+      '   auto-shifted based on their indent?'
+      ''
+      '   After all, if you need greater control, you\'ll likely'
+      '     have to manually format the strings anyway… `'
+
+    const js_src = transpile_jsy @ scan_jsy_lines(jsy_src)
+    assert.deepEqual @ js_src.split('\n'), @[]
+      'test(`'
+      '  Wouldn\'t it be nice to have your multi-line strings'
+      'auto-shifted based on their indent?'
+      ''
+      'After all, if you need greater control, you\'ll likely'
+      '  have to manually format the strings anyway… `)'
+
+
   it @ 'single template strings', @=> ::
     const offside_ast = scan_jsy_lines @#
       'const classes = `header ${ inner() } extra`'
