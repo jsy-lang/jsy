@@ -3,6 +3,8 @@ import { transpile_jsy, scan_jsy } from 'jsy-transpile/esm/all'
 import { test_ast_tokens_content, ast_tokens_content } from './_ast_test_utils'
 const { SourceMapGenerator } = require('source-map')
 
+function scan_jsy_lines(jsy_lines) :: return scan_jsy @ jsy_lines.join('\n')
+
 describe @ 'JSY Scanner (doc example)', @=> ::
   let offside_ast, offside_src
   beforeEach @=> ::
@@ -80,7 +82,7 @@ describe @ 'JSY Scanner (misc)', @=> ::
       '  console.log @'
       '    "hello JSY world!"'
 
-    const js_src = transpile_jsy @ scan_jsy @ jsy_src.join('\n')
+    const js_src = transpile_jsy @ scan_jsy_lines(jsy_src)
     assert.deepEqual @ js_src.split('\n'), @[]
       '#!/usr/bin/env jsy-node'
       ''
@@ -90,10 +92,8 @@ describe @ 'JSY Scanner (misc)', @=> ::
 
 
   it @ 'single template strings', @=> ::
-    const jsy_src = @[]
-      "const classes = `header ${ inner() } extra`"
-
-    const offside_ast = scan_jsy @ jsy_src.join('\n')
+    const offside_ast = scan_jsy_lines @#
+      'const classes = `header ${ inner() } extra`'
 
     test_ast_tokens_content @ offside_ast, @[]
       @[] @[] 'src', 'const classes = '
@@ -104,12 +104,19 @@ describe @ 'JSY Scanner (misc)', @=> ::
           @[] 'str_multi', ' extra`'
           @[] 'offside_dedent', undefined
 
+  it @ 'single template strings with $ in string', @=> ::
+    const offside_ast = scan_jsy_lines @# '`$${name}$`'
+    test_ast_tokens_content @ offside_ast, @[]
+      @[] @[] 'str_multi', '`$${'
+          @[] 'template_param', ''
+          @[] 'src', 'name'
+          @[] 'template_param_end', '}'
+          @[] 'str_multi', '$`'
+          @[] 'offside_dedent', undefined
 
   it @ 'single template strings with jsy_ops', @=> ::
-    const jsy_src = @[]
-      "const classes = `header ${ first @ second @# third, 42 } extra`"
-
-    const offside_ast = scan_jsy @ jsy_src.join('\n')
+    const offside_ast = scan_jsy_lines @#
+      'const classes = `header ${ first @ second @# third, 42 } extra`'
 
     test_ast_tokens_content @ offside_ast, @[]
       @[] @[] 'src', 'const classes = '
@@ -126,11 +133,9 @@ describe @ 'JSY Scanner (misc)', @=> ::
 
 
   it @ 'nested template strings', @=> ::
-    const jsy_src = @[]
+    const offside_ast = scan_jsy_lines @#
       "const classes = `header ${ isLargeScreen() ? '' :"
       "  `icon-${item.isCollapsed ? 'expander' : 'collapser'}` } extra`"
-
-    const offside_ast = scan_jsy @ jsy_src.join('\n')
 
     test_ast_tokens_content @ offside_ast, @[]
       @[] @[] 'src', 'const classes = '
