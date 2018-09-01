@@ -1,41 +1,104 @@
-import { RegExpScanner, MultiLineScanner, NestedCodeScanner } from './context_scanner.jsy'
+import { RegExpScanner, MultiLineScanner, DynamicScanner, NestedRegExpScanner } from './context_scanner.jsy'
 import scan_offside_contexts from './basic_offside_contexts.jsy'
-import { clike_context_scanners } from './scan_clike.jsy'
+import { clike_context_scanners, scanner_nestedSrc, scanner_strSingle, scanner_strDouble } from './scan_clike.jsy'
 
-export const js_context_scanners = Object.freeze @ clike_context_scanners.concat @#
+
+export const scanner_regexp =
   new RegExpScanner @:
       description: 'RegExp literal'
       example: '/regexp/'
-      op: 'regexp', kind:'/'
-      rx_open: /(\/)(?=[^\/])/, rx_close: /(?:\\.|[^\/])*(\/|$)/,
+      op: 'regexp'
+      kind:'/'
+      rx_open: /(\/)(?=[^\/])/
+      rx_close: /(?:\\.|[^\/])*(\/|$)/
 
+
+
+export const scanner_strTemplate =
   new MultiLineScanner @:
       description: 'Template string literal'
       example: '`template string`'
-      op: 'str_multi', kind:'`'
-      rx_open: /(`)/, rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/,           // ` comment hack to reset syntax highligher…
+      op: 'str_multi'
+      kind:'`'
+      rx_open: /(`)/
+      rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/           // `) comment hack to reset syntax highligher…
       nesting: @{}
         '${': templateArgNesting
 
-const nested_src = new NestedCodeScanner @:
-  op: 'src', description: 'Template parameter source'
-  char_pairs: @{}
-    '{': true, '}': '{'
-    '(': true, ')': '('
-    '[': true, ']': '['
+function templateArgNesting(ctx, dispatch, hostScanner) ::
+  const src = scanner_nestedSrc.withOuter @:
+    scanner: hostScanner.continueScanner(ctx)
+    stack: @[] '{' // from the template parameter opening
+    ast_end: 'template_param_end'
+
+  src.emit_ast @ ctx, '', 'template_param'
+
+  ctx.scanner = dispatch.cloneWithOps @: src
+
+
+
+export const scanner_xmlAttrSingle =
+  new NestedRegExpScanner @:
+      description: 'XML Single quote attribute literal'
+      op: 'xmlattrstr'
+      rx_open: /(')/, rx_close: /(?:\\.|[^'])*(')/,
+
+export const scanner_xmlAttrDouble =
+  new NestedRegExpScanner @:
+      description: 'Double quote string literal'
+      description: 'XML Double quote attribute literal'
+      op: 'xmlattrstr'
+      rx_open: /(")/, rx_close: /(?:\\.|[^"])*(")/,
+
+export const scanner_jsx =
+  new DynamicScanner @:
+      description: 'Embedded JSX expression'
+      example: '<section>content</section>'
+      op: 'jsx', op_leader: 'jsx0', op_pop: 'jsx_end'
+      kind:'<'
+      rx_open: /(<)([a-zA-Z0-9_:.\-]*)\s*(\/?>|[{]|[a-zA-Z0-9_:\-]+=|$)/
+      rx_close: /.*$/
+      rx_leader_open: /<leader/
+      rx_leader_close: /(?:.*?)([{'"]|<leader>|<\/leader>)/
+
+      nestMatch(close, ctx, dispatch, hostScanner) ::
+        if '<' === close[0] ::
+          if '/' === close[1] ::
+            return true
+          ctx.scanner = hostScanner.continueScanner(ctx)
+          return
+
+        const nested = this.nesting[close]
+        if nested ::
+          ctx.scanner = hostScanner.continueScanner(ctx)
+          return this._nestWith @ nested,
+            ctx, dispatch, hostScanner
+
+      nestingTrim: @{} "'": true, '"': true
+      nesting: @{}
+        '{': jsxArgNesting
+        "'": scanner_xmlAttrSingle
+        '"': scanner_xmlAttrDouble
+
+function jsxArgNesting(ctx, dispatch, hostScanner) ::
+  const src = scanner_nestedSrc.withOuter @:
+    scanner: hostScanner.continueScanner(ctx)
+    stack: @[] '{' // from the template parameter opening
+    ast_end: 'jsx_param_end'
+
+  src.emit_ast @ ctx, '', 'jsx_param'
+
+  ctx.scanner = dispatch.cloneWithOps @: src
+
+
+
+
+export const js_context_scanners = Object.freeze @ clike_context_scanners.concat @#
+  scanner_regexp
+  scanner_strTemplate
+  scanner_jsx
 
 export default scan_javascript
 export function scan_javascript(source, feedback) ::
   return scan_offside_contexts(source, feedback, js_context_scanners)
-
-
-function templateArgNesting(ctx, dispatch, scanner) ::
-  const src = nested_src.withOuter @:
-    scanner
-    stack: @[] '{' // from the template parameter opening
-    ast_end: 'template_param_end'
-    
-  src.emit_ast @ ctx, '', 'template_param'
-
-  ctx.scanner = dispatch.cloneWithOps @: src
 

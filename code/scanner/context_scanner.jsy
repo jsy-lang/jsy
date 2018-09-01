@@ -1,3 +1,10 @@
+function ensure_progress(loc0, loc1) ::
+  if loc0.pos == loc1.pos ::
+    throw new Error @ `Scanner failed to make progress`
+
+  if loc0.pos > loc1.pos ::
+    throw new Error @ `Scanner went backward`
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,6 +49,12 @@ export class DispatchScanner ::
   newline(ctx) ::
 
   scan(ctx, idx0) ::
+    const loc0 = ctx.loc_tip
+    const res = this._scan(ctx, idx0)
+    ensure_progress @ loc0, ctx.loc_tip
+    return res
+
+  _scan(ctx, idx0) ::
     const rx = this.rx
     rx.lastIndex = idx0
 
@@ -60,7 +73,6 @@ export class DispatchScanner ::
     const op = this.by_kind[kind]
     const op_scanner = this.by_op[op]
     if ! op_scanner ::
-      //console.warn @: kind, op, match
       throw new Error @ `No scanner registered for « ${kind} »`
 
     return op_scanner.scan(ctx, idx1)
@@ -85,6 +97,9 @@ export class DispatchFirstlineScanner extends DispatchScanner ::
 export class BaseSourceScanner ::
   constructor(options) ::
     Object.assign(this, options)
+    this._compileForInit()
+
+  _compileForInit() ::
 
   withDispatch(ds) ::
     const self = Object.create @ this, @{}
@@ -179,30 +194,19 @@ export class NestedCodeScanner extends SourceCodeScanner ::
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-export class RegExpScanner extends BaseSourceScanner ::
-  withDispatch(ds) ::
-    if undefined === this.nesting :: this.nesting = {}
-    const self = super.withDispatch(ds)
-    self.compileForDispatch(ds)
-    return self
+export class BaseRegExpScanner extends BaseSourceScanner ::
 
-  compileForDispatch(ds) ::
-    const re_disp = `${this.rx_open.source}${this.rx_close.source}`
-    const rx_disp = new RegExp @ re_disp
+  _compileForInit() ::
+    const {rx_open, rx_close} = this
+    const rx_disp = new RegExp @
+      (rx_open ? rx_open.source : '') + rx_close.source
 
-    const rx_resume = new RegExp @ `^${this.rx_close.source}`
-
-    const match = rx_disp.exec @ this.example
-    if this.kind !== match[1] || null == match[2] ::
-      //console.warn @: example: this.example, rx_disp, match
-      throw new Error @ `Invalid scanner regexp and/or example ()`
+    const rx_resume = new RegExp @
+      '^' + rx_close.source
 
     Object.defineProperties @ this, @{}
       rx_disp: @{} value: rx_disp
       rx_resume: @{} value: rx_resume
-
-    ds.addRegExpScanner @ this, this.kind, re_disp
-
 
   newline(ctx) ::
     throw new SyntaxError @ `Newline in ${this.description} (${ctx.ln.loc.end.toString()})`
@@ -211,38 +215,101 @@ export class RegExpScanner extends BaseSourceScanner ::
     const match = this.rx_disp.exec @ ctx.ln_source.slice(idx0)
     const [content, open, close] = match
 
-    this.emit_ast(ctx, content)
-    this._post_scan(ctx, close)
+    this.emit_ast @ ctx, this.nestTrim(content, close, true)
+    return this._post_scan(ctx, close)
 
   scan_continue(ctx, idx0) ::
     const match = this.rx_resume.exec @ ctx.ln_source.slice(idx0)
     const [content, close] = match
 
-    this.emit_ast(ctx, content)
+    this.emit_ast @ ctx, this.nestTrim(content, close, true)
     return this._post_scan(ctx, close)
+
+  nestTrim(content, close, isContinue) ::
+    const trim = this.nestingTrim
+    if undefined !== trim ::
+      if trim[close] ::
+        return content.slice(0, - close.length)
+
+    return content
 
   _post_scan(ctx, close) ::
     if ! close :: return
 
-    const nested = this.nesting[close]
-    if 'function' === typeof nested ::
-      return nested @ ctx, this.dispatch, this._continueScanner(ctx)
-    else if undefined !== nested ::
-      return nested
-    else return true // pop ctx.scanner
+    return this.nestMatch @ close,
+      ctx, this.dispatch,
+      this
 
-  _continueScanner(ctx) ::
+  nestMatch(close, ctx, dispatch, scanner) ::
+    const nesting = this.nesting
+    if undefined !== nesting ::
+      return this._nestWith @
+        nesting[close],
+        ctx, dispatch, scanner
+    return true // pop ctx.scanner
+
+  _nestWith(nested, ctx, dispatch, hostScanner) ::
+    if undefined === nested || null === nested ::
+      return true // pop ctx.scanner
+    if 'function' === typeof nested ::
+      return nested @ ctx, dispatch, hostScanner
+    else if 'function' === typeof nested.nestedScanner ::
+      ctx.scanner = nested.nestedScanner(ctx)
+      return
+    else return nested
+
+
+  nestedScanner(ctx) ::
+    return this._asNestedScanner @ ctx, 'nest', @{}
+
+  continueScanner(ctx) ::
+    return this._asNestedScanner @ ctx, 'cont', @{}
+      continueScanner(ctx) :: return this
+      scan(ctx, idx0) ::
+        this.scan_continue(ctx, idx0)
+
+  _asNestedScanner(ctx, desc, body) ::
     const restore_scanner = ctx.scanner
-    return @{}
+    const self = @{}
       __proto__: this
-      description: `${this.description} (cont)`
+      description: `${this.description} (${desc})`
       ln_first: ctx.ln
 
-      scan(ctx, idx0) ::
-        if true === this.scan_continue(ctx, idx0) ::
-          ctx.scanner = restore_scanner
+      _pop_scanner(ctx) ::
+        if this.op_pop ::
+          this.emit_ast @ ctx, '', this.op_pop
+        ctx.scanner = restore_scanner
 
-      _continueScanner(ctx) :: return this
+      scan(ctx, idx0) ::
+        if true === super.scan(ctx, idx0) ::
+          this._pop_scanner(ctx)
+
+      scan_continue(ctx, idx0) ::
+        if true === super.scan_continue(ctx, idx0) ::
+          this._pop_scanner(ctx)
+
+    return Object.assign @ self, body
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class NestedRegExpScanner extends BaseRegExpScanner ::
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class RegExpScanner extends BaseRegExpScanner ::
+  withDispatch(ds) ::
+    const self = super.withDispatch(ds)
+    self.compileForDispatch(ds)
+    return self
+
+  compileForDispatch(ds) ::
+    const match = this.rx_disp.exec @ this.example
+    if this.kind !== match[1] || null == match[2] ::
+      throw new Error @ `Invalid scanner regexp and/or example ()`
+
+    ds.addRegExpScanner @ this, this.kind, this.rx_disp.source
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -260,4 +327,35 @@ export class MultiLineScanner extends RegExpScanner ::
     if close ::
       return super._post_scan(ctx, close, restore_scanner)
 
-    ctx.scanner = this._continueScanner(ctx)
+    ctx.scanner = this.continueScanner(ctx)
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class DynamicScanner extends MultiLineScanner ::
+  scan(ctx, idx0) ::
+    const source = ctx.ln_source.slice(idx0)
+    const leader_match = this.rx_disp.exec @ source
+
+    const self = this.withLeader(leader_match[2])
+    return self.scan_leader(ctx, source, idx0)
+
+
+  withLeader(leader) ::
+    const rx_dyn_open = new RegExp @
+      this.rx_leader_open.source.replace @ /leader/g, leader
+
+    const rx_resume = new RegExp @
+      '^' + this.rx_leader_close.source.replace @ /leader/g, leader
+
+    return Object.create @ this, @{}
+      rx_resume: @{} value: rx_resume
+      rx_dyn_open: @{} value: rx_dyn_open
+
+
+  scan_leader(ctx, source, idx0) ::
+    const [content] = this.rx_dyn_open.exec(source)
+    this.emit_ast @ ctx, content, this.op_leader
+    idx0 += content.length
+    return this.scan_continue(ctx, idx0)
+

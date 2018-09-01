@@ -224,11 +224,17 @@ const transpile_visitor = @{}
     this.emit_indent @ p.indent
 
 
-  v$template_param(p) ::
+  v$template_param(p) :: this._param(p)
+  v$template_param_end(p) :: this._param_end(p)
+
+  v$jsx_param(p) :: this._param(p)
+  v$jsx_param_end(p) :: this._param_end(p)
+
+  _param(p) ::
     this.stack_push @ extra_jsy_ops.tmpl_param, p
     this.emit_raw @ p.content
 
-  v$template_param_end(p) ::
+  _param_end(p) ::
     this._dedent_nested_block(p)
     this.emit_raw @ p.content
 
@@ -236,6 +242,7 @@ const transpile_visitor = @{}
     if undefined !== comma_body ::
       // fixup comma_body with simplified template param
       comma_body.push @ 'null }'
+
 
   v$str_multi(p, ln, p0) ::
     if p0 === ln.indent && p.block_indent ::
@@ -254,6 +261,12 @@ const transpile_visitor = @{}
   v$str_single: direct_src
   v$str_double: direct_src
   v$regexp: direct_src
+
+  v$xmlattrstr: direct_src
+  v$jsx0: direct_src
+  v$jsx: direct_src
+  v$jsx_end() ::
+
   v$hashbang: raw_src
   v$comment_eol: raw_src
   v$comment_multi: raw_src

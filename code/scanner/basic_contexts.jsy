@@ -64,6 +64,8 @@ function compile_context_scanner(context_scanners) ::
     ds_first.description = 'Firstline Dispatch scanner (0)'
 
     for const scanner of context_scanners ::
+      if ! scanner :: continue
+
       const ds = scanner.firstline ? ds_first : ds_body
       ds.addScanner(scanner)
 

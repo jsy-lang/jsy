@@ -1,11 +1,20 @@
-import { SourceCodeScanner, RegExpScanner, MultiLineScanner } from './context_scanner.jsy'
+import { SourceCodeScanner, NestedCodeScanner, RegExpScanner, MultiLineScanner } from './context_scanner.jsy'
 import scan_offside_contexts from './basic_offside_contexts.jsy'
 
-export const clike_context_scanners = Object.freeze @#
+export const scanner_source =
   new SourceCodeScanner @:
       description: 'Source Code Scanner'
       op: 'src'
 
+export const scanner_nestedSrc =
+  new NestedCodeScanner @:
+    op: 'src', description: 'Template parameter source'
+    char_pairs: @{}
+      '{': true, '}': '{'
+      '(': true, ')': '('
+      '[': true, ']': '['
+
+export const scanner_hashbangDirective =
   new RegExpScanner @:
       description: 'Hashbang directive'
       example: '#!/usr/bin/env node'
@@ -13,29 +22,42 @@ export const clike_context_scanners = Object.freeze @#
       rx_open: /^(#!)/, rx_close: /.*($)/,
       firstline: true
 
+export const scanner_commentEOL =
   new RegExpScanner @:
       description: 'Comment to end of line'
       example: '// comment'
       op: 'comment_eol', kind:'//'
       rx_open: /(\/\/)/, rx_close: /.*($)/,
 
+export const scanner_commentMultiLine =
   new MultiLineScanner @:
       description: 'Multi-line comment'
       example: '/* comment */'
       op: 'comment_multi', kind:'/*'
       rx_open: /(\/\*)/, rx_close: /.*?(\*\/|$)/,
 
+export const scanner_strSingle =
   new RegExpScanner @:
       description: 'Single quote string literal'
       example: "'single quote'"
       op: 'str_single', kind:"'"
       rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,
 
+export const scanner_strDouble =
   new RegExpScanner @:
       description: 'Double quote string literal'
       example: '"double quote"'
       op: 'str_double', kind:'"'
       rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
+
+
+export const clike_context_scanners = Object.freeze @#
+  scanner_source
+  scanner_hashbangDirective
+  scanner_commentEOL
+  scanner_commentMultiLine
+  scanner_strSingle
+  scanner_strDouble
 
 
 export default scan_clike
