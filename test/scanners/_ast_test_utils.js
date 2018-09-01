@@ -1,4 +1,8 @@
 const { assert } = require('chai')
+import { scan_jsy } from 'jsy-transpile/esm/all'
+
+export function scan_jsy_lines(jsy_lines) ::
+  return scan_jsy @ jsy_lines.join('\n')
 
 export function ast_tokens(offside_ast) ::
   return offside_ast
