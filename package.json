@@ -1,6 +1,6 @@
 {
   "name": "jsy-transpile",
-  "version": "0.3.0-1",
+  "version": "0.3.0-2",
   "description": "Offside (indention) JSY syntax transpiler to standard JavaScript — without Babel",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
   "license": "BSD-2-Clause",
@@ -39,8 +39,6 @@
   "devDependencies": {
     "jsy-transpile": "file:.",
     "rollup": "^0.64.1",
-    "rollup-plugin-commonjs": "^9.1.5",
-    "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-terser": "^1.0.1",
     "rollup-pluginutils": "^2.3.0",
     "source-map": "^0.7.3"

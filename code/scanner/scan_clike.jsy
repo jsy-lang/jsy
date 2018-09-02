@@ -21,6 +21,7 @@ export const scanner_hashbangDirective =
       op: 'hashbang', kind:'#!'
       rx_open: /^(#!)/, rx_close: /.*($)/,
       firstline: true
+      allow_blank_close: true
 
 export const scanner_commentEOL =
   new RegExpScanner @:
@@ -28,6 +29,7 @@ export const scanner_commentEOL =
       example: '// comment'
       op: 'comment_eol', kind:'//'
       rx_open: /(\/\/)/, rx_close: /.*($)/,
+      allow_blank_close: true
 
 export const scanner_commentMultiLine =
   new MultiLineScanner @:
@@ -40,14 +42,14 @@ export const scanner_strSingle =
   new RegExpScanner @:
       description: 'Single quote string literal'
       example: "'single quote'"
-      op: 'str_single', kind:"'"
+      op: 'str1', kind:"'"
       rx_open: /(')/, rx_close: /(?:\\.|[^'])*('|$)/,
 
 export const scanner_strDouble =
   new RegExpScanner @:
       description: 'Double quote string literal'
       example: '"double quote"'
-      op: 'str_double', kind:'"'
+      op: 'str2', kind:'"'
       rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
 
 

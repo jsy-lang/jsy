@@ -18,14 +18,14 @@ export const scanner_strTemplate =
   new MultiLineScanner @:
       description: 'Template string literal'
       example: '`template string`'
-      op: 'str_multi'
+      op: 'str_template'
       kind:'`'
       rx_open: /(`)/
       rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/           // `) comment hack to reset syntax highligher…
       nesting: @{}
         '${': templateArgNesting
 
-function templateArgNesting(ctx, dispatch, hostScanner) ::
+function templateArgNesting(ctx, hostScanner) ::
   const src = scanner_nestedSrc.withOuter @:
     scanner: hostScanner.continueScanner(ctx)
     stack: @[] '{' // from the template parameter opening
@@ -33,7 +33,7 @@ function templateArgNesting(ctx, dispatch, hostScanner) ::
 
   src.emit_ast @ ctx, '', 'template_param'
 
-  ctx.scanner = dispatch.cloneWithOps @: src
+  ctx.scanner = ctx.dispatch_root.cloneWithScanner(src)
 
 
 

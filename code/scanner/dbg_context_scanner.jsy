@@ -1,0 +1,40 @@
+export * from './context_scanner.jsy'
+import { RegExpScanner } from './context_scanner.jsy'
+
+export const RXDBG = @{}
+  //scan(ctx, idx0) :: return RXDBG.dbg_scan(this, ctx, idx0)
+  //scan_continue(ctx, idx0) :: return RXDBG.dbg_scan_continue(this, ctx, idx0)
+
+  dbg_scan(self, ctx, idx0) ::
+    const match = self.rx_disp.exec @ ctx.ln_source.slice(idx0)
+    console.group @ `SCAN ${self.description}`
+    console.log @: source: ctx.ln_source.slice(idx0)
+    console.log @: rx_disp: self.rx_disp
+    console.log @: match
+    const [content, open, close] = match
+
+    const ast = self.emit_ast @ ctx, self.nestTrim(content, close, false)
+    console.log @: ast
+    console.groupEnd @ `SCAN ${self.description}`
+    return self.post_scan(ctx, close)
+
+  dbg_scan_continue(self, ctx, idx0) ::
+    const match = self.rx_resume.exec @ ctx.ln_source.slice(idx0)
+    console.group @ `SCAN CONT ${self.description}`
+    console.log @: source: ctx.ln_source.slice(idx0)
+    console.log @: rx_disp: self.rx_disp
+    console.log @: match
+    const [content, close] = match
+
+    const ast = self.emit_ast @ ctx, self.nestTrim(content, close, true)
+    console.log @: ast
+    console.groupEnd @ `SCAN CONT ${self.description}`
+    return self.post_scan(ctx, close)
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class DBGRegExpScanner extends RegExpScanner ::
+  scan(ctx, idx0) :: return RXDBG.dbg_scan(this, ctx, idx0)
+  scan_continue(ctx, idx0) :: return RXDBG.dbg_scan_continue(this, ctx, idx0)
+
+

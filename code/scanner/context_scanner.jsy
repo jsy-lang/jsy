@@ -9,40 +9,60 @@ function ensure_progress(loc0, loc1) ::
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 export class DispatchScanner ::
-  startCompile() ::
-    Object.defineProperties @ this, @{}
-      regexp: @{} value: []
+  constructor(disp_name) ::
+    this.disp_name = disp_name || 'root'
     this.by_kind = {}
     this.by_op = {}
+
+  startCompile() ::
+    Object.defineProperties @ this, @{}
+      regexp: @{} value: (this.regexp || []).slice()
+    this.by_kind = Object.assign @ {}, this.by_kind
+    this.by_op = Object.assign @ {}, this.by_op
+    return this
+
+  addScannerList(scannerList) ::
+    for const scanner of scannerList ::
+      if scanner ::
+        this.addScanner(scanner)
     return this
 
   addScanner(scanner) ::
     if scanner.withDispatch ::
       scanner = scanner.withDispatch(this)
 
+    if scanner.is_body ::
+      this.ds_body = scanner
+
     this.by_op[scanner.op] = scanner
-    return scanner
 
   addRegExpScanner(scanner, kind, re_disp) ::
-    this.by_kind[kind] = scanner.op
-    this.regexp.push @ `(?:${re_disp})`
+    if kind ::
+      this.by_kind[kind] = scanner.op
+      this.regexp.push @ `(?:${re_disp})`
+    return this
 
   finishCompile(ds_body) ::
-    if ! ds_body :: ds_body = this.by_op.src
     const rx = new RegExp @ this.regexp.join('|'), 'g'
 
+    if undefined === ds_body ::
+      ds_body = this.ds_body
     return Object.defineProperties @ this, @{}
       rx: @{} value: rx
       ds_body: @{} value: ds_body, writable: true
 
 
-  cloneWithOps(by_op_override) ::
+  cloneWithScanner(...scanners) ::
+    return this.cloneWithScannerList(scanners)
+  cloneWithScannerList(scanners) ::
     const self = Object.create(this)
-    self.by_op = Object.assign @ {}, this.by_op, by_op_override
-    self.ds_body = self.by_op.src
     self.level = 1 + 0|self.level
     self.description = self.description.replace @
       /\(\d+\)/, `(${self.level})`
+
+    self.startCompile()
+    self.addScannerList(scanners)
+    self.finishCompile()
     return self
 
 
@@ -55,10 +75,12 @@ export class DispatchScanner ::
     return res
 
   _scan(ctx, idx0) ::
-    const rx = this.rx
-    rx.lastIndex = idx0
+    ctx.dispatch = ctx[`dispatch_${this.disp_name}`] = this
 
-    const source = ctx.ln_source
+    const rx = this.rx
+    rx.lastIndex = idx0 // regexp powered source.slice()
+
+    const source = ctx.ln_source // slice is done by setting lastIndex
     const match = rx.exec(source)
 
     if null === match ::
@@ -94,6 +116,20 @@ export class DispatchFirstlineScanner extends DispatchScanner ::
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+export class EmbeddedDispatchScanner extends DispatchScanner ::
+  constructor(options) ::
+    super @ options.disp_name
+    Object.assign(this, options)
+    this._compileForInit()
+
+  _compileForInit() ::
+    this.startCompile()
+    this.addScannerList(this.scannerList)
+    this.finishCompile()
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 export class BaseSourceScanner ::
   constructor(options) ::
     Object.assign(this, options)
@@ -101,14 +137,11 @@ export class BaseSourceScanner ::
 
   _compileForInit() ::
 
-  withDispatch(ds) ::
-    const self = Object.create @ this, @{}
-      dispatch: {value: ds}
-    return self
+  withDispatch(ds) :: return this
 
   emit_ast(ctx, content, ast_type) ::
     const start = ctx.loc_tip
-    const end = ctx.loc_tip = start.move(content)
+    const end = ctx.loc_tip = start.move(content || 0)
     const ast = @{} type: ast_type || this.op, loc: {start, end}, content
     this._ast_extend(ctx, ast)
     ctx.parts.push @ ast
@@ -126,6 +159,8 @@ export class BaseSourceScanner ::
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 export class SourceCodeScanner extends BaseSourceScanner ::
+  get is_body() :: return true
+
   scan_fragment(ctx, content) ::
     this.scan_content @ ctx, content
 
@@ -133,7 +168,8 @@ export class SourceCodeScanner extends BaseSourceScanner ::
     this.scan_content @ ctx, ctx.ln_source.slice(idx0)
 
   scan_content(ctx, content) ::
-    this.emit_ast @ ctx, content
+    if content ::
+      this.emit_ast @ ctx, content
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -183,18 +219,20 @@ export class NestedCodeScanner extends SourceCodeScanner ::
         content += tok
         continue
 
-      this.emit_ast @ ctx, content
+      if content ::
+        this.emit_ast @ ctx, content
       this.emit_ast @ ctx, tok, this.ast_end || 'nested_end'
       ctx.scanner = this.restore_scanner
       return
 
     // all tokens with non-zero stack
-    this.emit_ast @ ctx, content
+    if content ::
+      this.emit_ast @ ctx, content
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-export class BaseRegExpScanner extends BaseSourceScanner ::
+export class RegExpScanner extends BaseSourceScanner ::
 
   _compileForInit() ::
     const {rx_open, rx_close} = this
@@ -208,55 +246,89 @@ export class BaseRegExpScanner extends BaseSourceScanner ::
       rx_disp: @{} value: rx_disp
       rx_resume: @{} value: rx_resume
 
+  withDispatch(ds) ::
+    this.compileForDispatch(ds)
+    return this
+
+  compileForDispatch(ds) ::
+    if undefined === this.kind :: return
+
+    const match = this.rx_disp.exec @ this.example
+    if null === match || this.kind !== match[1] || null == match[2] ::
+      throw new Error @ `Invalid scanner regexp and/or example (${this.description})`
+
+    ds.addRegExpScanner @ this, this.kind, this.rx_disp.source
+
+
+
   newline(ctx) ::
-    throw new SyntaxError @ `Newline in ${this.description} (${ctx.ln.loc.end.toString()})`
+    if ! this.multiline && ! this.allow_blank_close ::
+      throw new SyntaxError @ `Newline in ${this.description} (${ctx.ln.loc.end.toString()})`
+
+  _ast_extend(ctx, ast) ::
+    const ln = this.ln_first || ctx.ln
+    if undefined !== ln.len_inner ::
+      ast.block_indent = ln.len_inner
+    return ast
 
   scan(ctx, idx0) ::
     const match = this.rx_disp.exec @ ctx.ln_source.slice(idx0)
     const [content, open, close] = match
 
-    this.emit_ast @ ctx, this.nestTrim(content, close, true)
-    return this._post_scan(ctx, close)
+    const t_content = this.nestTrim(content, close, false)
+    if t_content :: this.emit_ast @ ctx, t_content
+    return this.post_scan(ctx, close)
 
   scan_continue(ctx, idx0) ::
     const match = this.rx_resume.exec @ ctx.ln_source.slice(idx0)
     const [content, close] = match
 
-    this.emit_ast @ ctx, this.nestTrim(content, close, true)
-    return this._post_scan(ctx, close)
+    const t_content = this.nestTrim(content, close, true)
+    if t_content :: this.emit_ast @ ctx, t_content
+    return this.post_scan(ctx, close)
 
   nestTrim(content, close, isContinue) ::
-    const trim = this.nestingTrim
-    if undefined !== trim ::
-      if trim[close] ::
-        return content.slice(0, - close.length)
+    const nestingTrim = this.nestingTrim
+    if undefined !== nestingTrim ::
+      let trim = nestingTrim[close]
+      if true === trim :: trim = close
+      if trim :: return content.slice(0, - trim.length)
 
     return content
 
-  _post_scan(ctx, close) ::
-    if ! close :: return
+  post_scan(ctx, close) ::
+    if ! close ::
+      if ! this.allow_blank_close ::
+        ctx.scanner = this.continueScanner(ctx)
+      return
 
     return this.nestMatch @ close,
-      ctx, this.dispatch,
-      this
+      ctx, this.hostScanner || this
 
-  nestMatch(close, ctx, dispatch, scanner) ::
+  nestMatch(close, ctx, hostScanner) ::
     const nesting = this.nesting
     if undefined !== nesting ::
-      return this._nestWith @
+      return this.nestWith @
         nesting[close],
-        ctx, dispatch, scanner
+        ctx, hostScanner
     return true // pop ctx.scanner
 
-  _nestWith(nested, ctx, dispatch, hostScanner) ::
-    if undefined === nested || null === nested ::
+  nestWith(nested, ctx, hostScanner) ::
+    if true === nested || undefined === nested || null === nested ::
       return true // pop ctx.scanner
-    if 'function' === typeof nested ::
-      return nested @ ctx, dispatch, hostScanner
+
+    else if hostScanner === nested || 'host' === nested ::
+      ctx.scanner = hostScanner.continueScanner(ctx)
+      return
+
     else if 'function' === typeof nested.nestedScanner ::
       ctx.scanner = nested.nestedScanner(ctx)
       return
-    else return nested
+
+    else if 'function' === typeof nested ::
+      return nested @ ctx, hostScanner
+
+    return nested
 
 
   nestedScanner(ctx) ::
@@ -264,6 +336,7 @@ export class BaseRegExpScanner extends BaseSourceScanner ::
 
   continueScanner(ctx) ::
     return this._asNestedScanner @ ctx, 'cont', @{}
+      op: this.op_continue || this.op
       continueScanner(ctx) :: return this
       scan(ctx, idx0) ::
         this.scan_continue(ctx, idx0)
@@ -293,69 +366,64 @@ export class BaseRegExpScanner extends BaseSourceScanner ::
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-export class NestedRegExpScanner extends BaseRegExpScanner ::
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-export class RegExpScanner extends BaseRegExpScanner ::
-  withDispatch(ds) ::
-    const self = super.withDispatch(ds)
-    self.compileForDispatch(ds)
-    return self
-
-  compileForDispatch(ds) ::
-    const match = this.rx_disp.exec @ this.example
-    if this.kind !== match[1] || null == match[2] ::
-      throw new Error @ `Invalid scanner regexp and/or example ()`
-
-    ds.addRegExpScanner @ this, this.kind, this.rx_disp.source
-
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 export class MultiLineScanner extends RegExpScanner ::
   newline(ctx) ::
+  get multiline() :: return true
 
-  _ast_extend(ctx, ast) ::
-    const ln = this.ln_first || ctx.ln
-    if undefined !== ln.len_inner ::
-      ast.block_indent = ln.len_inner
-    return ast
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  _post_scan(ctx, close, restore_scanner) ::
-    if close ::
-      return super._post_scan(ctx, close, restore_scanner)
+export class TaggedRegExpScanner extends RegExpScanner ::
+  withTag(ctx, tag, hostScanner) ::
+    const rx_replace = this.rx_replace || /tag/g
 
-    ctx.scanner = this.continueScanner(ctx)
+    const re_open = this.rx_open.source
+      .replace @ rx_replace, tag
+    const re_close = this.rx_close.source
+      .replace @ rx_replace, tag
+
+    const rx_open = new RegExp @ re_open
+    const rx_close = new RegExp @ re_close
+    const rx_disp = new RegExp @ re_open + rx_close.source
+    const rx_resume = new RegExp @ '^' + re_close
+
+    const self = @{} __proto__: this, hostScanner,
+      rx_open, rx_close, rx_resume, rx_disp,
+      compileForDispatch(ds) ::
+        // skip testing example for second pass of this object
+        ds.addRegExpScanner @ this, this.kind, this.rx_disp.source
+
+    self.tagScanner(ctx, tag, hostScanner)
+    return self
+
+  tagScanner(ctx, tag, hostScanner) ::
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 export class DynamicScanner extends MultiLineScanner ::
   scan(ctx, idx0) ::
-    const source = ctx.ln_source.slice(idx0)
-    const leader_match = this.rx_disp.exec @ source
+    const leader_match = this.rx_disp.exec @ ctx.ln_source.slice(idx0)
 
-    const self = this.withLeader(leader_match[2])
-    return self.scan_leader(ctx, source, idx0)
+    const self = this.withLeaderTag @ ctx, leader_match[2]
+    return self._leader.scan(ctx, idx0)
 
+  withLeaderTag(ctx, tag) ::
+    const self = @{} __proto__: this, __root__: this.__root__ || this
 
-  withLeader(leader) ::
-    const rx_dyn_open = new RegExp @
-      this.rx_leader_open.source.replace @ /leader/g, leader
-
-    const rx_resume = new RegExp @
-      '^' + this.rx_leader_close.source.replace @ /leader/g, leader
-
-    return Object.create @ this, @{}
-      rx_resume: @{} value: rx_resume
-      rx_dyn_open: @{} value: rx_dyn_open
+    self._trailer = this.trailer && this.trailer.withTag @ ctx, tag, self
+    self._leader = this.leader.withTag @ ctx, tag, self
+    return self
 
 
-  scan_leader(ctx, source, idx0) ::
-    const [content] = this.rx_dyn_open.exec(source)
-    this.emit_ast @ ctx, content, this.op_leader
-    idx0 += content.length
-    return this.scan_continue(ctx, idx0)
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+export class EmbeddedDynamicScanner extends DynamicScanner ::
+  continueScanner(ctx) ::
+    return this.ds_body.cloneWithScanner @ this._trailer
+
+  andDispatchWith(options) ::
+    options.scannerList = options.scannerList.concat @# this
+    const ds_body = new EmbeddedDispatchScanner(options)
+    this.ds_body = ds_body
+    return ds_body
 

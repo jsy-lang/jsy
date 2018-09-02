@@ -27,41 +27,41 @@ describe @ 'JSY Scanner (template strings)', @=> ::
     const offside_ast = scan_jsy_lines @#
       'const classes = `header ${ inner() } extra`'
 
-    test_ast_tokens_content @ offside_ast, @[]
-      @[] @[] 'src', 'const classes = '
-          @[] 'str_multi', '`header ${'
-          @[] 'template_param', ''
-          @[] 'src', ' inner() '
-          @[] 'template_param_end', '}'
-          @[] 'str_multi', ' extra`'
-          @[] 'offside_dedent', undefined
+    test_ast_tokens_content @ offside_ast,
+      @[] 'src "const classes = "'
+          'str_template "`header ${"'
+          'template_param ""'
+          'src " inner() "'
+          'template_param_end "}"'
+          'str_template " extra`"'
+          'offside_dedent'
 
   it @ 'single template strings with $ in string', @=> ::
     const offside_ast = scan_jsy_lines @# '`$${name}$`'
-    test_ast_tokens_content @ offside_ast, @[]
-      @[] @[] 'str_multi', '`$${'
-          @[] 'template_param', ''
-          @[] 'src', 'name'
-          @[] 'template_param_end', '}'
-          @[] 'str_multi', '$`'
-          @[] 'offside_dedent', undefined
+    test_ast_tokens_content @ offside_ast,
+      @[] 'str_template "`$${"'
+          'template_param ""'
+          'src "name"'
+          'template_param_end "}"'
+          'str_template "$`"'
+          'offside_dedent'
 
   it @ 'single template strings with jsy_ops', @=> ::
     const offside_ast = scan_jsy_lines @#
       'const classes = `header ${ first @ second @# third, 42 } extra`'
 
-    test_ast_tokens_content @ offside_ast, @[]
-      @[] @[] 'src', 'const classes = '
-          @[] 'str_multi', '`header ${'
-          @[] 'template_param', ''
-          @[] 'src', ' first'
-          @[] 'jsy_op', ' @'
-          @[] 'src', ' second'
-          @[] 'jsy_op', ' @#'
-          @[] 'src', ' third, 42 '
-          @[] 'template_param_end', '}'
-          @[] 'str_multi', ' extra`'
-          @[] 'offside_dedent', undefined
+    test_ast_tokens_content @ offside_ast,
+      @[] 'src "const classes = "'
+          'str_template "`header ${"'
+          'template_param ""'
+          'src " first"'
+          'jsy_op " @"'
+          'src " second"'
+          'jsy_op " @#"'
+          'src " third, 42 "'
+          'template_param_end "}"'
+          'str_template " extra`"'
+          'offside_dedent'
 
 
   it @ 'nested template strings', @=> ::
@@ -69,25 +69,25 @@ describe @ 'JSY Scanner (template strings)', @=> ::
       "const classes = `header ${ isLargeScreen() ? '' :"
       "  `icon-${item.isCollapsed ? 'expander' : 'collapser'}` } extra`"
 
-    test_ast_tokens_content @ offside_ast, @[]
-      @[] @[] 'src', 'const classes = '
-          @[] 'str_multi', '`header ${'
-          @[] 'template_param', ''
-          @[] 'src', ' isLargeScreen() ? '
-          @[] 'str_single', "''"
-          @[] 'src', ' :'
-          @[] 'offside_dedent', undefined
+    test_ast_tokens_content @ offside_ast,
+      @[] 'src "const classes = "'
+          'str_template "`header ${"'
+          'template_param ""'
+          'src " isLargeScreen() ? "'
+          'str1 "\'\'"'
+          'src " :"'
+          'offside_dedent'
 
-      @[] @[] 'str_multi', '`icon-${'
-          @[] 'template_param', ''
-          @[] 'src', 'item.isCollapsed ? '
-          @[] 'str_single', "'expander'"
-          @[] 'src', ' : '
-          @[] 'str_single', "'collapser'"
-          @[] 'template_param_end', '}'
-          @[] 'str_multi', '`'
-          @[] 'src', ' '
-          @[] 'template_param_end', '}'
-          @[] 'str_multi', ' extra`'
-          @[] 'offside_dedent', undefined
+      @[] 'str_template "`icon-${"'
+          'template_param ""'
+          'src "item.isCollapsed ? "'
+          'str1 "\'expander\'"'
+          'src " : "'
+          'str1 "\'collapser\'"'
+          'template_param_end "}"'
+          'str_template "`"'
+          'src " "'
+          'template_param_end "}"'
+          'str_template " extra`"'
+          'offside_dedent'
 

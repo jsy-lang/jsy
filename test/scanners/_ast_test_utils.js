@@ -15,14 +15,21 @@ export function ast_tokens_content(offside_ast) ::
     .filter @ ln => ! ln.is_blank
     .map @ ln =>
       ln.content.map @ e =>
-        @[] e.type, e.content
+        `${e.type} ${JSON.stringify(e.content) || ''}`.trim()
 
 
-export function test_ast_tokens(offside_ast, expected) ::
-  assert.deepEqual @ ast_tokens(offside_ast), expected
+export function test_ast_tokens(offside_ast, ... expected) ::
+  const tokens = ast_tokens(offside_ast)
+  assert.deepEqual @ tokens, expected
   transpile_jsy(offside_ast)
 
-export function test_ast_tokens_content(offside_ast, expected) ::
-  assert.deepEqual @ ast_tokens_content(offside_ast), expected
+export function test_ast_tokens_content(offside_ast, ... expected) ::
+  const tokens = ast_tokens_content(offside_ast)
+  try ::
+    assert.deepEqual @ tokens, expected
+  catch err ::
+    console.dir @ tokens
+    throw err
+
   transpile_jsy(offside_ast)
 

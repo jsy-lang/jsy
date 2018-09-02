@@ -1,8 +1,6 @@
 import pkg from './package.json'
-import rpi_resolve from 'rollup-plugin-node-resolve'
-import rpi_commonjs from 'rollup-plugin-commonjs'
 import jsy_transpile_stable from './stable/esm'
-import rpi_bound_jsy_lite from './rpi_jsy'
+import rpi_bound_jsy_lite from './rpi_jsy.mjs'
 
 const configs = []
 export default configs
@@ -55,18 +53,3 @@ function add_jsy(name) {
       output: { file: `umd/${name}.js`, format: 'umd', name, exports:'named', sourcemap },
       plugins: plugins_browser, external })
 }
-
-
-// unittesting compile rollup
-const test_plugins = plugins.concat([
-  rpi_resolve({ module: true, main: true }),
-  rpi_commonjs({ include: 'node_modules/**'}),
-])
-
-configs.push(
-  { input: `test/unittest.jsy`, context: 'window', plugins: test_plugins,
-    output: { file: 'test/__unittest.iife.js', format: 'iife', name: `test_jsy_transpile`, sourcemap:'inline' } },
-
-  { input: `test/unittest.jsy`, plugins: test_plugins,
-    output: { file: 'test/__unittest.cjs.js', format: 'cjs', sourcemap:'inline' } },
-)

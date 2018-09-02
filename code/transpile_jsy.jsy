@@ -244,7 +244,7 @@ const transpile_visitor = @{}
       comma_body.push @ 'null }'
 
 
-  v$str_multi(p, ln, p0) ::
+  v$str_template(p, ln, p0) ::
     if p0 === ln.indent && p.block_indent ::
       const indent = this._cur.pop()
       this._cur.push @ indent.slice(p.block_indent)
@@ -258,13 +258,22 @@ const transpile_visitor = @{}
 
     this.emit @ content, p.loc.start
 
-  v$str_single: direct_src
-  v$str_double: direct_src
+  v$str: direct_src
+  v$str1: direct_src
+  v$str2: direct_src
+
   v$regexp: direct_src
 
-  v$xmlattrstr: direct_src
-  v$jsx0: direct_src
-  v$jsx: direct_src
+  v$jsx_frag: direct_src
+  v$jsx_frag_close: direct_src
+  v$jsx_tag: direct_src
+  v$jsx_tag_part: direct_src
+  v$jsx_tag_close: direct_src
+  v$jsx_attr_name: direct_src
+  v$jsx_attr_str1: direct_src
+  v$jsx_attr_str2: direct_src
+  v$jsx_content: direct_src
+  v$jsx_content_expr: direct_src
 
   v$hashbang: raw_src
   v$comment_eol: raw_src

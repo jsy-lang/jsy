@@ -1,54 +1,90 @@
 import scan_offside_contexts from './basic_offside_contexts.jsy'
 import { js_context_scanners } from './scan_javascript.jsy'
 import { scanner_nestedSrc } from './scan_clike.jsy'
-import { RegExpScanner, MultiLineScanner, DynamicScanner, NestedRegExpScanner } from './context_scanner.jsy'
+import { SourceCodeScanner, RegExpScanner } from './context_scanner.jsy'
+import { EmbeddedDynamicScanner, TaggedRegExpScanner } from './context_scanner.jsy'
 
 
 
-export const scanner_xmlAttrSingle =
-  new NestedRegExpScanner @:
-      description: 'XML Single quote attribute literal'
-      op: 'xmlattrstr'
-      rx_open: /(')/, rx_close: /(?:\\.|[^'])*(')/,
+export const scanner_jsxContent =
+  new SourceCodeScanner @:
+      description: 'JSX Content Scanner'
+      op: 'jsx_content'
 
-export const scanner_xmlAttrDouble =
-  new NestedRegExpScanner @:
-      description: 'Double quote string literal'
-      description: 'XML Double quote attribute literal'
-      op: 'xmlattrstr'
-      rx_open: /(")/, rx_close: /(?:\\.|[^"])*(")/,
+export const scanner_jsxContentExpr = null // TODO
 
-export const scanner_jsx =
-  new DynamicScanner @:
-      description: 'Embedded JSX expression'
-      example: '<section>content</section>'
-      op: 'jsx', op_leader: 'jsx0'
-      kind:'<'
-      rx_open: /(<)([a-zA-Z0-9_:.\-]*)\s*(\/?>|[{]|[a-zA-Z0-9_:\-]+=|$)/
-      rx_close: /.*$/
-      rx_leader_open: /<leader/
-      rx_leader_close: /(?:.*?)([{'"]|<leader>|<\/leader>)/
+export const scanner_jsxAttrName =
+  new RegExpScanner @:
+      description: 'JSX attribute name'
+      op: 'jsx_attr_name'
+      rx_open: /([a-zA-Z0-9_:.\-]+)/,
+      rx_close: /\s*(=)\s*/,
 
-      nestMatch(close, ctx, dispatch, hostScanner) ::
-        if '<' === close[0] ::
-          if '/' === close[1] ::
-            return true
-          ctx.scanner = hostScanner.continueScanner(ctx)
-          return
+export const scanner_jsxAttrSingle =
+  new RegExpScanner @:
+      description: 'JSX Single quote attribute literal'
+      multiline: true
+      op: 'jsx_attr_str1'
+      rx_open: /\s*(')/,
+      rx_close: /(?:\\.|[^'])*(')\s*/,
 
-        const nested = this.nesting[close]
-        if nested ::
-          ctx.scanner = hostScanner.continueScanner(ctx)
-          return this._nestWith @ nested,
-            ctx, dispatch, hostScanner
+export const scanner_jsxAttrDouble =
+  new RegExpScanner @:
+      description: 'JSX Double quote attribute literal'
+      multiline: true
+      op: 'jsx_attr_str2'
+      rx_open: /\s*(")/,
+      rx_close: /(?:\\.|[^"])*(")\s*/,
 
-      nestingTrim: @{} "'": true, '"': true
+export const scanner_jsxTagClose =
+  new TaggedRegExpScanner @:
+      description: 'JSX Close Tag'
+      example: '</tag>'
+      op: 'jsx_tag_close'
+      kind: '</'
+      multiline: true
+      rx_open: /(<\/)\s*tag/
+      rx_close: /(?:\s*)(>)/
+
+      tagScanner(ctx) :: this.restore_scanner = ctx.scanner
+      post_scan(ctx) :: ctx.scanner = this.restore_scanner
+
+
+
+export const scanner_jsxTag =
+  new TaggedRegExpScanner @:
+      description: 'JSX Tag'
+      multiline: true
+      op: 'jsx_tag'
+      op_continue: 'jsx_tag_part'
+
+      rx_open: /(<)tag\s*/
+      rx_close: /\s*(\/?>|[{'"]|[a-zA-Z0-9_:.\-]+=)/
+
       nesting: @{}
+        '>': 'host' // use hostScanner
+        '/>': true // pop ctx.scanner
         '{': jsxArgNesting
-        "'": scanner_xmlAttrSingle
-        '"': scanner_xmlAttrDouble
 
-function jsxArgNesting(ctx, dispatch, hostScanner) ::
+      nestingEnd: @{}
+        '=': scanner_jsxAttrName
+        "'": scanner_jsxAttrSingle
+        '"': scanner_jsxAttrDouble
+
+      nestTrim(content, close, isContinue) ::
+        if this.nestingEnd[close.slice(-1)] ::
+          return content.slice(0, - close.length)
+        return content
+      nestMatch(close, ctx, hostScanner) ::
+        let inner = this.nesting[close]
+        if undefined === inner ::
+          inner = this.nestingEnd[close.slice(-1)]
+
+        if true !== inner && 'host' !== inner ::
+          ctx.scanner = hostScanner = this.continueScanner(ctx)
+        return this.nestWith @ inner, ctx, hostScanner
+
+function jsxArgNesting(ctx, hostScanner) ::
   const src = scanner_nestedSrc.withOuter @:
     scanner: hostScanner.continueScanner(ctx)
     stack: @[] '{' // from the template parameter opening
@@ -56,11 +92,80 @@ function jsxArgNesting(ctx, dispatch, hostScanner) ::
 
   src.emit_ast @ ctx, '', 'jsx_param'
 
-  ctx.scanner = dispatch.cloneWithOps @: src
+  ctx.scanner = ctx.dispatch_root.cloneWithScanner(src)
+
+
+
+
+export const scanner_jsx =
+  new EmbeddedDynamicScanner @:
+      description: 'Embedded JSX expression'
+      example: '<section>content</section>'
+      kind:'<'
+      disp_name: 'jsx'
+      op: 'jsx'
+
+      // recognize by '<tag' followed by 'attr=' or '/>' or '>'
+      rx_open: /(<)([a-zA-Z0-9_:.\-]+)\s*(\/?>|[{]|[a-zA-Z0-9_:\-]+=|$)/
+      rx_close: /.*$/
+
+      leader: scanner_jsxTag
+      trailer: scanner_jsxTagClose
+
+
+export const scanner_embedded_jsx =
+  scanner_jsx.andDispatchWith @:
+    description: 'JSX Dispatch Scanner (0)'
+
+    scannerList: @[]
+      scanner_jsxContent
+      scanner_jsxContentExpr
+
+export const scanner_jsx_close_fragment =
+  new RegExpScanner @:
+      description: 'Embedded JSX fragment close expression'
+      example: '</>'
+      op: 'jsx_frag_close'
+      kind: '</>'
+      allow_blank_close: true
+
+      rx_open: /(<\/>)/
+      rx_close: /()/
+
+      post_scan(ctx) ::
+        ctx.scanner = this.restore_scanner
+
+export const scanner_jsx_fragment =
+  new RegExpScanner @:
+      description: 'Embedded JSX fragment expression'
+      example: '<></>'
+      op: 'jsx_frag'
+      kind: '<>'
+
+      rx_open: /(<>)/
+      rx_close: /.*($|<\/>)/
+
+      nestTrim(content, close, isContinue) ::
+        return '<>'
+
+      post_scan(ctx) ::
+        const jsx_frag_close = @{}
+          __proto__: scanner_jsx_close_fragment
+          restore_scanner: ctx.scanner
+
+        const ds_body = 
+          scanner_embedded_jsx.cloneWithScanner @
+            jsx_frag_close
+
+        ds_body._dbg_ = true
+        ds_body.description = 'Fragment' + ds_body.description
+        ctx.scanner = ds_body
+
 
 
 
 export const jsx_context_scanners = Object.freeze @ js_context_scanners.concat @#
+  scanner_jsx_fragment
   scanner_jsx
 
 export default scan_javascript_with_jsx
