@@ -58,6 +58,27 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             @[] 'offside_dedent', undefined
 
 
+  describe @ 'JSX Fragment', @=> ::
+    it @ 'basic body', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        '<>example</>'
+
+      test_ast_tokens_content @ offside_ast, @[]
+        @[] @[] 'jsx0', '<'
+            @[] 'jsx', '>example</>'
+            @[] 'offside_dedent', undefined
+
+
+    it @ 'basic body with attr', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        '<><div /><span>example</span></>'
+
+      test_ast_tokens_content @ offside_ast, @[]
+        @[] @[] 'jsx0', '<'
+            @[] 'jsx', '><div /><span>example</span></>'
+            @[] 'offside_dedent', undefined
+
+
   describe.skip @ 'JSX self closing', @=> ::
     it @ 'self closing', @=> ::
       const offside_ast = scan_jsy_lines @#
