@@ -34,8 +34,8 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
         '<section {param}>example</section>'
 
       test_ast_tokens_content @ offside_ast,
-        @[] 'jsx_tag "<section {"'
-            'jsx_param ""'
+        @[] 'jsx_tag "<section "'
+            'jsx_param "{"'
             'src "param"'
             'jsx_param_end "}"'
             'jsx_tag_part ">"'
@@ -49,8 +49,8 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
         '<section {caller @ param}>example</section>'
 
       test_ast_tokens_content @ offside_ast,
-        @[] 'jsx_tag "<section {"'
-            'jsx_param ""'
+        @[] 'jsx_tag "<section "'
+            'jsx_param "{"'
             'src "caller"'
             'jsy_op " @"'
             'src " param"'
@@ -155,8 +155,8 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
         '<section {param} />'
 
       test_ast_tokens_content @ offside_ast,
-        @[] 'jsx_tag "<section {"'
-            'jsx_param ""'
+        @[] 'jsx_tag "<section "'
+            'jsx_param "{"'
             'src "param"'
             'jsx_param_end "}"'
             'jsx_tag_part " />"'
@@ -217,8 +217,7 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
         @[] 'jsx_tag "<second "'
             'jsx_attr_name "class="'
             'jsx_attr_str1 "\'some\' "'
-            'jsx_tag_part "{"'
-            'jsx_param ""'
+            'jsx_param "{"'
             'src "extra"'
             'jsx_param_end "}"'
             'jsx_tag_part "/>"'
@@ -226,8 +225,7 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
 
         @[] 'jsx_tag "<third "'
             'jsx_attr_name "class="'
-            'jsx_tag_part "{"'
-            'jsx_param ""'
+            'jsx_param "{"'
             'src "param"'
             'jsx_param_end "}"'
             'jsx_tag_part ">"'
@@ -239,7 +237,7 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
 
 
 
-  describe.skip @ 'with content param', @=> ::
+  describe @ 'with content param', @=> ::
 
     it @ 'basic body with content param', @=> ::
       const offside_ast = scan_jsy_lines @#
@@ -248,8 +246,7 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
       test_ast_tokens_content @ offside_ast,
         @[] 'jsx_tag "<section>"'
             'jsx_content "before"'
-            'jsx_content_expr "{"'
-            'jsx_param ""'
+            'jsx_param "{"'
             'src "param"'
             'jsx_param_end "}"'
             'jsx_content "after"'
@@ -264,9 +261,11 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
       test_ast_tokens_content @ offside_ast,
         @[] 'jsx_tag "<section>"'
             'jsx_content "before"'
+            'jsx_param "{"'
             'src "caller"'
             'jsy_op " @"'
             'src " param"'
+            'jsx_param_end "}"'
             'jsx_content "after"'
             'jsx_tag_close "</section>"'
             'offside_dedent'
@@ -287,7 +286,9 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'offside_dedent'
 
         @[] 'jsx_tag "<second>"'
-            'jsx_content_expr "{param}"'
+            'jsx_param "{"'
+            'src "param"'
+            'jsx_param_end "}"'
             'jsx_tag_close "</second>"'
             'offside_dedent'
 
@@ -314,7 +315,11 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'offside_dedent'
 
         @[] 'jsx_tag "<second>"'
-            'jsx_content_expr "{caller @ param}"'
+            'jsx_param "{"'
+            'src "caller"'
+            'jsy_op " @"'
+            'src " param"'
+            'jsx_param_end "}"'
             'jsx_tag_close "</second>"'
             'offside_dedent'
 

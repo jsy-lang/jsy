@@ -11,7 +11,17 @@ export const scanner_jsxContent =
       description: 'JSX Content Scanner'
       op: 'jsx_content'
 
-export const scanner_jsxContentExpr = null // TODO
+export const scanner_jsxContentExpr =
+  new RegExpScanner @:
+      description: 'JSX Content Expression'
+      example: '{ param }'
+      op: 'jsx_content_expr'
+      kind: '{'
+      rx_open: /({)/,
+      rx_close: /.*()/,
+
+      nestTrim(content, close) :: return ''
+      post_scan(ctx) :: jsxArgNesting @ ctx, null
 
 export const scanner_jsxAttrName =
   new RegExpScanner @:
@@ -64,9 +74,9 @@ export const scanner_jsxTag =
       nesting: @{}
         '>': 'host' // use hostScanner
         '/>': true // pop ctx.scanner
-        '{': jsxArgNesting
 
       nestingEnd: @{}
+        '{': jsxArgNesting
         '=': scanner_jsxAttrName
         "'": scanner_jsxAttrSingle
         '"': scanner_jsxAttrDouble
@@ -86,11 +96,13 @@ export const scanner_jsxTag =
 
 function jsxArgNesting(ctx, hostScanner) ::
   const src = scanner_nestedSrc.withOuter @:
-    scanner: hostScanner.continueScanner(ctx)
-    stack: @[] '{' // from the template parameter opening
+    scanner: null !== hostScanner
+      ? hostScanner.continueScanner(ctx)
+      : ctx.scanner
+    stack: @[] '{' // from the jsx parameter opening
     ast_end: 'jsx_param_end'
 
-  src.emit_ast @ ctx, '', 'jsx_param'
+  src.emit_ast @ ctx, '{', 'jsx_param'
 
   ctx.scanner = ctx.dispatch_root.cloneWithScanner(src)
 
