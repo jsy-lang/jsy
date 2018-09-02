@@ -265,7 +265,6 @@ const transpile_visitor = @{}
   v$xmlattrstr: direct_src
   v$jsx0: direct_src
   v$jsx: direct_src
-  v$jsx_end() ::
 
   v$hashbang: raw_src
   v$comment_eol: raw_src

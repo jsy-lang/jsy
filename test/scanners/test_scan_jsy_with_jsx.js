@@ -1,7 +1,7 @@
 const { assert } = require('chai')
 import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content } from './_ast_test_utils'
 
-describe @ 'JSY Scanner (with JSX expressions)', @=> ::
+describe.only @ 'JSY Scanner (with JSX expressions)', @=> ::
   describe @ 'JSX basic', @=> ::
     it @ 'basic body', @=> ::
       const offside_ast = scan_jsy_lines @#
@@ -22,7 +22,6 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             @[] 'jsx', ' class='
             @[] 'xmlattrstr', '"nice"'
             @[] 'jsx', '>example</section>'
-            @[] 'jsx_end', ''
             @[] 'offside_dedent', undefined
 
 
@@ -37,7 +36,6 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             @[] 'src', 'param'
             @[] 'jsx_param_end', '}'
             @[] 'jsx', '>example</section>'
-            @[] 'jsx_end', ''
             @[] 'offside_dedent', undefined
 
 
@@ -54,7 +52,6 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             @[] 'src', ' param'
             @[] 'jsx_param_end', '}'
             @[] 'jsx', '>example</section>'
-            @[] 'jsx_end', ''
             @[] 'offside_dedent', undefined
 
 

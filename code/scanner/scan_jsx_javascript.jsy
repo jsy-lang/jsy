@@ -22,7 +22,7 @@ export const scanner_jsx =
   new DynamicScanner @:
       description: 'Embedded JSX expression'
       example: '<section>content</section>'
-      op: 'jsx', op_leader: 'jsx0', op_pop: 'jsx_end'
+      op: 'jsx', op_leader: 'jsx0'
       kind:'<'
       rx_open: /(<)([a-zA-Z0-9_:.\-]*)\s*(\/?>|[{]|[a-zA-Z0-9_:\-]+=|$)/
       rx_close: /.*$/
