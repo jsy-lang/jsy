@@ -31,7 +31,8 @@ const at_offside_map = at_offside.reduce(
 const extra_jsy_ops ={
   kw_normal:{jsy_op: 'kw', pre: ' (', post: ')', in_nested_block: true}
 , kw_explicit:{jsy_op: 'kw', pre: '', post: '', in_nested_block: true}
-, tmpl_param:{jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true} };
+, tmpl_param:{jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true}
+, jsx_param:{jsy_op: 'jsx_param', pre: '', post: '', in_nested_block: true} };
 
 const keywords_with_args =['if', 'while', 'for await', 'for', 'switch'];
 const keywords_locator_parts = [].concat(
@@ -569,6 +570,10 @@ class RegExpScanner extends BaseSourceScanner {
 
   scan(ctx, idx0) {
     const match = this.rx_disp.exec(ctx.ln_source.slice(idx0));
+    if (null === match) {
+      throw new SyntaxError(
+        `Invalid scan ${this.description}. (${ctx.loc_tip})`) }
+
     const [content, open, close] = match;
 
     const t_content = this.nestTrim(content, close, false);
@@ -579,6 +584,10 @@ class RegExpScanner extends BaseSourceScanner {
     ensure_indent(ctx, this);
 
     const match = this.rx_resume.exec(ctx.ln_source.slice(idx0));
+    if (null === match) {
+      throw new SyntaxError(
+        `Invalid scan continue ${this.description}. (${ctx.loc_tip})`) }
+
     const [content, close] = match;
 
     const t_content = this.nestTrim(content, close, true);
@@ -983,7 +992,7 @@ const scanner_jsxTag =
     , op_continue: 'jsx_tag_part'
 
     , rx_open: /(<)tag\s*/
-    , rx_close: /\s*(\/?>|[{'"]|[a-zA-Z0-9_:.\-]+=)/
+    , rx_close: /\s*($|\/?>|[{'"]|[a-zA-Z0-9_:.\-]+=)/
 
     , nesting:{
         '>': 'host' // use hostScanner
@@ -1403,8 +1412,9 @@ const transpile_visitor ={
     if (null != p) {
       p.len_indent = this.head.nested_block_indent;}
 
-    let c = 0;
-    while (this.head.in_nested_block) {
+    let c = 0, done=false;
+    while (this.head && this.head.in_nested_block && ! done) {
+      done = this.head.op.in_nested_block;
       this.stack_pop(c++); } }
 
 , _dedent_multi_ops() {
@@ -1434,14 +1444,14 @@ const transpile_visitor ={
     this.emit_indent(p.indent); }
 
 
-, v$template_param(p) {this._param(p);}
+, v$template_param(p) {this._param(extra_jsy_ops.tmpl_param, p);}
 , v$template_param_end(p) {this._param_end(p);}
 
-, v$jsx_param(p) {this._param(p);}
+, v$jsx_param(p) {this._param(extra_jsy_ops.jsx_param, p);}
 , v$jsx_param_end(p) {this._param_end(p);}
 
-, _param(p) {
-    this.stack_push(extra_jsy_ops.tmpl_param, p);
+, _param(op, p) {
+    this.stack_push(op, p);
     this.emit_raw(p.content); }
 
 , _param_end(p) {
