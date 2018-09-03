@@ -193,8 +193,9 @@ const transpile_visitor = @{}
     if null != p ::
       p.len_indent = this.head.nested_block_indent
 
-    let c = 0
-    while this.head.in_nested_block ::
+    let c = 0, done=false
+    while this.head && this.head.in_nested_block && ! done ::
+      done = this.head.op.in_nested_block
       this.stack_pop @ c++
 
   _dedent_multi_ops() ::
@@ -224,14 +225,14 @@ const transpile_visitor = @{}
     this.emit_indent @ p.indent
 
 
-  v$template_param(p) :: this._param(p)
-  v$template_param_end(p) :: this._param_end(p)
+  v$template_param(p) :: this._param @ extra_jsy_ops.tmpl_param, p
+  v$template_param_end(p) :: this._param_end @ p
 
-  v$jsx_param(p) :: this._param(p)
-  v$jsx_param_end(p) :: this._param_end(p)
+  v$jsx_param(p) :: this._param @ extra_jsy_ops.jsx_param, p
+  v$jsx_param_end(p) :: this._param_end @ p
 
-  _param(p) ::
-    this.stack_push @ extra_jsy_ops.tmpl_param, p
+  _param(op, p) ::
+    this.stack_push @ op, p
     this.emit_raw @ p.content
 
   _param_end(p) ::

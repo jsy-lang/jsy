@@ -30,6 +30,7 @@ export const extra_jsy_ops = @{}
   kw_normal: @{} jsy_op: 'kw', pre: ' (', post: ')', in_nested_block: true
   kw_explicit: @{} jsy_op: 'kw', pre: '', post: '', in_nested_block: true
   tmpl_param: @{} jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true
+  jsx_param: @{} jsy_op: 'jsx_param', pre: '', post: '', in_nested_block: true
 
 export const keywords_with_args = @[] 'if', 'while', 'for await', 'for', 'switch'
 export const keywords_locator_parts = [].concat @

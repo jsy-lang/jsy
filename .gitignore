@@ -2,6 +2,7 @@ cjs/
 umd/
 esm/
 test/__*
+test/dbg/*
 *.map
 package-lock.json
 test/examples

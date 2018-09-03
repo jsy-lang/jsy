@@ -1,6 +1,6 @@
 require('source-map-support').install()
 
-const { scan_jsy } = require('jsy-transpile/cjs/all')
+const { transpile_jsy, scan_jsy } = require('jsy-transpile/cjs/all')
 
 function scan_jsy_lines(jsy_lines) ::
   return scan_jsy @ jsy_lines.join('\n')
@@ -14,12 +14,18 @@ function dbg_tokens_content(offside_ast) ::
     let lead = lead_start
 
     for const e of ln.content :: 
-      console.log @ `${lead} '${e.type} ${JSON.stringify(e.content) || ''}'`
+      const sub = JSON.stringify(e.content)
+      if undefined !== sub ::
+        console.log @ `${lead} '${e.type} ${sub}'`
+      else ::
+        console.log @ `${lead} '${e.type}'`
 
       lead = lead_space
 
     console.log()
 
 Object.assign @ module.exports, @{}
+  transpile_jsy
+  scan_jsy
   scan_jsy_lines
   dbg_tokens_content

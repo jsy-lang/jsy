@@ -1,4 +1,5 @@
 const { assert } = require('chai')
+import { transpile_jsy } from 'jsy-transpile/esm/all'
 import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content, jsy_scan_throws } from './_ast_test_utils'
 
 
@@ -565,3 +566,51 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'jsy_op " @"'
             'src " after"'
             'offside_dedent'
+
+
+    it @ `Multiple nested JSX to JS to JSX to JS`, @=> ::
+      const offside_ast = scan_jsy_lines @#
+         'const ex = @'
+         '    <ul>{'
+         '      this.props.items.map @ item => @'
+         '        <li key={item.id}>{item.text}</li>'
+         '    }</ul>'
+
+      test_ast_tokens_content @ offside_ast,
+        @[] 'src "const ex ="'
+            'jsy_op " @"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<ul>"'
+            'jsx_param "{"'
+            'offside_dedent'
+
+        @[] 'src "this.props.items.map"'
+            'jsy_op " @"'
+            'src " item =>"'
+            'jsy_op " @"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<li "'
+            'jsx_attr_name "key="'
+            'jsx_param "{"'
+            'src "item.id"'
+            'jsx_param_end "}"'
+            'jsx_tag_part ">"'
+            'jsx_param "{"'
+            'src "item.text"'
+            'jsx_param_end "}"'
+            'jsx_tag_close "</li>"'
+            'offside_dedent'
+
+        @[] 'jsx_param_end "}"'
+            'jsx_tag_close "</ul>"'
+            'offside_dedent'
+
+      assert.deepEqual @
+        transpile_jsy(offside_ast).split(/\n/), @[]
+          'const ex =('
+          '    <ul>{'
+          '      this.props.items.map(item =>('
+          '        <li key={item.id}>{item.text}</li>) )'
+          '    }</ul>)'

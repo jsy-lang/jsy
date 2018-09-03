@@ -64,7 +64,11 @@ export function dbg_tokens_content(offside_ast) ::
     let lead = lead_start
 
     for const e of ln.content :: 
-      console.log @ `${lead} '${e.type} ${JSON.stringify(e.content) || ''}'`
+      const sub = JSON.stringify(e.content)
+      if undefined !== sub ::
+        console.log @ `${lead} '${e.type} ${sub}'`
+      else ::
+        console.log @ `${lead} '${e.type}'`
 
       lead = lead_space
 

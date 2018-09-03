@@ -1,6 +1,7 @@
 #!/usr/bin/env jsy-node
 
 const { assert } = require('chai')
+const { transpile_jsy } = require('./_dbg_utils.jsy')
 const { scan_jsy_lines, dbg_tokens_content } = require('./_dbg_utils.jsy')
 
 
@@ -16,3 +17,19 @@ const offside_ast = scan_jsy_lines @#
   'third @ <p>content</p>'
 
 dbg_tokens_content @ offside_ast
+
+console.log()
+console.log @ 'COMPILING'
+console.log()
+
+const out = transpile_jsy @ offside_ast
+
+console.log()
+console.log @ ' -- '.repeat(20)
+console.log()
+
+console.log @ out
+
+console.log()
+console.log @ ' -- '.repeat(20)
+console.log()
