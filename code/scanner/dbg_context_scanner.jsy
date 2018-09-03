@@ -1,13 +1,15 @@
 export * from './context_scanner.jsy'
-import { RegExpScanner } from './context_scanner.jsy'
+import { ensure_indent, RegExpScanner } from './context_scanner.jsy'
 
 export const RXDBG = @{}
   //scan(ctx, idx0) :: return RXDBG.dbg_scan(this, ctx, idx0)
   //scan_continue(ctx, idx0) :: return RXDBG.dbg_scan_continue(this, ctx, idx0)
 
   dbg_scan(self, ctx, idx0) ::
-    const match = self.rx_disp.exec @ ctx.ln_source.slice(idx0)
     console.group @ `SCAN ${self.description}`
+    ensure_indent(ctx, this)
+
+    const match = self.rx_disp.exec @ ctx.ln_source.slice(idx0)
     console.log @: source: ctx.ln_source.slice(idx0)
     console.log @: rx_disp: self.rx_disp
     console.log @: match
@@ -19,8 +21,10 @@ export const RXDBG = @{}
     return self.post_scan(ctx, close)
 
   dbg_scan_continue(self, ctx, idx0) ::
-    const match = self.rx_resume.exec @ ctx.ln_source.slice(idx0)
     console.group @ `SCAN CONT ${self.description}`
+    ensure_indent(ctx, this)
+
+    const match = self.rx_resume.exec @ ctx.ln_source.slice(idx0)
     console.log @: source: ctx.ln_source.slice(idx0)
     console.log @: rx_disp: self.rx_disp
     console.log @: match
@@ -37,4 +41,4 @@ export class DBGRegExpScanner extends RegExpScanner ::
   scan(ctx, idx0) :: return RXDBG.dbg_scan(this, ctx, idx0)
   scan_continue(ctx, idx0) :: return RXDBG.dbg_scan_continue(this, ctx, idx0)
 
-
+export default RXDBG

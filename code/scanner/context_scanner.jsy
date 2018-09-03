@@ -1,15 +1,17 @@
 
-function ensure_indent(ctx, scanner) ::
-  const len_first_indent = scanner.ln_first && scanner.ln_first.len_indent
-  if undefined === len_first_indent :: return true
+export function ensure_indent(ctx, scanner) ::
+  const ln_first = scanner.ln_first
+  if undefined === ln_first :: return true
+  const len_first_indent = ln_first.len_indent
 
   const d_dedent = ctx.ln.len_indent - len_first_indent
   if d_dedent < 0 ::
-    throw new SyntaxError @ `Invalid indent level in ${scanner.description}: {line: ${ctx.ln.len_indent}, start: ${len_first_indent}}. (${ctx.ln.indent.loc.end})`
+    throw new SyntaxError @
+      `Invalid indent level in ${scanner.description}. (${ctx.ln.indent.loc.end})  --  current indent: ${ctx.ln.len_indent}  start indent: ${len_first_indent} from (${ln_first.loc.start})`
   else return true
 
 
-function ensure_progress(loc0, loc1) ::
+export function ensure_progress(loc0, loc1) ::
   if loc0.pos == loc1.pos ::
     throw new Error @ `Scanner failed to make progress (${loc1})`
 
@@ -409,7 +411,7 @@ export class TaggedRegExpScanner extends RegExpScanner ::
 
     const self = @{} __proto__: this, hostScanner,
       rx_open, rx_close, rx_resume, rx_disp,
-      ln_first: ctx.ln
+      tag, ln_first: ctx.ln
       compileForDispatch(ds) ::
         // skip testing example for second pass of this object
         ds.addRegExpScanner @ this, this.kind, this.rx_disp.source
@@ -446,9 +448,12 @@ export class EmbeddedDynamicScanner extends DynamicScanner ::
   continueScanner(ctx) ::
     ensure_indent(ctx, this)
     const ds_body = this.ds_body.cloneWithScanner @ this._trailer
-    if undefined === ds_body.ln_first ::
-      const disp = ds_body.get_active_dispatch(ctx)
-      ds_body.ln_first = disp && disp.ln_first || this.ln_first
+
+    // inherit ln_first
+    ds_body.ln_first = 
+      ds_body.disp_name === ctx.dispatch.disp_name
+        ? ctx.dispatch.ln_first
+        : this.ln_first || ctx.ln
 
     return ds_body
 

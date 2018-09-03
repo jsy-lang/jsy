@@ -199,7 +199,7 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
         '<outer>'
         '  <first class="nice">aaaa</first>'
         '  <second class=\'some\' {extra}/>'
-        '  <third class={param}>cccc</first>'
+        '  <third class={param}>cccc</third>'
         '</outer>'
 
       test_ast_tokens_content @ offside_ast,
@@ -229,19 +229,20 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'src "param"'
             'jsx_param_end "}"'
             'jsx_tag_part ">"'
-            'jsx_content "cccc</first>"'
+            'jsx_content "cccc"'
+            'jsx_tag_close "</third>"'
             'offside_dedent'
 
-        @[] 'jsx_content "</outer>"'
+        @[] 'jsx_tag_close "</outer>"'
             'offside_dedent'
 
 
-    it.skip @ 'fragment body with mixed attrs', @=> ::
+    it @ 'fragment body with mixed attrs', @=> ::
       const offside_ast = scan_jsy_lines @#
         '<>'
         '  <first class="nice">aaaa</first>'
         '  <second class=\'some\' {extra}/>'
-        '  <third class={param}>cccc</first>'
+        '  <third class={param}>cccc</third>'
         '</>'
 
       test_ast_tokens_content @ offside_ast,
@@ -271,7 +272,8 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'src "param"'
             'jsx_param_end "}"'
             'jsx_tag_part ">"'
-            'jsx_content "cccc</first>"'
+            'jsx_content "cccc"'
+            'jsx_tag_close "</third>"'
             'offside_dedent'
 
         @[] 'jsx_frag_close "</>"'
@@ -386,3 +388,180 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
         '  </outer>'
         ''
 
+    it @ 'mismatched outer closing tags', @=> ::
+      jsy_scan_throws @#
+        'render @'
+        '  <outer>'
+        '    <first>'
+        '      content'
+        '    </first>'
+        '  </wrong>'
+
+    it @ 'mismatched inner closing tags', @=> ::
+      jsy_scan_throws @#
+        'render @'
+        '  <outer>'
+        '    <first>'
+        '      content'
+        '    </wrong>'
+        '  </outer>'
+        ''
+
+    it @ 'mismatched inner closing tags within JSX fragment', @=> ::
+      jsy_scan_throws @#
+        'render @'
+        '  <>'
+        '    <first>'
+        '      content'
+        '    </wrong>'
+        '  </>'
+        ''
+
+    it @ 'mismatched outer closing tags within JSX fragment', @=> ::
+      jsy_scan_throws @#
+        'render @'
+        '  <>'
+        '    <first>'
+        '      content'
+        '    </first>'
+        '  </wrong>'
+        ''
+
+
+  describe @ 'Within Code', @=> ::
+    it @ 'basic self-closing', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        'first @ <br />'
+        'second @ <hr />'
+
+      test_ast_tokens_content @ offside_ast,
+        @[] 'src "first"'
+            'jsy_op " @"'
+            'src " "'
+            'jsx_tag "<br />"'
+            'offside_dedent'
+
+        @[] 'src "second"'
+            'jsy_op " @"'
+            'src " "'
+            'jsx_tag "<hr />"'
+            'offside_dedent'
+
+    it @ 'basic open-close', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        'first @ <h1>title</h1>'
+        'second @ <h2>subtitle</h2>'
+
+      test_ast_tokens_content @ offside_ast,
+        @[] 'src "first"'
+            'jsy_op " @"'
+            'src " "'
+            'jsx_tag "<h1>"',
+            'jsx_content "title"',
+            'jsx_tag_close "</h1>"',
+            'offside_dedent'
+
+        @[] 'src "second"'
+            'jsy_op " @"'
+            'src " "'
+            'jsx_tag "<h2>"',
+            'jsx_content "subtitle"',
+            'jsx_tag_close "</h2>"',
+            'offside_dedent'
+
+    it @ 'nested open-close', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        'first @'
+        '  <h1>'
+        '    title'
+        '    <small>subtitle</small>'
+        '  </h1>'
+        ''
+        'second @ arg'
+        'third @ <p>content</p>'
+
+      test_ast_tokens_content @ offside_ast,
+        @[] 'src "first"'
+            'jsy_op " @"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<h1>"'
+            'offside_dedent'
+
+        @[] 'jsx_content "title"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<small>"'
+            'jsx_content "subtitle"'
+            'jsx_tag_close "</small>"'
+            'offside_dedent'
+
+        @[] 'jsx_tag_close "</h1>"'
+            'offside_dedent'
+
+        @[] 'src "second"'
+            'jsy_op " @"'
+            'src " arg"'
+            'offside_dedent'
+
+        @[] 'src "third"'
+            'jsy_op " @"'
+            'src " "'
+            'jsx_tag "<p>"'
+            'jsx_content "content"'
+            'jsx_tag_close "</p>"'
+            'offside_dedent'
+
+    it @ 'multi open-close', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        'first @'
+        '  <outer>'
+        '    <first class="nice">aaaa</first>'
+        '    <second class=\'some\' {extra} />'
+        '    <third class={param}>cccc</third>'
+        '  </outer>'
+        ''
+        'second @ after'
+
+      test_ast_tokens_content @ offside_ast,
+        @[] 'src "first"'
+            'jsy_op " @"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<outer>"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<first "'
+            'jsx_attr_name "class="'
+            'jsx_attr_str2 "\\"nice\\""'
+            'jsx_tag_part ">"'
+            'jsx_content "aaaa"'
+            'jsx_tag_close "</first>"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<second "'
+            'jsx_attr_name "class="'
+            'jsx_attr_str1 "\'some\' "'
+            'jsx_param "{"'
+            'src "extra"'
+            'jsx_param_end "}"'
+            'jsx_tag_part " />"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<third "'
+            'jsx_attr_name "class="'
+            'jsx_param "{"'
+            'src "param"'
+            'jsx_param_end "}"'
+            'jsx_tag_part ">"'
+            'jsx_content "cccc"'
+            'jsx_tag_close "</third>"'
+            'offside_dedent'
+
+        @[] 'jsx_tag_close "</outer>"'
+            'offside_dedent'
+
+        @[] 'src "second"'
+            'jsy_op " @"'
+            'src " after"'
+            'offside_dedent'

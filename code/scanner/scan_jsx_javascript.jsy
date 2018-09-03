@@ -5,7 +5,6 @@ import { SourceCodeScanner, RegExpScanner } from './context_scanner.jsy'
 import { EmbeddedDynamicScanner, TaggedRegExpScanner } from './context_scanner.jsy'
 
 
-
 export const scanner_jsxContent =
   new SourceCodeScanner @:
       description: 'JSX Content Scanner'
@@ -53,11 +52,18 @@ export const scanner_jsxTagClose =
       op: 'jsx_tag_close'
       kind: '</'
       multiline: true
-      rx_open: /(<\/)\s*tag/
-      rx_close: /(?:\s*)(>)/
+      rx_open: /(<\/)\s*/
+      rx_close: /([a-zA-Z0-9_:.\-]+)\s*>/
 
-      tagScanner(ctx) :: this.restore_scanner = ctx.scanner
-      post_scan(ctx) :: ctx.scanner = this.restore_scanner
+      tagScanner(ctx) ::
+        this.restore_scanner = ctx.scanner
+
+      post_scan(ctx, close) ::
+        if close !== this.tag ::
+          throw new SyntaxError @
+            `Mismatched JSX close tag "</${close}>", expected "</${this.tag}>". (${ctx.loc_tip})`
+
+        ctx.scanner = this.restore_scanner
 
 
 
@@ -91,7 +97,10 @@ export const scanner_jsxTag =
           inner = this.nestingEnd[close.slice(-1)]
 
         if true !== inner && 'host' !== inner ::
+          // we're actually pushign two scanners onto the stack
+          // the first for this context, the second for the attribute
           ctx.scanner = hostScanner = this.continueScanner(ctx)
+
         return this.nestWith @ inner, ctx, hostScanner
 
 function jsxArgNesting(ctx, hostScanner) ::
@@ -139,13 +148,16 @@ export const scanner_jsx_close_fragment =
       description: 'Embedded JSX fragment close expression'
       example: '</>'
       op: 'jsx_frag_close'
-      kind: '</>'
+      kind: '</'
       allow_blank_close: true
 
-      rx_open: /(<\/>)/
-      rx_close: /()/
+      rx_open: /(<\/)\s*/
+      rx_close: /([a-zA-Z0-9_:.\-]*)\s*>/
 
-      post_scan(ctx) ::
+      post_scan(ctx, close) ::
+        if close ::
+          throw new SyntaxError @
+            `Mismatched JSX fragment close tag "</${close}>", expected "</$>". (${ctx.loc_tip})`
         ctx.scanner = this.restore_scanner
 
 export const scanner_jsx_fragment =

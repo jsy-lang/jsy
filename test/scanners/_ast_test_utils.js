@@ -13,11 +13,40 @@ export function jsy_scan_throws(error, jsy_lines) ::
     @=> scan_jsy_lines(jsy_lines)
     error
 
+
+
 export function ast_tokens(offside_ast) ::
   return offside_ast
     .filter @ ln => ! ln.is_blank
     .map @ ln =>
       ln.content.map @ e => e.type
+
+export function dbg_tokens(offside_ast) ::
+  const lead_start = '  @[]', lead_space = '     '
+
+  console.log()
+  for const ln of offside_ast ::
+    if ln.is_blank :: continue
+    let lead = lead_start
+
+    for const e of ln.content :: 
+      console.log @ `${lead} ${JSON.stringify(e.type)}'`
+
+      lead = lead_space
+
+    console.log()
+
+export function test_ast_tokens(offside_ast, ... expected) ::
+  const tokens = ast_tokens(offside_ast)
+  try ::
+    assert.deepEqual @ tokens, expected
+  catch err ::
+    dbg_tokens @ offside_ast
+    throw err
+
+  transpile_jsy(offside_ast)
+
+
 
 export function ast_tokens_content(offside_ast) ::
   return offside_ast
@@ -26,18 +55,27 @@ export function ast_tokens_content(offside_ast) ::
       ln.content.map @ e =>
         `${e.type} ${JSON.stringify(e.content) || ''}`.trim()
 
+export function dbg_tokens_content(offside_ast) ::
+  const lead_start = '  @[]', lead_space = '     '
 
-export function test_ast_tokens(offside_ast, ... expected) ::
-  const tokens = ast_tokens(offside_ast)
-  assert.deepEqual @ tokens, expected
-  transpile_jsy(offside_ast)
+  console.log()
+  for const ln of offside_ast ::
+    if ln.is_blank :: continue
+    let lead = lead_start
+
+    for const e of ln.content :: 
+      console.log @ `${lead} '${e.type} ${JSON.stringify(e.content) || ''}'`
+
+      lead = lead_space
+
+    console.log()
 
 export function test_ast_tokens_content(offside_ast, ... expected) ::
   const tokens = ast_tokens_content(offside_ast)
   try ::
     assert.deepEqual @ tokens, expected
   catch err ::
-    console.dir @ tokens
+    dbg_tokens_content @ offside_ast
     throw err
 
   transpile_jsy(offside_ast)
