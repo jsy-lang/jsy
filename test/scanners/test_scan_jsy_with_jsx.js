@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content } from './_ast_test_utils'
+import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content, jsy_scan_throws } from './_ast_test_utils'
 
 
 describe @ 'JSY Scanner (with JSX expressions)', @=> ::
@@ -236,6 +236,48 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'offside_dedent'
 
 
+    it.skip @ 'fragment body with mixed attrs', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        '<>'
+        '  <first class="nice">aaaa</first>'
+        '  <second class=\'some\' {extra}/>'
+        '  <third class={param}>cccc</first>'
+        '</>'
+
+      test_ast_tokens_content @ offside_ast,
+        @[] 'jsx_frag "<>"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<first "'
+            'jsx_attr_name "class="'
+            'jsx_attr_str2 "\\"nice\\""'
+            'jsx_tag_part ">"'
+            'jsx_content "aaaa"'
+            'jsx_tag_close "</first>"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<second "'
+            'jsx_attr_name "class="'
+            'jsx_attr_str1 "\'some\' "'
+            'jsx_param "{"'
+            'src "extra"'
+            'jsx_param_end "}"'
+            'jsx_tag_part "/>"'
+            'offside_dedent'
+
+        @[] 'jsx_tag "<third "'
+            'jsx_attr_name "class="'
+            'jsx_param "{"'
+            'src "param"'
+            'jsx_param_end "}"'
+            'jsx_tag_part ">"'
+            'jsx_content "cccc</first>"'
+            'offside_dedent'
+
+        @[] 'jsx_frag_close "</>"'
+            'offside_dedent'
+
+
 
   describe @ 'with content param', @=> ::
 
@@ -328,4 +370,19 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
 
         @[] 'jsx_tag_close "</outer>"'
             'offside_dedent'
+
+
+
+  describe @ 'Syntax Errors', @=> ::
+    it @ 'crossing indent levels', @=> ::
+      jsy_scan_throws @#
+        'if cond_a ::'
+        '  if cond_b ::'
+        '    render @'
+        '      <outer>'
+        '       <first>'
+        '        <second>content</second>'
+        '     </first>'
+        '  </outer>'
+        ''
 

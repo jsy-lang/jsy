@@ -4,6 +4,15 @@ import { scan_jsy, transpile_jsy } from 'jsy-transpile/esm/all'
 export function scan_jsy_lines(jsy_lines) ::
   return scan_jsy @ jsy_lines.join('\n')
 
+export function jsy_scan_throws(error, jsy_lines) ::
+  if Array.isArray(error) ::
+    jsy_lines = error
+    error = SyntaxError
+
+  return assert.throws @ 
+    @=> scan_jsy_lines(jsy_lines)
+    error
+
 export function ast_tokens(offside_ast) ::
   return offside_ast
     .filter @ ln => ! ln.is_blank

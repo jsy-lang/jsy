@@ -128,6 +128,7 @@ export const scanner_jsx =
 export const scanner_embedded_jsx =
   scanner_jsx.andDispatchWith @:
     description: 'JSX Dispatch Scanner (0)'
+    disp_name: 'jsx'
 
     scannerList: @[]
       scanner_jsxContent
@@ -169,8 +170,10 @@ export const scanner_jsx_fragment =
           scanner_embedded_jsx.cloneWithScanner @
             jsx_frag_close
 
-        ds_body._dbg_ = true
         ds_body.description = 'Fragment' + ds_body.description
+        const disp = ds_body.get_active_dispatch(ctx)
+        ds_body.ln_first = disp && disp.ln_first || ctx.ln
+
         ctx.scanner = ds_body
 
 

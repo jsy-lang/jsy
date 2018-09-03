@@ -1,6 +1,6 @@
 const { assert } = require('chai')
 import { transpile_jsy } from 'jsy-transpile/esm/all'
-import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content } from './_ast_test_utils'
+import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content, jsy_scan_throws } from './_ast_test_utils'
 
 
 describe @ 'JSY Scanner (template strings)', @=> ::
@@ -91,3 +91,17 @@ describe @ 'JSY Scanner (template strings)', @=> ::
           'str_template " extra`"'
           'offside_dedent'
 
+
+
+  describe @ 'Syntax Errors', @=> ::
+    it @ 'crossing indent levels', @=> ::
+      jsy_scan_throws @#
+        'if cond_a ::'
+        '  if cond_b ::'
+        '    render @ `'
+        '      <outer>'
+        '       <first>'
+        '        <second>content</second>'
+        '     </first>'
+        '  </outer>`'
+        ''

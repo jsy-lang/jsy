@@ -4,7 +4,7 @@ import jsy_transpile_stable from '../stable/esm'
 import rpi_bound_jsy_lite from '../rpi_jsy.mjs'
 
 
-const sourcemap = true
+const sourcemap = 'inline'
 const external = []
 
 const rpi_jsy = rpi_bound_jsy_lite({jsy_transpile: jsy_transpile_stable})
@@ -17,10 +17,10 @@ const test_plugins = plugins.concat([
 ])
 
 export default [
-  false && { input: `./unittest.jsy`, context: 'window', plugins: test_plugins,
-    output: { file: './__unittest.iife.js', format: 'iife', name: `test_jsy_transpile`, sourcemap:'inline' } },
+  { input: `./unittest.jsy`, context: 'window', plugins: test_plugins,
+    output: { file: './__unittest.iife.js', format: 'iife', name: `test_jsy_transpile`, sourcemap } },
 
   { input: `./unittest.jsy`, plugins: test_plugins,
-    output: { file: './__unittest.cjs.js', format: 'cjs', sourcemap:'inline' } },
+    output: { file: './__unittest.cjs.js', format: 'cjs', sourcemap } },
 
 ].filter(Boolean)

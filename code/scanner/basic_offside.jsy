@@ -11,10 +11,13 @@ export function basic_offside_scanner(source, feedback) ::
       warn(msg, ...args) :: console.warn @ `[Offside Warning]:: ${msg}`, ...args
 
   const all_lines = []
-
   const q_raw_lines = source.split(rx_lines)
-  //const dbg_lines = q_raw_lines.filter @ ln => ! rx_lines.test(ln)
-  //dbg_lines.unshift @ ''
+
+  const offside_line_proto = @{}
+    __proto__: null
+    get source() ::
+      const {start, end} = this.loc
+      return start.slice(end)
 
   let loc_tip = createLoc(source)
 
@@ -67,6 +70,7 @@ export function basic_offside_scanner(source, feedback) ::
         content: match[2]
 
       node = @{}
+        __proto__: offside_line_proto
         type: 'offside_line', loc
         indent: indent_node
         content: conent_node
