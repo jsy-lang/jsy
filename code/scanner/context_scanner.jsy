@@ -294,6 +294,10 @@ export class RegExpScanner extends BaseSourceScanner ::
 
   scan(ctx, idx0) ::
     const match = this.rx_disp.exec @ ctx.ln_source.slice(idx0)
+    if null === match ::
+      throw new SyntaxError @
+        `Invalid scan ${this.description}. (${ctx.loc_tip})`
+
     const [content, open, close] = match
 
     const t_content = this.nestTrim(content, close, false)
@@ -304,6 +308,10 @@ export class RegExpScanner extends BaseSourceScanner ::
     ensure_indent(ctx, this)
 
     const match = this.rx_resume.exec @ ctx.ln_source.slice(idx0)
+    if null === match ::
+      throw new SyntaxError @
+        `Invalid scan continue ${this.description}. (${ctx.loc_tip})`
+
     const [content, close] = match
 
     const t_content = this.nestTrim(content, close, true)

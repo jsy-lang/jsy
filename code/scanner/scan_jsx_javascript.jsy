@@ -75,7 +75,7 @@ export const scanner_jsxTag =
       op_continue: 'jsx_tag_part'
 
       rx_open: /(<)tag\s*/
-      rx_close: /\s*(\/?>|[{'"]|[a-zA-Z0-9_:.\-]+=)/
+      rx_close: /\s*($|\/?>|[{'"]|[a-zA-Z0-9_:.\-]+=)/
 
       nesting: @{}
         '>': 'host' // use hostScanner
