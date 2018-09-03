@@ -180,10 +180,13 @@ function basic_offside_scanner(source, feedback) {
       warn(msg, ...args) {console.warn(`[Offside Warning]:: ${msg}`, ...args);} }; }
 
   const all_lines = [];
-
   const q_raw_lines = source.split(rx_lines);
-  //const dbg_lines = q_raw_lines.filter @ ln => ! rx_lines.test(ln)
-  //dbg_lines.unshift @ ''
+
+  const offside_line_proto ={
+    __proto__: null
+  , get source() {
+      const {start, end} = this.loc;
+      return start.slice(end)} };
 
   let loc_tip = createLoc(source);
 
@@ -236,7 +239,8 @@ function basic_offside_scanner(source, feedback) {
       , content: match[2]};
 
       node ={
-        type: 'offside_line', loc
+        __proto__: offside_line_proto
+      , type: 'offside_line', loc
       , indent: indent_node
       , content: conent_node
       , len_indent: match[1].length}; }
@@ -270,12 +274,24 @@ function add_indent_info(all_lines) {
 
     len_dedent = len_indent;} }
 
+function ensure_indent(ctx, scanner) {
+  const ln_first = scanner.ln_first;
+  if (undefined === ln_first) {return true}
+  const len_first_indent = ln_first.len_indent;
+
+  const d_dedent = ctx.ln.len_indent - len_first_indent;
+  if (d_dedent < 0) {
+    throw new SyntaxError(
+      `Invalid indent level in ${scanner.description}. (${ctx.ln.indent.loc.end})  --  current indent: ${ctx.ln.len_indent}  start indent: ${len_first_indent} from (${ln_first.loc.start})`) }
+  else return true}
+
+
 function ensure_progress(loc0, loc1) {
   if (loc0.pos == loc1.pos) {
-    throw new Error(`Scanner failed to make progress`) }
+    throw new Error(`Scanner failed to make progress (${loc1})`) }
 
   if (loc0.pos > loc1.pos) {
-    throw new Error(`Scanner went backward`) } }
+    throw new Error(`Scanner went backward (${loc1} from ${loc0})`) } }
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -338,7 +354,13 @@ class DispatchScanner {
     return self}
 
 
-  newline(ctx) {}
+  get_active_dispatch(ctx) {
+    return ctx[`dispatch_${this.disp_name}`]}
+  set_active_dispatch(ctx) {
+    ctx.dispatch = ctx[`dispatch_${this.disp_name}`] = this;}
+
+
+  newline(ctx, is_blank) {}
 
   scan(ctx, idx0) {
     const loc0 = ctx.loc_tip;
@@ -347,7 +369,12 @@ class DispatchScanner {
     return res}
 
   _scan(ctx, idx0) {
-    ctx.dispatch = ctx[`dispatch_${this.disp_name}`] = this;
+    this.set_active_dispatch(ctx);
+
+    if (undefined === this.ln_first) {
+      this.ln_first = ctx.ln;}
+
+    ensure_indent(ctx, this);
 
     const rx = this.rx;
     rx.lastIndex = idx0; // regexp powered source.slice()
@@ -372,7 +399,7 @@ class DispatchScanner {
     return op_scanner.scan(ctx, idx1)}
 
   scan_fragment(ctx, content) {
-    throw new Error(`Dispatch scanner does not support fragments`) } }
+    throw new Error(`${this.description} does not support fragments`) } }
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -380,10 +407,7 @@ class DispatchScanner {
 class DispatchFirstlineScanner extends DispatchScanner {
   scan(ctx, idx0) {
     ctx.scanner = this.ds_body;
-    return super.scan(ctx, idx0)}
-
-  scan_fragment(ctx, content) {
-    throw new Error(`First line dispatch scanner does not support fragments`) } }
+    return super.scan(ctx, idx0)} }
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -421,7 +445,7 @@ class BaseSourceScanner {
 
   _ast_extend(ctx, ast) {}
 
-  newline(ctx) {}
+  newline(ctx, is_blank) {}
   scan_fragment(ctx, content) {
     throw new Error(`Scanner (${this.description}) does not support fragments`) }
   scan(ctx, idx0) {
@@ -485,7 +509,7 @@ class NestedCodeScanner extends SourceCodeScanner {
       const tip = stack.pop();
       if (tip !== p) {
         const loc = ctx.loc_tip.move(content);
-        throw new SyntaxError(`Mismatched nesting in ${this.description} (${loc.toString()})`) }
+        throw new SyntaxError(`Mismatched nesting in ${this.description} (${loc})`) }
 
       if (0 !== stack.length) {
         content += tok;
@@ -533,9 +557,9 @@ class RegExpScanner extends BaseSourceScanner {
 
 
 
-  newline(ctx) {
+  newline(ctx, is_blank) {
     if  (! this.multiline && ! this.allow_blank_close) {
-      throw new SyntaxError(`Newline in ${this.description} (${ctx.ln.loc.end.toString()})`) } }
+      throw new SyntaxError(`Newline in ${this.description} (${ctx.ln.loc.end})`) } }
 
   _ast_extend(ctx, ast) {
     const ln = this.ln_first || ctx.ln;
@@ -552,6 +576,8 @@ class RegExpScanner extends BaseSourceScanner {
     return this.post_scan(ctx, close)}
 
   scan_continue(ctx, idx0) {
+    ensure_indent(ctx, this);
+
     const match = this.rx_resume.exec(ctx.ln_source.slice(idx0));
     const [content, close] = match;
 
@@ -618,7 +644,7 @@ class RegExpScanner extends BaseSourceScanner {
     const self ={
       __proto__: this
     , description: `${this.description} (${desc})`
-    , ln_first: ctx.ln
+    , ln_first: ctx.ln_first || ctx.ln
 
     , _pop_scanner(ctx) {
         if (this.op_pop) {
@@ -639,7 +665,7 @@ class RegExpScanner extends BaseSourceScanner {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class MultiLineScanner extends RegExpScanner {
-  newline(ctx) {}
+  newline(ctx, is_blank) {}
   get multiline() {return true} }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -660,7 +686,8 @@ class TaggedRegExpScanner extends RegExpScanner {
 
     const self ={__proto__: this, hostScanner,
       rx_open, rx_close, rx_resume, rx_disp,
-      compileForDispatch(ds) {
+      tag, ln_first: ctx.ln
+    , compileForDispatch(ds) {
         // skip testing example for second pass of this object
         ds.addRegExpScanner(this, this.kind, this.rx_disp.source); } };
 
@@ -680,7 +707,10 @@ class DynamicScanner extends MultiLineScanner {
     return self._leader.scan(ctx, idx0)}
 
   withLeaderTag(ctx, tag) {
-    const self ={__proto__: this, __root__: this.__root__ || this};
+    const self ={
+      __proto__: this
+    , __root__: this.__root__ || this
+    , ln_first: ctx.ln};
 
     self._trailer = this.trailer && this.trailer.withTag(ctx, tag, self);
     self._leader = this.leader.withTag(ctx, tag, self);
@@ -691,7 +721,16 @@ class DynamicScanner extends MultiLineScanner {
 
 class EmbeddedDynamicScanner extends DynamicScanner {
   continueScanner(ctx) {
-    return this.ds_body.cloneWithScanner(this._trailer) }
+    ensure_indent(ctx, this);
+    const ds_body = this.ds_body.cloneWithScanner(this._trailer);
+
+    // inherit ln_first
+    ds_body.ln_first = 
+      ds_body.disp_name === ctx.dispatch.disp_name
+        ? ctx.dispatch.ln_first
+        : this.ln_first || ctx.ln;
+
+    return ds_body}
 
   andDispatchWith(options) {
     options.scannerList = options.scannerList.concat([this]);
@@ -724,7 +763,7 @@ function compile_context_scanner(context_scanners) {
     for (const ln of offside_lines) {
       if (ln.is_blank) {
         delete ln.content;
-        ctx.scanner.newline(ctx);
+        ctx.scanner.newline(ctx, true);
         continue}
 
 
@@ -737,8 +776,9 @@ function compile_context_scanner(context_scanners) {
         throw new Error(`No parts generated by context scanner`) }
 
       ln.content = ctx.parts;
-      ctx.scanner.newline(ctx);}
+      ctx.scanner.newline(ctx, false);}
 
+    ctx.scanner.newline(ctx, true);
     return offside_lines}
 
 
@@ -920,11 +960,18 @@ const scanner_jsxTagClose =
     , op: 'jsx_tag_close'
     , kind: '</'
     , multiline: true
-    , rx_open: /(<\/)\s*tag/
-    , rx_close: /(?:\s*)(>)/
+    , rx_open: /(<\/)\s*/
+    , rx_close: /([a-zA-Z0-9_:.\-]+)\s*>/
 
-    , tagScanner(ctx) {this.restore_scanner = ctx.scanner;}
-    , post_scan(ctx) {ctx.scanner = this.restore_scanner;} });
+    , tagScanner(ctx) {
+        this.restore_scanner = ctx.scanner;}
+
+    , post_scan(ctx, close) {
+        if (close !== this.tag) {
+          throw new SyntaxError(
+            `Mismatched JSX close tag "</${close}>", expected "</${this.tag}>". (${ctx.loc_tip})`) }
+
+        ctx.scanner = this.restore_scanner;} });
 
 
 
@@ -958,7 +1005,10 @@ const scanner_jsxTag =
           inner = this.nestingEnd[close.slice(-1)];}
 
         if (true !== inner && 'host' !== inner) {
+          // we're actually pushign two scanners onto the stack
+          // the first for this context, the second for the attribute
           ctx.scanner = hostScanner = this.continueScanner(ctx);}
+
         return this.nestWith(inner, ctx, hostScanner) } });
 
 function jsxArgNesting(ctx, hostScanner) {
@@ -995,6 +1045,7 @@ const scanner_jsx =
 const scanner_embedded_jsx =
   scanner_jsx.andDispatchWith({
     description: 'JSX Dispatch Scanner (0)'
+  , disp_name: 'jsx'
 
   , scannerList:[
       scanner_jsxContent
@@ -1005,13 +1056,16 @@ const scanner_jsx_close_fragment =
       description: 'Embedded JSX fragment close expression'
     , example: '</>'
     , op: 'jsx_frag_close'
-    , kind: '</>'
+    , kind: '</'
     , allow_blank_close: true
 
-    , rx_open: /(<\/>)/
-    , rx_close: /()/
+    , rx_open: /(<\/)\s*/
+    , rx_close: /([a-zA-Z0-9_:.\-]*)\s*>/
 
-    , post_scan(ctx) {
+    , post_scan(ctx, close) {
+        if (close) {
+          throw new SyntaxError(
+            `Mismatched JSX fragment close tag "</${close}>", expected "</$>". (${ctx.loc_tip})`) }
         ctx.scanner = this.restore_scanner;} });
 
 const scanner_jsx_fragment =
@@ -1036,8 +1090,10 @@ const scanner_jsx_fragment =
           scanner_embedded_jsx.cloneWithScanner(
             jsx_frag_close);
 
-        ds_body._dbg_ = true;
         ds_body.description = 'Fragment' + ds_body.description;
+        const disp = ds_body.get_active_dispatch(ctx);
+        ds_body.ln_first = disp && disp.ln_first || ctx.ln;
+
         ctx.scanner = ds_body;} });
 
 
