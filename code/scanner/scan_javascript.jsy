@@ -21,7 +21,7 @@ export const scanner_strTemplate =
       op: 'str_template'
       kind:'`'
       rx_open: /(`)/
-      rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/           // `) comment hack to reset syntax highligher…
+      rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/
       nesting: @{}
         '${': templateArgNesting
 
