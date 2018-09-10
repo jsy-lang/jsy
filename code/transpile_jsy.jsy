@@ -294,5 +294,6 @@ export function sourcemap_comment(srcmap_json) ::
     ? Buffer.from(srcmap_json).toString('base64')
     : window.btoa @ unescape @ encodeURIComponent @ srcmap_json
 
-  return `//# sourceMappingURL=data:application/json;charset=utf-8;base64,${b64}`
+  // break up the source mapping url trigger string to prevent false positives on the following line
+  return `//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}`
 
