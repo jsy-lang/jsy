@@ -128,10 +128,13 @@ const SourceLocation ={
 , toString() {return `«${this.line}:${this.column}»`}
 , get column() {return this.pos - this.line_pos}
 
-, create(source) {
+, create(source, file) {
     const root ={
       line:0, pos:0, line_pos:0
     , __proto__: SourceLocation};
+
+    if (null != file) {
+      root.file = file;}
 
     Object.defineProperties(root,{
       __root__:{value: root}
@@ -166,13 +169,19 @@ const SourceLocation ={
 , slice(other) {
     if (this.source !== other.source) {
       throw new Error(`Locations from different sources`) }
-    return this.source.slice(this.pos, other.pos) } };
+    return this.source.slice(this.pos, other.pos) }
+
+, syntaxError(message) {
+    const err = new SyntaxError(message);
+    err.src_loc = this;
+    return err} };
 
 var createLoc = SourceLocation.create;
 
 const rx_lines = /(\r\n|\r|\n)/ ;
 const rx_indent = /^([ \t]*)(.*)$/ ;
-const rx_mixed_indent = /[\t][ ]|[ ][\t]/ ;
+const rx_indent_choice_map ={
+  ' ': /^[ ]*$/, '\t': /^[\t]*$/,};
 function basic_offside_scanner(source, feedback) {
   if (null == feedback) {
     feedback ={
@@ -187,7 +196,8 @@ function basic_offside_scanner(source, feedback) {
       const {start, end} = this.loc;
       return start.slice(end)} };
 
-  let loc_tip = createLoc(source);
+  let loc_tip = createLoc(source, feedback.file);
+  let rx_indent_choice = null;
 
   while (0 !== q_raw_lines.length) {
     const loc ={start: loc_tip = loc_tip.nextLine()};
@@ -203,9 +213,12 @@ function basic_offside_scanner(source, feedback) {
     const loc_indent = loc.start.move(match[1]);
     const is_blank = 0 === match[2].length;
 
-    const is_mixed = rx_mixed_indent.test(match[1]);
-    if (is_mixed) {
-      throw new SyntaxError(`Mixed tab and space indent (${loc_indent})`, ) }
+    if (null === rx_indent_choice) {
+      if (match[1]) {
+        rx_indent_choice = rx_indent_choice_map[ match[1][0] ];} }
+
+    else if  (! rx_indent_choice.test(match[1])) {
+      throw loc.start.syntaxError(`Mixed tab and space indent (${loc_indent})`, ) }
 
     const raw ={
       line: src_line
@@ -280,7 +293,7 @@ function ensure_indent(ctx, scanner) {
 
   const d_dedent = ctx.ln.len_indent - len_first_indent;
   if (d_dedent < 0) {
-    throw new SyntaxError(
+    throw ctx.ln.indent.loc.end.syntaxError(
       `Invalid indent level in ${scanner.description}. (${ctx.ln.indent.loc.end})  --  current indent: ${ctx.ln.len_indent}  start indent: ${len_first_indent} from (${ln_first.loc.start})`) }
   else return true}
 
@@ -508,7 +521,8 @@ class NestedCodeScanner extends SourceCodeScanner {
       const tip = stack.pop();
       if (tip !== p) {
         const loc = ctx.loc_tip.move(content);
-        throw new SyntaxError(`Mismatched nesting in ${this.description} (${loc})`) }
+        throw loc.syntaxError(
+          `Mismatched nesting in ${this.description} (${loc})`) }
 
       if (0 !== stack.length) {
         content += tok;
@@ -558,7 +572,8 @@ class RegExpScanner extends BaseSourceScanner {
 
   newline(ctx, is_blank) {
     if  (! this.multiline && ! this.allow_blank_close) {
-      throw new SyntaxError(`Newline in ${this.description} (${ctx.ln.loc.end})`) } }
+      throw ctx.ln.loc.end.syntaxError(
+        `Newline in ${this.description} (${ctx.ln.loc.end})`) } }
 
   _ast_extend(ctx, ast) {
     const ln = this.ln_first || ctx.ln;
@@ -569,7 +584,7 @@ class RegExpScanner extends BaseSourceScanner {
   scan(ctx, idx0) {
     const match = this.rx_disp.exec(ctx.ln_source.slice(idx0));
     if (null === match) {
-      throw new SyntaxError(
+      throw ctx.loc_tip.syntaxError(
         `Invalid scan ${this.description}. (${ctx.loc_tip})`) }
 
     const [content, open, close] = match;
@@ -583,7 +598,7 @@ class RegExpScanner extends BaseSourceScanner {
 
     const match = this.rx_resume.exec(ctx.ln_source.slice(idx0));
     if (null === match) {
-      throw new SyntaxError(
+      throw ctx.loc_tip.syntaxError(
         `Invalid scan continue ${this.description}. (${ctx.loc_tip})`) }
 
     const [content, close] = match;
@@ -900,7 +915,7 @@ const scanner_strTemplate =
     , op: 'str_template'
     , kind:'`'
     , rx_open: /(`)/
-    , rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/           // `) comment hack to reset syntax highligher…
+    , rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/
     , nesting:{
         '${': templateArgNesting} });
 
@@ -975,7 +990,7 @@ const scanner_jsxTagClose =
 
     , post_scan(ctx, close) {
         if (close !== this.tag) {
-          throw new SyntaxError(
+          throw ctx.loc_tip.syntaxError(
             `Mismatched JSX close tag "</${close}>", expected "</${this.tag}>". (${ctx.loc_tip})`) }
 
         ctx.scanner = this.restore_scanner;} });
@@ -1071,8 +1086,9 @@ const scanner_jsx_close_fragment =
 
     , post_scan(ctx, close) {
         if (close) {
-          throw new SyntaxError(
+          throw ctx.loc_tip.syntaxError(
             `Mismatched JSX fragment close tag "</${close}>", expected "</$>". (${ctx.loc_tip})`) }
+
         ctx.scanner = this.restore_scanner;} });
 
 const scanner_jsx_fragment =

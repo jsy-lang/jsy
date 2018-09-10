@@ -6,10 +6,13 @@ const SourceLocation = @{}
   toString() :: return `«${this.line}:${this.column}»`
   get column() :: return this.pos - this.line_pos
 
-  create(source) ::
+  create(source, file) ::
     const root = @{}
       line:0, pos:0, line_pos:0
       __proto__: SourceLocation
+
+    if null != file ::
+      root.file = file
 
     Object.defineProperties @ root, @{}
       __root__: @{} value: root
@@ -45,5 +48,10 @@ const SourceLocation = @{}
     if this.source !== other.source ::
       throw new Error @ `Locations from different sources`
     return this.source.slice @ this.pos, other.pos
+
+  syntaxError(message) ::
+    const err = new SyntaxError(message)
+    err.src_loc = this
+    return err
 
 export default SourceLocation.create

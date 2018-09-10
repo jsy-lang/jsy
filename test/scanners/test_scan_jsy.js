@@ -1,6 +1,6 @@
 const { assert } = require('chai')
 import { transpile_jsy, scan_jsy } from 'jsy-transpile/esm/all'
-import { scan_jsy_lines } from './_ast_test_utils'
+import { scan_jsy_lines, jsy_scan_throws } from './_ast_test_utils'
 const { SourceMapGenerator } = require('source-map')
 
 
@@ -89,3 +89,33 @@ describe @ 'JSY Scanner (misc)', @=> ::
       '  console.log('
       '    "hello JSY world!") }'
 
+
+  it @ 'syntax error on mixed tabs and spaces (same line)', @=> ::
+    jsy_scan_throws @#
+      'first @'
+      '  second @'
+      '\t  third @'
+
+  it @ 'syntax error on mixed tabs and spaces (cross lines)', @=> ::
+    jsy_scan_throws @#
+      'first @'
+      '  second @'
+      '\t\t\t\tthird @'
+
+  it @ 'syntax error on unterminated single-quote string', @=> ::
+    jsy_scan_throws @#
+      'line1'
+      'const sz = \'unterminated string example'
+      'line3'
+
+  it @ 'syntax error on unterminated double-quote string', @=> ::
+    jsy_scan_throws @#
+      'line1'
+      'const sz = "unterminated string example'
+      'line3'
+
+  it @ 'syntax error on unterminated regexp', @=> ::
+    jsy_scan_throws @#
+      'line1'
+      'const rx = /unterminated regex example'
+      'line3'

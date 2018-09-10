@@ -6,7 +6,7 @@ export function ensure_indent(ctx, scanner) ::
 
   const d_dedent = ctx.ln.len_indent - len_first_indent
   if d_dedent < 0 ::
-    throw new SyntaxError @
+    throw ctx.ln.indent.loc.end.syntaxError @
       `Invalid indent level in ${scanner.description}. (${ctx.ln.indent.loc.end})  --  current indent: ${ctx.ln.len_indent}  start indent: ${len_first_indent} from (${ln_first.loc.start})`
   else return true
 
@@ -234,7 +234,8 @@ export class NestedCodeScanner extends SourceCodeScanner ::
       const tip = stack.pop()
       if tip !== p ::
         const loc = ctx.loc_tip.move(content)
-        throw new SyntaxError @ `Mismatched nesting in ${this.description} (${loc})`
+        throw loc.syntaxError @
+          `Mismatched nesting in ${this.description} (${loc})`
 
       if 0 !== stack.length ::
         content += tok
@@ -284,7 +285,8 @@ export class RegExpScanner extends BaseSourceScanner ::
 
   newline(ctx, is_blank) ::
     if ! this.multiline && ! this.allow_blank_close ::
-      throw new SyntaxError @ `Newline in ${this.description} (${ctx.ln.loc.end})`
+      throw ctx.ln.loc.end.syntaxError @
+        `Newline in ${this.description} (${ctx.ln.loc.end})`
 
   _ast_extend(ctx, ast) ::
     const ln = this.ln_first || ctx.ln
@@ -295,7 +297,7 @@ export class RegExpScanner extends BaseSourceScanner ::
   scan(ctx, idx0) ::
     const match = this.rx_disp.exec @ ctx.ln_source.slice(idx0)
     if null === match ::
-      throw new SyntaxError @
+      throw ctx.loc_tip.syntaxError @
         `Invalid scan ${this.description}. (${ctx.loc_tip})`
 
     const [content, open, close] = match
@@ -309,7 +311,7 @@ export class RegExpScanner extends BaseSourceScanner ::
 
     const match = this.rx_resume.exec @ ctx.ln_source.slice(idx0)
     if null === match ::
-      throw new SyntaxError @
+      throw ctx.loc_tip.syntaxError @
         `Invalid scan continue ${this.description}. (${ctx.loc_tip})`
 
     const [content, close] = match

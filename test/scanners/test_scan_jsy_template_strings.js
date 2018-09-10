@@ -105,3 +105,10 @@ describe @ 'JSY Scanner (template strings)', @=> ::
         '     </first>'
         '  </outer>`'
         ''
+
+    it @ 'mismatched closing in template param', @=> ::
+      jsy_scan_throws @#
+        'test @ `'
+        '  hello ${'
+        '    one({two:"three")}'
+        '  } there `'

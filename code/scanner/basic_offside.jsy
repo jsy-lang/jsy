@@ -1,6 +1,8 @@
 export const rx_lines = /(\r\n|\r|\n)/ ;
 export const rx_indent = /^([ \t]*)(.*)$/ ;
 export const rx_mixed_indent = /[\t][ ]|[ ][\t]/ ;
+export const rx_indent_choice_map = @{}
+  ' ': /^[ ]*$/, '\t': /^[\t]*$/,
 
 import createLoc from './_location.jsy'
 
@@ -19,7 +21,8 @@ export function basic_offside_scanner(source, feedback) ::
       const {start, end} = this.loc
       return start.slice(end)
 
-  let loc_tip = createLoc(source)
+  let loc_tip = createLoc(source, feedback.file)
+  let rx_indent_choice = null
 
   while 0 !== q_raw_lines.length ::
     const loc = @{} start: loc_tip = loc_tip.nextLine()
@@ -35,9 +38,12 @@ export function basic_offside_scanner(source, feedback) ::
     const loc_indent = loc.start.move(match[1])
     const is_blank = 0 === match[2].length
 
-    const is_mixed = rx_mixed_indent.test(match[1])
-    if is_mixed ::
-      throw new SyntaxError @ `Mixed tab and space indent (${loc_indent})`, 
+    if null === rx_indent_choice ::
+      if match[1] ::
+        rx_indent_choice = rx_indent_choice_map[ match[1][0] ]
+
+    else if ! rx_indent_choice.test(match[1]) ::
+      throw loc.start.syntaxError @ `Mixed tab and space indent (${loc_indent})`, 
 
     const raw = @{}
       line: src_line

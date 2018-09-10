@@ -60,7 +60,7 @@ export const scanner_jsxTagClose =
 
       post_scan(ctx, close) ::
         if close !== this.tag ::
-          throw new SyntaxError @
+          throw ctx.loc_tip.syntaxError @
             `Mismatched JSX close tag "</${close}>", expected "</${this.tag}>". (${ctx.loc_tip})`
 
         ctx.scanner = this.restore_scanner
@@ -156,8 +156,9 @@ export const scanner_jsx_close_fragment =
 
       post_scan(ctx, close) ::
         if close ::
-          throw new SyntaxError @
+          throw ctx.loc_tip.syntaxError @
             `Mismatched JSX fragment close tag "</${close}>", expected "</$>". (${ctx.loc_tip})`
+
         ctx.scanner = this.restore_scanner
 
 export const scanner_jsx_fragment =
