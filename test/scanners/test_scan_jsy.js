@@ -94,13 +94,7 @@ describe @ 'JSY Scanner (misc)', @=> ::
     jsy_scan_throws @#
       'first @'
       '  second @'
-      '\t  third @'
-
-  it @ 'syntax error on mixed tabs and spaces (cross lines)', @=> ::
-    jsy_scan_throws @#
-      'first @'
-      '  second @'
-      '\t\t\t\tthird @'
+      ' \t third @'
 
   it @ 'syntax error on unterminated single-quote string', @=> ::
     jsy_scan_throws @#
