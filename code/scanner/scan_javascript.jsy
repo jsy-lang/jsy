@@ -38,7 +38,7 @@ function templateArgNesting(ctx, hostScanner) ::
 
 
 export const js_context_scanners = Object.freeze @ clike_context_scanners.concat @#
-  scanner_regexp
+  //scanner_regexp // -- RegExp syntax is hard to distinguish from division within a scanner/lexer
   scanner_strTemplate
 
 export default scan_javascript

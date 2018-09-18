@@ -108,8 +108,15 @@ describe @ 'JSY Scanner (misc)', @=> ::
       'const sz = "unterminated string example'
       'line3'
 
-  it @ 'syntax error on unterminated regexp', @=> ::
+  it @ 'allow division operator', @=> ::
+    scan_jsy_lines @#
+      'line1'
+      'const expr = first/second'
+      'line3'
+
+  it.skip @ 'syntax error on unterminated regexp', @=> ::
     jsy_scan_throws @#
       'line1'
       'const rx = /unterminated regex example'
       'line3'
+
