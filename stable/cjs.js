@@ -182,8 +182,7 @@ var createLoc = SourceLocation.create;
 
 const rx_lines = /(\r\n|\r|\n)/ ;
 const rx_indent = /^([ \t]*)(.*)$/ ;
-const rx_indent_choice_map ={
-  ' ': /^[ ]*$/, '\t': /^[\t]*$/,};
+const rx_indent_order = /^[\t]*[ ]*$/ ;
 function basic_offside_scanner(source, feedback) {
   if (null == feedback) {
     feedback ={
@@ -199,7 +198,6 @@ function basic_offside_scanner(source, feedback) {
       return start.slice(end)} };
 
   let loc_tip = createLoc(source, feedback.file);
-  let rx_indent_choice = null;
 
   while (0 !== q_raw_lines.length) {
     const loc ={start: loc_tip = loc_tip.nextLine()};
@@ -215,11 +213,7 @@ function basic_offside_scanner(source, feedback) {
     const loc_indent = loc.start.move(match[1]);
     const is_blank = 0 === match[2].length;
 
-    if (null === rx_indent_choice) {
-      if (match[1]) {
-        rx_indent_choice = rx_indent_choice_map[ match[1][0] ];} }
-
-    else if  (! rx_indent_choice.test(match[1])) {
+    if  (! rx_indent_order.test(match[1])) {
       throw loc.start.syntaxError(`Mixed tab and space indent (${loc_indent})`, ) }
 
     const raw ={
@@ -318,7 +312,7 @@ class DispatchScanner {
 
   startCompile() {
     Object.defineProperties(this,{
-      regexp:{value: (this.regexp || []).slice()} } );
+      rx_list:{value: (this.rx_list || []).slice()} } );
     this.by_kind = Object.assign({}, this.by_kind);
     this.by_op = Object.assign({}, this.by_op);
     return this}
@@ -341,17 +335,14 @@ class DispatchScanner {
   addRegExpScanner(scanner, kind, re_disp) {
     if (kind) {
       this.by_kind[kind] = scanner.op;
-      this.regexp.push(`(?:${re_disp})`); }
+      this.rx_list.push(new RegExp(re_disp, 'g')); }
     return this}
 
   finishCompile(ds_body) {
-    const rx = new RegExp(this.regexp.join('|'), 'g');
-
     if (undefined === ds_body) {
       ds_body = this.ds_body;}
     return Object.defineProperties(this,{
-      rx:{value: rx}
-    , ds_body:{value: ds_body, writable: true} } ) }
+      ds_body:{value: ds_body, writable: true} } ) }
 
 
   cloneWithScanner(...scanners) {
@@ -390,16 +381,20 @@ class DispatchScanner {
 
     ensure_indent(ctx, this);
 
-    const rx = this.rx;
-    rx.lastIndex = idx0; // regexp powered source.slice()
-
     const source = ctx.ln_source; // slice is done by setting lastIndex
-    const match = rx.exec(source);
+    let match=null, idx1 = Infinity;
+
+    for (const rx of this.rx_list) {
+      rx.lastIndex = idx0; // regexp powered source.slice()
+
+      const m = rx.exec(source);
+      if (null !== m && m.index < idx1) {
+        idx1 = m.index;
+        match = m;} }
 
     if (null === match) {
       return this.ds_body.scan(ctx, idx0)}
 
-    const idx1 = match.index;
     if (idx0 !== idx1) {
       return this.ds_body.scan_fragment(
         ctx, source.slice(idx0, idx1)) }
@@ -904,9 +899,9 @@ const scanner_regexp =
       description: 'RegExp literal'
     , example: '/regexp/'
     , op: 'regexp'
-    , kind:'/'
-    , rx_open: /(\/)(?=[^\/])/
-    , rx_close: /(?:\\.|[^\/])*(\/|$)/});
+    , kind: '/'
+    , rx_open: /(\/)(?![\/\*])(?:\\.|[^\\\/])+(?=\/)/
+    , rx_close: /(\/[a-z]*)/});
 
 
 
@@ -915,9 +910,9 @@ const scanner_strTemplate =
       description: 'Template string literal'
     , example: '`template string`'
     , op: 'str_template'
-    , kind:'`'
+    , kind: '`'
     , rx_open: /(`)/
-    , rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/
+    , rx_close: /(?:\\.|\$(?!{)|[^\$`\\])*(`|\${|$)/
     , nesting:{
         '${': templateArgNesting} });
 
@@ -1529,7 +1524,8 @@ function sourcemap_comment(srcmap_json) {
     ? Buffer.from(srcmap_json).toString('base64')
     : window.btoa(unescape(encodeURIComponent(srcmap_json) ));
 
-  return `//# sourceMappingURL=data:application/json;charset=utf-8;base64,${b64}`}
+  // break up the source mapping url trigger string to prevent false positives on the following line
+  return `//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}`}
 
 module.exports = transpile_jsy;
 //# sourceMappingURL=cjs.js.map
