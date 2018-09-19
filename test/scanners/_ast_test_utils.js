@@ -52,8 +52,12 @@ export function ast_tokens_content(offside_ast) ::
   return offside_ast
     .filter @ ln => ! ln.is_blank
     .map @ ln =>
-      ln.content.map @ e =>
-        `${e.type} ${JSON.stringify(e.content) || ''}`.trim()
+      ln.content.map @ e => ::
+        const sub = 'regexp' === e.type
+          ? e.content
+          : JSON.stringify(e.content) || ''
+
+        return `${e.type} ${sub}`.trim()
 
 export function dbg_tokens_content(offside_ast) ::
   const lead_start = '  @[]', lead_space = '     '
@@ -64,8 +68,12 @@ export function dbg_tokens_content(offside_ast) ::
     let lead = lead_start
 
     for const e of ln.content :: 
-      const sub = JSON.stringify(e.content)
+      let sub = 'regexp' === e.type
+        ? e.content.replace(/\\/g, '\\\\')
+        : JSON.stringify(e.content)
+
       if undefined !== sub ::
+        sub = sub.replace(/'/g, "\\'")
         console.log @ `${lead} '${e.type} ${sub}'`
       else ::
         console.log @ `${lead} '${e.type}'`

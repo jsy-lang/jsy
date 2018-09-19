@@ -8,9 +8,9 @@ export const scanner_regexp =
       description: 'RegExp literal'
       example: '/regexp/'
       op: 'regexp'
-      kind:'/'
-      rx_open: /(\/)(?=[^\/])/
-      rx_close: /(?:\\.|[^\/])*(\/|$)/
+      kind: '/'
+      rx_open: /(\/)(?![\/\*])(?:\\.|[^\\\/])+(?=\/)/
+      rx_close: /(\/[a-z]*)/
 
 
 
@@ -19,9 +19,9 @@ export const scanner_strTemplate =
       description: 'Template string literal'
       example: '`template string`'
       op: 'str_template'
-      kind:'`'
+      kind: '`'
       rx_open: /(`)/
-      rx_close: /(?:\\.|\$(?!{)|[^\$`])*(`|\${|$)/
+      rx_close: /(?:\\.|\$(?!{)|[^\$`\\])*(`|\${|$)/
       nesting: @{}
         '${': templateArgNesting
 
@@ -38,7 +38,7 @@ function templateArgNesting(ctx, hostScanner) ::
 
 
 export const js_context_scanners = Object.freeze @ clike_context_scanners.concat @#
-  //scanner_regexp // -- RegExp syntax is hard to distinguish from division within a scanner/lexer
+  scanner_regexp
   scanner_strTemplate
 
 export default scan_javascript
