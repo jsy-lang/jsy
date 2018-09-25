@@ -6,9 +6,11 @@ let SourceMapGenerator
 try { SourceMapGenerator = require('source-map').SourceMapGenerator } catch (err) {}
 
 async function main(filename) {
-  const jsy_src = filename
+  const jsy_src = filename && '-' !== filename
     ? await fs.promises.readFile(filename, 'utf-8')
     : await read_stdin()
+
+  if (! jsy_src) throw new Error('jsy-transpile expected a filename argument or stdin input')
 
   const sourcemap = filename && SourceMapGenerator && new SourceMapGenerator()
   //sourcemap.setSourceContent(filename, jsy_src)
