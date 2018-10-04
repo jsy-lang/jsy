@@ -38,6 +38,112 @@ const keywords_locator_parts = [].concat(
 , keywords_with_args
 , ['catch'] );
 
+const rx_all_space = /^[ \t]*$/ ;
+
+function noop() {return}
+const xform_proto ={
+  __proto__: null
+
+, update(arg) {
+    if  ('function' === typeof arg) {
+      this.process = arg;}
+    else if  ('boolean' === typeof arg) {
+      if (arg) {return this.dedent()}
+      this.process = noop;}
+    else if  ('object' === typeof arg) {
+      Object.assign(this, arg);
+      const process = this.process;
+      if  ('function' !== typeof process  && 'object' !== typeof process) {
+        return this.update(process)} }
+    else {
+      throw new TypeError(`Unsupported update type: ${typeof arg}`) }
+
+    return this}
+
+, dedent() {
+    const len_trim = this.ln.len_indent - this.ln.len_inner;
+    return this.update(src_parts => {
+      const indent = src_parts[0];
+      if (rx_all_space.test(indent)) {
+        src_parts[0] = indent.slice(0, len_trim);}
+      return src_parts} ) } };
+
+
+function createTransform(ln, xform_cur) {
+  const xform_obj = Object.create(xform_proto,{
+    next:{value: xform_cur}
+  , depth:{value: ln.len_inner}
+  , ln:{value: ln} } );
+
+  xform_obj.process = noop;
+  return xform_obj}
+
+
+function applyPreprocessor(feedback) {
+  const {preprocess, preprocessor, defines} = feedback || {};
+  if (preprocess) {return preprocess}
+  if (preprocessor) {return feedback.preprocessor()}
+  if (defines) {return basicPreprocessor(defines)} }
+
+
+function basicPreprocessor(answerFor) {
+  if  ('object' === typeof answerFor) {
+    answerFor = bindAnswerFor(answerFor);}
+  else if  ('function' !== typeof answerFor) {
+    throw new TypeError(`Expected a function or object for basicPreprocessor`) }
+
+
+  const directives ={
+    IF(p, arg, state) {
+      if  (! arg) {throw syntaxError(p)}
+      return state.handled = !! answerFor(arg)}
+
+  , ELIF(p, arg, state) {
+      if  (! arg || 'boolean' !== typeof state.handled) {
+        throw syntaxError(p)}
+      if (state.handled) {return false}
+      return state.handled = !! answerFor(arg)}
+
+  , ELSE(p, arg, state) {
+      if (arg || 'boolean' !== typeof state.handled) {
+        throw syntaxError(p)}
+      if (state.handled) {return false}
+      state.handled = null;
+      return true} };
+
+  const rx = /^#\s*([A-Z]+\b)(.*)$/;
+
+  const stack = [];
+  let allow = true, state = {};
+  return (p, add_xform) => {
+    const m = rx.exec(p.content);
+    const dispatch = m && directives[m[1]];
+    if  (! dispatch) {throw syntaxError(p)}
+
+    if  (! allow) {
+      state = null;
+      return false}
+
+    const ans = dispatch(p, m[2].trim(), state);
+    allow = !! ans;
+
+    stack.push(state); state = {};
+
+    add_xform({done, process: allow}); }
+
+  function done(ln) {
+    state = stack.pop();
+    allow = true;}
+
+  function syntaxError(p) {
+    return p.loc.start.syntaxError(`Preprocessor Invalid: "${p.content}"`) } }
+
+function bindAnswerFor(defines) {
+  return function answerFor(key) {
+    const ans = defines[key];
+    return 'function' === typeof ans
+      ? ans(key) : ans} }
+
 // From babel-plugin-offside-js
 //     const tt_offside_disrupt_implicit_comma = new Set @#
 //       tt.comma, tt.dot, tt.arrow, tt.colon, tt.semi, tt.question
@@ -613,9 +719,17 @@ class RegExpScanner extends BaseSourceScanner {
 
   post_scan(ctx, close) {
     if  (! close) {
+      if (this.invert_close) {
+        // e.g. no '\' continuations at end of line
+        return true}
+
       if  (! this.allow_blank_close) {
         ctx.scanner = this.continueScanner(ctx);}
       return}
+
+    else if (this.invert_close) {
+      // e.g. '\' continuations at end of line
+      ctx.scanner = this.continueScanner(ctx);}
 
     return this.nestMatch(close,
       ctx, this.hostScanner || this) }
@@ -883,6 +997,15 @@ const scanner_strDouble =
     , op: 'str2', kind:'"'
     , rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,});
 
+const scanner_preprocessor =
+  new RegExpScanner({
+      description: 'Preprocessor directive'
+    , example: '# IF platform === "web"'
+    , op: 'preprocessor', kind:'#'
+    , rx_open: /^\s*(#)/, rx_close: /.*?([\\]?)\s*$/,
+      invert_close: true // preprocessor uses '\' continuations
+    , allow_blank_close: true});
+
 
 const clike_context_scanners = Object.freeze([
   scanner_source
@@ -890,7 +1013,8 @@ const clike_context_scanners = Object.freeze([
 , scanner_commentEOL
 , scanner_commentMultiLine
 , scanner_strSingle
-, scanner_strDouble]);
+, scanner_strDouble
+, scanner_preprocessor]);
 
 const scanner_regexp =
   new RegExpScanner({
@@ -1252,6 +1376,10 @@ function transpile_jsy(jsy_ast, feedback) {
     Object.defineProperties(visitor,{
       addSourceMapping:{value: feedback.addSourceMapping} } ); }
 
+  const preprocess = applyPreprocessor(feedback);
+  if  ('function' === typeof preprocess) {
+    visitor.preprocess = preprocess;}
+
   const lines = [];
   visitor.start();
 
@@ -1274,7 +1402,8 @@ function transpile_jsy(jsy_ast, feedback) {
       visitor[key](part, ln, prev);
       prev = part;}
 
-    lines.push(visitor.finish_line(ln).join('')); }
+    const fin = visitor.finish_line(ln);
+    lines.push(Array.isArray(fin) ? fin.join('') : fin || ''); }
 
   visitor.finish();
 
@@ -1296,6 +1425,7 @@ const transpile_visitor ={
     this.head = root_head;}
 
 , finish() {
+    this._xform_start_line(null);
     if (root_head !== this.head) {
       throw new Error('Excess stack at finish') } }
 
@@ -1305,7 +1435,9 @@ const transpile_visitor ={
 , start_line(ln) {
     this.lineno ++;
     this.cur_ln = ln;
-    this._cur = [];}
+    this._cur = [];
+
+    this._xform_start_line(ln);}
 
 , finish_line(ln) {
     let line_src = this._cur;
@@ -1316,7 +1448,7 @@ const transpile_visitor ={
     if (undefined !== comma_body) {
       comma_body.push('\n'); }
 
-    return line_src}
+    return this._xform_finish_line(line_src, ln)}
 
 , emit_raw(src) {
     if (src) {this._cur.push(src);} }
@@ -1486,6 +1618,52 @@ const transpile_visitor ={
       content = content.replace(rx_leading_space, '');}
 
     this.emit(content, p.loc.start); }
+
+
+, v$preprocessor(p, ln) {
+    const preprocess = this.preprocess;
+    const xform_cur = this.xform_tip;
+    const add_xform = arg =>
+      this.push_xform(ln, xform_cur).update(arg);
+
+    const ans = preprocess(p, add_xform);
+
+    if (p === ans) {
+      return this.emit(p.content, p.loc.start) }
+    else if  ('string' === typeof ans) {
+      return this.emit(ans, p.loc.start) }
+    else if  ('boolean' === typeof ans || 'function' === typeof ans) {
+      this.push_xform(ln, xform_cur).update(ans);}
+
+    return this.emit_raw('')}
+
+, preprocess(p) {return p}
+, push_xform(ln, xform_cur) {
+    return this.xform_next = createTransform(ln, xform_cur)}
+
+, _xform_start_line(ln) {
+    while (true) {
+      const xform = this.xform_tip;
+      if (undefined === xform) {return}
+      if (null !== ln && xform.depth <= ln.len_indent) {
+        return}
+
+      this.xform_tip = xform.next;
+      if (xform.done) {xform.done(ln);} } }
+
+, _xform_finish_line(line_src, ln) {
+    const xform_tip = this.xform_tip;
+
+    // switch to xform_next after finishing the current line
+    const xform_next = this.xform_next;
+    if (undefined !== xform_next) {
+      this.xform_next = undefined;
+      this.xform_tip = xform_next;}
+
+    if (undefined === xform_tip) {return line_src}
+
+    return xform_tip.process(line_src, ln)}
+
 
 , v$str: direct_src
 , v$str1: direct_src
