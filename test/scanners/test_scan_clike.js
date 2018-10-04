@@ -1,5 +1,6 @@
 const { assert } = require('chai')
-import {scan_clike} from 'jsy-transpile/esm/scanner'
+import { scan_clike } from 'jsy-transpile/esm/scanner'
+import { test_ast_tokens, test_ast_tokens_content } from './_ast_test_utils'
 
 describe @ 'Scanners', @=> ::
   describe @ 'C-Like Line Scanner', @=> ::
@@ -25,7 +26,7 @@ describe @ 'Scanners', @=> ::
         `
 
     it @ 'Works with block comments', @=> ::
-      scan_clike @ `
+      const src = `
         /**
          * Author:    Somebody
          * Created:   2018.08.09
@@ -33,6 +34,41 @@ describe @ 'Scanners', @=> ::
          * This is a commonly found block comment style
          **/
         `
+
+      test_ast_tokens @ scan_clike(src),
+        @[] 'comment_multi'
+        @[] 'comment_multi'
+        @[] 'comment_multi'
+        @[] 'comment_multi'
+        @[] 'comment_multi'
+        @[] 'comment_multi'
+
+    it @ 'Preprocessor simple block', @=> ::
+      const src = `
+          # IF awesome(a,b,c)
+              one
+              two
+              three
+        `
+
+      test_ast_tokens_content @ scan_clike(src), 
+        @[] 'preprocessor "# IF awesome(a,b,c)"'
+        @[] 'src "one"'
+        @[] 'src "two"'
+        @[] 'src "three"'
+
+    it @ 'Preprocessor continuation block', @=> ::
+      const src = `
+          # DEFINE awesome \\
+            body_of_awesome
+
+              odd but acceptable indented block
+        `
+
+      test_ast_tokens_content @ scan_clike(src), 
+        @[] 'preprocessor "# DEFINE awesome \\\\"'
+        @[] 'preprocessor "body_of_awesome"'
+        @[] 'src "odd but acceptable indented block"'
 
     it @ 'Works with Rust-Lang source', @=> ::
       // source from https://doc.rust-lang.org/rust-by-example/flow_control/while.html on 2018-08-09

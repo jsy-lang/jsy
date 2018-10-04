@@ -332,9 +332,17 @@ export class RegExpScanner extends BaseSourceScanner ::
 
   post_scan(ctx, close) ::
     if ! close ::
+      if this.invert_close ::
+        // e.g. no '\' continuations at end of line
+        return true
+
       if ! this.allow_blank_close ::
         ctx.scanner = this.continueScanner(ctx)
       return
+
+    else if this.invert_close ::
+      // e.g. '\' continuations at end of line
+      ctx.scanner = this.continueScanner(ctx)
 
     return this.nestMatch @ close,
       ctx, this.hostScanner || this

@@ -4,6 +4,7 @@ import './scanners/test_basic_offside.js'
 import './scanners/test_offside_ast.js'
 import './scanners/test_scan_clike.js'
 import './scanners/test_scan_jsy.js'
+import './scanners/test_scan_jsy_preprocessor.js'
 import './scanners/test_scan_jsy_template_strings.js'
 import './scanners/test_scan_jsy_with_jsx.js'
 

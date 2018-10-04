@@ -52,6 +52,15 @@ export const scanner_strDouble =
       op: 'str2', kind:'"'
       rx_open: /(")/, rx_close: /(?:\\.|[^"])*("|$)/,
 
+export const scanner_preprocessor =
+  new RegExpScanner @:
+      description: 'Preprocessor directive'
+      example: '# IF platform === "web"'
+      op: 'preprocessor', kind:'#'
+      rx_open: /^\s*(#)/, rx_close: /.*?([\\]?)\s*$/,
+      invert_close: true // preprocessor uses '\' continuations
+      allow_blank_close: true
+
 
 export const clike_context_scanners = Object.freeze @#
   scanner_source
@@ -60,6 +69,7 @@ export const clike_context_scanners = Object.freeze @#
   scanner_commentMultiLine
   scanner_strSingle
   scanner_strDouble
+  scanner_preprocessor
 
 
 export default scan_clike
