@@ -1,17 +1,26 @@
 
 import { genMochaSyntaxTestCases, standardTransforms } from './_xform_syntax_variations'
 describe @ 'Function Call Statements',
-  genMochaSyntaxTestCases @ iterSyntaxVariations, standardTransforms
+  genMochaSyntaxTestCases @ iterCalls, standardTransforms
 
+describe @ 'Arrow Call Statements',
+  genMochaSyntaxTestCases @ iterArrowCalls, standardTransforms
 
+describe @ 'Arrow Async Call Statements',
+  genMochaSyntaxTestCases @ iterArrowAsyncCalls, standardTransforms
 
+describe @ 'Arrow Generator Call Statements',
+  genMochaSyntaxTestCases @ iterArrowGeneratorCalls, standardTransforms
 
-function * iterSyntaxVariations() ::
-  yield * iterCalls()
-  yield * iterArrayCalls()
-  yield * iterHashCalls()
-  yield * iterArrowCalls()
-  yield * iterArrowAsyncCalls()
+describe @ 'Arrow Async Generator Call Statements',
+  genMochaSyntaxTestCases @ iterArrowAsyncGeneratorCalls, standardTransforms
+
+describe @ 'Function Array Call Statements',
+  genMochaSyntaxTestCases @ iterArrayCalls, standardTransforms
+
+describe @ 'Function Hash Call Statements',
+  genMochaSyntaxTestCases @ iterHashCalls, standardTransforms
+
 
 function * iterCalls() ::
   yield @{} expectValid: true
@@ -256,4 +265,50 @@ function * iterArrowAsyncCalls() ::
       '    value'
       '  , second'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '(', '[', 'name', ',', 'name', ']', ')', ')'
+
+
+function * iterArrowGeneratorCalls() ::
+  yield @{}
+    title: `immediately invoked generator expression (@=>*)`
+    source: `@=>* yield expression_body`
+    tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+
+  yield @{}
+    title: `immediately invoked generator expression - two lines (@=>*)`
+    source: @[]
+      '@=>*'
+      '  yield stmt_a'
+      '  yield stmt_b'
+    tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+
+  yield @{}
+    title: `immediately invoked generator expression (@=>*)`
+    source: @[]
+      `@=>* ::`
+      '  yield stmt_a'
+      '  yield stmt_b'
+    tokens: @[] '(', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')'
+
+
+function * iterArrowAsyncGeneratorCalls() ::
+  yield @{}
+    title: `async immediately invoked generator expression (@=>>*)`
+    source: `@=>>* yield await expression_body`
+    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+
+  yield @{}
+    title: `async immediately invoked generator expression - two lines (@=>>*)`
+    source: @[]
+      '@=>>*'
+      '  yield await stmt_a'
+      '  yield await stmt_b'
+    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+
+  yield @{}
+    title: `async immediately invoked generator expression (@=>>*)`
+    source: @[]
+      `@=>>* ::`
+      '  yield await stmt_a'
+      '  yield await stmt_b'
+    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')'
 
