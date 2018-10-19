@@ -1,32 +1,32 @@
 export const at_outer_offside = @[]
-  @{} jsy_op: '::@', pre: '(', post: ')', nestInner: false, implicitCommas: false
-  @{} jsy_op: '::()', pre: '(', post: ')', nestInner: false, implicitCommas: false
-  @{} jsy_op: '::{}', pre: '{', post: '}', nestInner: false, implicitCommas: false
-  @{} jsy_op: '::[]', pre: '[', post: ']', nestInner: false, implicitCommas: false
-  @{} jsy_op: '::', pre: ' {', post: '}', nestInner: false, implicitCommas: false, is_kw_close: true
+  @{} jsy_op: '::@', pre: '(', post: ')', nestBreak: true
+  @{} jsy_op: '::()', pre: '(', post: ')', nestBreak: true
+  @{} jsy_op: '::{}', pre: '{', post: '}', nestBreak: true
+  @{} jsy_op: '::[]', pre: '[', post: ']', nestBreak: true
+  @{} jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true
 
 export const at_inner_offside = @[]
-  @{} jsy_op: '@:', pre: '({', post: '})', nestInner: true, implicitCommas: true
-  @{} jsy_op: '@#', pre: '([', post: '])', nestInner: true, implicitCommas: true
-  @{} jsy_op: '@()', pre: '(', post: ')', nestInner: true, implicitCommas: true
-  @{} jsy_op: '@{}', pre: '{', post: '}', nestInner: true, implicitCommas: true
-  @{} jsy_op: '@[]', pre: '[', post: ']', nestInner: true, implicitCommas: true
-  @{} jsy_op: '@', pre: '(', post: ')', nestInner: true, implicitCommas: true
+  @{} jsy_op: '@:', pre: '({', post: '})', implicitCommas: true
+  @{} jsy_op: '@#', pre: '([', post: '])', implicitCommas: true
+  @{} jsy_op: '@()', pre: '(', post: ')', implicitCommas: true
+  @{} jsy_op: '@{}', pre: '{', post: '}', implicitCommas: true
+  @{} jsy_op: '@[]', pre: '[', post: ']', implicitCommas: true
+  @{} jsy_op: '@', pre: '(', post: ')', implicitCommas: true
 
 export const at_lambda_offside = @[]
-  @{} jsy_op: '@=>', pre: '(()=>', post: ')', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@=>>', pre: '(async ()=>', post: ')', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@=>', pre: '(()=>', post: ')'
+  @{} jsy_op: '@=>>', pre: '(async ()=>', post: ')'
 
-  @{} jsy_op: '@!=>', pre: '(()=>', post: ')()', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@!=>>', pre: '(async ()=>', post: ')()', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@!=>>*', pre: '(async function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@!=>*', pre: '(function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!=>', pre: '(()=>', post: ')()'
+  @{} jsy_op: '@!=>>', pre: '(async ()=>', post: ')()'
+  @{} jsy_op: '@!=>>*', pre: '(async function * () {', post: '}).call(this)'
+  @{} jsy_op: '@!=>*', pre: '(function * () {', post: '}).call(this)'
 
-  @{} jsy_op: '@!', pre: '(()=>{', post: '})()', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@!>', pre: '(async ()=>{', post: '})()', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@!>*', pre: '(async function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@!*>', pre: '(async function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@!*', pre: '(function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!', pre: '(()=>{', post: '})()'
+  @{} jsy_op: '@!>', pre: '(async ()=>{', post: '})()'
+  @{} jsy_op: '@!>*', pre: '(async function * () {', post: '}).call(this)'
+  @{} jsy_op: '@!*>', pre: '(async function * () {', post: '}).call(this)'
+  @{} jsy_op: '@!*', pre: '(function * () {', post: '}).call(this)'
 
 export const at_offside = [].concat @
   at_outer_offside
