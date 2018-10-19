@@ -8,16 +8,30 @@ export const at_outer_offside = @[]
 export const at_inner_offside = @[]
   @{} jsy_op: '@:', pre: '({', post: '})', nestInner: true, implicitCommas: true
   @{} jsy_op: '@#', pre: '([', post: '])', nestInner: true, implicitCommas: true
-  @{} jsy_op: '@=>>', pre: '(async ()=>', post: ')', nestInner: true, implicitCommas: false
-  @{} jsy_op: '@=>', pre: '(()=>', post: ')', nestInner: true, implicitCommas: false
   @{} jsy_op: '@()', pre: '(', post: ')', nestInner: true, implicitCommas: true
   @{} jsy_op: '@{}', pre: '{', post: '}', nestInner: true, implicitCommas: true
   @{} jsy_op: '@[]', pre: '[', post: ']', nestInner: true, implicitCommas: true
   @{} jsy_op: '@', pre: '(', post: ')', nestInner: true, implicitCommas: true
 
+export const at_lambda_offside = @[]
+  @{} jsy_op: '@=>', pre: '(()=>', post: ')', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@=>>', pre: '(async ()=>', post: ')', nestInner: true, implicitCommas: false
+
+  @{} jsy_op: '@!=>', pre: '(()=>', post: ')()', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!=>>', pre: '(async ()=>', post: ')()', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!=>>*', pre: '(async function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!=>*', pre: '(function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
+
+  @{} jsy_op: '@!', pre: '(()=>{', post: '})()', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!>', pre: '(async ()=>{', post: '})()', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!>*', pre: '(async function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!*>', pre: '(async function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
+  @{} jsy_op: '@!*', pre: '(function * () {', post: '}).call(this)', nestInner: true, implicitCommas: false
+
 export const at_offside = [].concat @
   at_outer_offside
   at_inner_offside
+  at_lambda_offside
 
 export const at_offside_map = at_offside.reduce @
   (m, ea) => ::

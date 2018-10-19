@@ -12,6 +12,7 @@ import './unittest/testScanners.js'
 import './unittest/testSyntaxBugs.js'
 
 import './unittest/testFunctionCall.js'
+import './unittest/testIIFE.js'
 
 import './unittest/testIfStatementVariations.js'
 import './unittest/testWhileStatements.js'
