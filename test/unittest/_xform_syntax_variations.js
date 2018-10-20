@@ -35,10 +35,14 @@ export function testSourceTransform(testCase) ::
 export function testTokens(testCase, code) ::
   const ignore_tokens = new Set @# ';', 'eof'
 
-  const tokens =
-    Array.from @
-      acorn.tokenizer(code, {ecmaVersion: 9})
-      token => token.type.label
+  let tokens
+  try ::
+    tokens = acorn.tokenizer(code, {ecmaVersion: 9})
+  catch err ::
+    throw new SyntaxError @ err.message
+
+  tokens = Array
+    .from @ tokens, token => token.type.label
     .filter @ token => token && ! ignore_tokens.has(token)
 
   if ('tokens' === testCase.debug) ::

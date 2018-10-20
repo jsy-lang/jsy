@@ -14,33 +14,19 @@ export const at_inner_offside = @[]
   @{} jsy_op: '@[]', pre: '[', post: ']', implicitCommas: true
   @{} jsy_op: '@', pre: '(', post: ')', implicitCommas: true
 
-export const at_lambda_offside = @[]
-  @{} jsy_op: '@=>', pre: '(()=>', post: ')'
-  @{} jsy_op: '@=>>', pre: '(async ()=>', post: ')'
+import at_lambda_offside from './jsy_lambda_operators.jsy'
 
-  /* alpha ideas */
-  @{} jsy_op: '@=>>*', pre: '(async function * () {', post: '}).bind(this)'
-  @{} jsy_op: '@=>*', pre: '(function * () {', post: '}).bind(this)'
+export const at_experimental = @[]
+  /* experimental ideas; may be removed at any time */
+  @{} jsy_op: '@|>', pre: '([', post: '].reduce((v,f)=>f(v)))', implicitCommas: true
+  @{} jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true
 
-  @{} jsy_op: '@!=>', pre: '(()=>', post: ')()'
-  @{} jsy_op: '@!=>>', pre: '(async ()=>', post: ')()'
-  @{} jsy_op: '@!=>>*', pre: '(async function * () {', post: '}).call(this)'
-  @{} jsy_op: '@!=>*', pre: '(function * () {', post: '}).call(this)'
-
-  @{} jsy_op: '@!', pre: '(()=>{', post: '})()'
-  @{} jsy_op: '@!>', pre: '(async ()=>{', post: '})()'
-  @{} jsy_op: '@!>*', pre: '(async function * () {', post: '}).call(this)'
-  @{} jsy_op: '@!*>', pre: '(async function * () {', post: '}).call(this)'
-  @{} jsy_op: '@!*', pre: '(function * () {', post: '}).call(this)'
-
-
-import at_lambda_experimental from './jsy_lambda_operators.jsy'
 
 export const at_offside = [].concat @
   at_outer_offside
   at_inner_offside
   at_lambda_offside
-  at_lambda_experimental
+  at_experimental
 
 export const at_offside_map = at_offside.reduce @
   (m, ea) => ::

@@ -174,7 +174,12 @@ const transpile_visitor = @{}
 
   stack_pop(c) ::
     const head = this.head
-    this.head = head.tail[0]
+    const next = head.tail[0]
+    this.head = next
+
+    if head.op.implicitCommas && next.comma_body ::
+      // internal op was an expression; simplify for comma_body
+      next.comma_body.push(' expr ')
 
     const src = head.op.post
     if src ::
