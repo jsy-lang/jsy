@@ -2,6 +2,8 @@
 const fs = require('fs')
 const { jsy_transpile } = require('jsy-transpile')
 
+try { require('source-map-support').install() } catch (err) {}
+
 let SourceMapGenerator
 try { SourceMapGenerator = require('source-map').SourceMapGenerator } catch (err) {}
 
@@ -35,17 +37,17 @@ function read_stdin(stdin) {
   if (null == stdin)
     stdin = process.stdin
   return new Promise(resolve => {
-		if (stdin.isTTY)
-			return resolve(null)
+    if (stdin.isTTY)
+      return resolve(null)
 
-		stdin.setEncoding('utf8')
+    stdin.setEncoding('utf8')
 
     let ret = ''
-		stdin.on('end', () => resolve(ret))
-		stdin.on('readable', () => {
+    stdin.on('end', () => resolve(ret))
+    stdin.on('readable', () => {
       let chunk
-			while (chunk = stdin.read())
-				ret += chunk
-		}) }) }
+      while (chunk = stdin.read())
+        ret += chunk
+    }) }) }
 
 main(process.argv.slice(2).pop())

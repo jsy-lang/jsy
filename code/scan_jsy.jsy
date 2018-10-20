@@ -96,11 +96,21 @@ function transform_jsy_part(res, part, ln) ::
 
       const op = op_match[0].trim()
       const end = loc_tip = loc_tip.move(op_match[0])
-      res.push @:
+
+      const op_part = @{}
         type: 'jsy_op', op
         loc: @{} start, end
         len_indent: ln.len_indent
         content: op_match[0]
+
+      const op_args = op_match.slice(1).filter(Boolean)
+      if op_args.length ::
+        op_part.type = 'jsy_op_args'
+        op_part.op_args = op_args
+        op_part.op = op_args.reduce @
+          (op, p) => op.replace(p, ''), op
+
+      res.push @ op_part
 
     else ::
       const rest = part.content.slice(idx0)

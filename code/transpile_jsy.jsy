@@ -196,6 +196,14 @@ const transpile_visitor = @{}
 
     this.stack_push @ jsy_op, p
 
+  v$jsy_op_args(p) ::
+    const jsy_op_args = at_offside_map[p.op]
+    const item = jsy_op_args.opResolve(p)
+    if 'string' !== typeof item.pre || 'string' !== typeof item.post ::
+      throw new Error @ 'Invalid jsy_op_args.opResolve result'
+    this.stack_push @ item, p
+
+
   _dedent_nested_block(p) ::
     if ! this.head.in_nested_block :: return
 
