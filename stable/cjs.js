@@ -1,29 +1,110 @@
 'use strict';
 
+const at_lambda_offside =[
+  {jsy_op0: '@=>', jsy_op: /@=>([*>]*)/,
+      pre: '(()=>', post: ')',
+      opResolve(p) {
+        const [_, suffix] = p.content.match(this.jsy_op);
+        return tableOpResolve(lambda_arrow_tbl, '', '', suffix) } }
+
+, {jsy_op0: '@!=>', jsy_op: /@!=>([*>]*)/,
+      pre: '(()=>', post: ')()',
+      opResolve(p) {
+        const [_, suffix] = p.content.match(this.jsy_op);
+        const ans = tableOpResolve(iife_arrow_tbl, '', '', suffix);
+        return tableOpResolve(iife_arrow_tbl, '', '', suffix) } }
+
+, {jsy_op0: '@!', jsy_op: /@!([*>]*)/,
+      pre: '(()=>{', post: '})()',
+      opResolve(p) {
+        const [_, suffix] = p.content.match(this.jsy_op);
+        return tableOpResolve(iife_block_tbl, '', '', suffix) } }
+
+, {jsy_op0: '@\\=>', jsy_op: /@\\([*>]*)(.*?)=>([*>]*)/,
+      pre: '(()=>', post: ')', implicitCommas: true,
+      opResolve(p) {
+        const [_, prefix, args, suffix] = p.content.match(this.jsy_op);
+        return tableOpResolve(lambda_arrow_tbl, args, prefix, suffix) } }
+
+, {jsy_op0: '@\\::', jsy_op: /@\\([*>]*)(.*?)::/,
+      pre: '(()=>{', post: '})',
+      opResolve(p) {
+        const [_, prefix, args] = p.content.match(this.jsy_op);
+        return tableOpResolve(lambda_block_tbl, args, prefix, '') } } ];
+
+
+
+const lambda_block_tbl ={
+  '': a =>({pre: `((${a}) => {`, post: '})'})
+, '>': a =>({pre: `(async (${a}) => {`, post: '})'})
+, '>*': a =>({pre: `(async function * (${a}) {`, post: '}).bind(this)'})
+, '*>': a =>({pre: `(async function * (${a}) {`, post: '}).bind(this)'})
+, '*': a =>({pre: `(function * (${a}) {`, post: '}).bind(this)'}) };
+
+const lambda_arrow_tbl ={
+  __proto__: lambda_block_tbl
+, '': a =>({pre: `((${a}) =>`, post: ')', implicitCommas: true})
+, '>': a =>({pre: `(async (${a}) =>`, post: ')', implicitCommas: true}) };
+
+
+const iife_block_tbl ={
+  '': a =>({pre: `((${a}) => {`, post: '})()'})
+, '>': a =>({pre: `(async (${a}) => {`, post: '})()'})
+, '>*': a =>({pre: `(async function * (${a}) {`, post: '}).call(this)'})
+, '*>': a =>({pre: `(async function * (${a}) {`, post: '}).call(this)'})
+, '*': a =>({pre: `(function * (${a}) {`, post: '}).call(this)'}) };
+
+const iife_arrow_tbl ={
+  __proto__: lambda_block_tbl
+, '': a =>({pre: `((${a}) =>`, post: ')()', implicitCommas: true})
+, '>': a =>({pre: `(async (${a}) =>`, post: ')()', implicitCommas: true}) };
+
+
+function tableOpResolve(table, args, prefix, suffix) {
+  if (prefix && suffix) {
+    throw new SyntaxError(`JSY lambda expression overspecified ("${prefix}" and "${suffix}")`) }
+
+  const entry = table[ prefix || suffix || '' ];
+  if (undefined === entry) {
+    throw new SyntaxError(`JSY lambda expression unrecognized specifier ("${prefix || suffix}")`) }
+
+  return entry(args)}
+
+// Order matters here -- list more specific matchers higher (first) in the order
 const at_outer_offside =[
-  {jsy_op: '::@', pre: '(', post: ')', nestInner: false, implicitCommas: false}
-, {jsy_op: '::()', pre: '(', post: ')', nestInner: false, implicitCommas: false}
-, {jsy_op: '::{}', pre: '{', post: '}', nestInner: false, implicitCommas: false}
-, {jsy_op: '::[]', pre: '[', post: ']', nestInner: false, implicitCommas: false}
-, {jsy_op: '::', pre: ' {', post: '}', nestInner: false, implicitCommas: false, is_kw_close: true} ];
+  {jsy_op: '::@', pre: '(', post: ')', nestBreak: true}
+, {jsy_op: '::()', pre: '(', post: ')', nestBreak: true}
+, {jsy_op: '::{}', pre: '{', post: '}', nestBreak: true}
+, {jsy_op: '::[]', pre: '[', post: ']', nestBreak: true}
+, {jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true} ];
 
 const at_inner_offside =[
-  {jsy_op: '@:', pre: '({', post: '})', nestInner: true, implicitCommas: true}
-, {jsy_op: '@#', pre: '([', post: '])', nestInner: true, implicitCommas: true}
-, {jsy_op: '@=>>', pre: '(async ()=>', post: ')', nestInner: true, implicitCommas: false}
-, {jsy_op: '@=>', pre: '(()=>', post: ')', nestInner: true, implicitCommas: false}
-, {jsy_op: '@()', pre: '(', post: ')', nestInner: true, implicitCommas: true}
-, {jsy_op: '@{}', pre: '{', post: '}', nestInner: true, implicitCommas: true}
-, {jsy_op: '@[]', pre: '[', post: ']', nestInner: true, implicitCommas: true}
-, {jsy_op: '@', pre: '(', post: ')', nestInner: true, implicitCommas: true} ];
+  {jsy_op: '@:', pre: '({', post: '})', implicitCommas: true}
+, {jsy_op: '@#', pre: '([', post: '])', implicitCommas: true}
+, {jsy_op: '@()', pre: '(', post: ')', implicitCommas: true}
+, {jsy_op: '@{}', pre: '{', post: '}', implicitCommas: true}
+, {jsy_op: '@[]', pre: '[', post: ']', implicitCommas: true}
+, {jsy_op: '@', pre: '(', post: ')', implicitCommas: true} ];
+
+const at_experimental =[
+  /* experimental ideas; may be removed at any time */
+  {jsy_op: '@|>', pre: '([', post: '].reduce((v,f)=>f(v)))', implicitCommas: true}
+, {jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true} ];
+
 
 const at_offside = [].concat(
   at_outer_offside
-, at_inner_offside);
+, at_inner_offside
+, at_lambda_offside
+, at_experimental);
 
 const at_offside_map = at_offside.reduce(
   (m, ea) => {
-    m[ea.jsy_op] = ea;
+    if (ea.jsy_op0) {
+      m[ea.jsy_op0] = ea;}
+
+    if  ('string' === typeof ea.jsy_op) {
+      m[ea.jsy_op] = ea;}
     return m}
 , {});
 
@@ -189,20 +270,27 @@ const rx_keyword_ops = new RegExp(
   , 'g' );// global regexp for lastIndex support
 
 
-const rx_escape_offside_ops = /[@:.\/\\\(\)\{\}\[\]\=\>]/g ;
+const rx_escape_offside_ops = /[|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
 const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
 const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
 
 const regexp_from_offside_op = offside_op => {
-  let sz = offside_op.jsy_op;
-  // escape Offside operator chars to RegExp
-  sz = sz.replace(rx_escape_offside_ops, '\\$&');
-  // surrounded by newlines or spacees
-  sz = re_space_prefix + sz + re_space_suffix;
-  return `(?:${sz})` };// using a non-matching group
+  let op = offside_op.jsy_op;
+  if  ('string' === typeof op) {
+    // escape Offside operator chars to RegExp
+    op = op.replace(rx_escape_offside_ops, '\\$&');
+    // surrounded by newlines or spacees
+    op = re_space_prefix + op + re_space_suffix;
+    return `(?:${op})` }// using a non-matching group
+
+  else if (op instanceof RegExp) {
+    return op.source} };
 
 const rx_offside_ops = new RegExp(
-  at_offside.map(regexp_from_offside_op).join('|')
+  at_offside
+    .map(regexp_from_offside_op)
+    .filter(Boolean)
+    .join('|')
 , 'g' );// global regexp
 
 function inject_dedent(offside_lines, trailing_types) {
@@ -1342,11 +1430,21 @@ function transform_jsy_part(res, part, ln) {
 
       const op = op_match[0].trim();
       const end = loc_tip = loc_tip.move(op_match[0]);
-      res.push({
+
+      const op_part ={
         type: 'jsy_op', op
       , loc:{start, end}
       , len_indent: ln.len_indent
-      , content: op_match[0]}); }
+      , content: op_match[0]};
+
+      const op_args = op_match.slice(1).filter(Boolean);
+      if (op_args.length) {
+        op_part.type = 'jsy_op_args';
+        op_part.op_args = op_args;
+        op_part.op = op_args.reduce(
+          (op, p) => op.replace(p, ''), op); }
+
+      res.push(op_part); }
 
     else {
       const rest = part.content.slice(idx0);
@@ -1506,7 +1604,7 @@ const transpile_visitor ={
     const {len_indent, loc} = p;
     const head ={__proto__: this.head
     , op, len_indent, loc
-    , nestInner: op.nestInner};
+    , nestBreak: op.nestBreak};
 
     if (true === op.implicitCommas) {
       const comma_body = head.comma_body = [];
@@ -1527,7 +1625,12 @@ const transpile_visitor ={
 
 , stack_pop(c) {
     const head = this.head;
-    this.head = head.tail[0];
+    const next = head.tail[0];
+    this.head = next;
+
+    if (head.op.implicitCommas && next.comma_body) {
+      // internal op was an expression; simplify for comma_body
+      next.comma_body.push(' expr ');}
 
     const src = head.op.post;
     if (src) {
@@ -1548,6 +1651,14 @@ const transpile_visitor ={
       this._dedent_nested_block(p);}
 
     this.stack_push(jsy_op, p); }
+
+, v$jsy_op_args(p) {
+    const jsy_op_args = at_offside_map[p.op];
+    const item = jsy_op_args.opResolve(p);
+    if  ('string' !== typeof item.pre || 'string' !== typeof item.post) {
+      throw new Error('Invalid jsy_op_args.opResolve result') }
+    this.stack_push(item, p); }
+
 
 , _dedent_nested_block(p) {
     if  (! this.head.in_nested_block) {return}
@@ -1571,7 +1682,7 @@ const transpile_visitor ={
     if (undefined === t) {return}
 
     let c = 0;
-    while (t !== this.head && this.head.nestInner) {
+    while (t !== this.head && !this.head.nestBreak) {
       this.stack_pop(c++); } }
 
 , v$offside_dedent(p) {
