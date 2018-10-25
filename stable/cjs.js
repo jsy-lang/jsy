@@ -227,13 +227,16 @@ function bindAnswerFor(defines) {
     return 'function' === typeof ans
       ? ans(key) : ans} }
 
-// From babel-plugin-offside-js
-//     const tt_offside_disrupt_implicit_comma = new Set @#
-//       tt.comma, tt.dot, tt.arrow, tt.colon, tt.semi, tt.question
-//
+const rx_punct = /[,.;:?]/;
+const rx_binary_ops = /\&\&|\|\|/;
 
-const rx_disrupt_comma_tail = /[,.;:?]\s*$|=>\s*$/ ;
-const rx_disrupt_comma_head = /^\s*[,.;:?]/ ;
+const rx_disrupt_comma_tail = (()=>{ {
+  const opts =[rx_punct, /=>/, /[+-]/, rx_binary_ops];
+  return new RegExp(join_rx(opts) + '\\s*$') } })();
+
+const rx_disrupt_comma_head = (()=>{ {
+  const opts =[rx_punct, rx_binary_ops];
+  return new RegExp('^\\s*' + join_rx(opts)) } })();
 
 const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
 function checkOptionalComma(op, pre_body, post_body) {
@@ -255,6 +258,13 @@ function checkSyntax(expr) {
     return true}
   catch (err) {
     return false} }
+
+function join_rx(rx_options, capture) {
+  const opts = Array.from(rx_options)
+    .map(rx => rx && rx.source)
+    .filter(Boolean).join('|');
+
+  return (capture ? '(' : '(?:') + opts + ')'}
 
 const regexp_keyword = sz => {
   sz = sz.replace(/[ ]+/g, '[ ]+'); // allow one or more spaces
