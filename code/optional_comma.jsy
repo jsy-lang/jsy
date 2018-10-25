@@ -1,11 +1,13 @@
+const rx_punct = /[,.;:?]/
+const rx_binary_ops = /\&\&|\|\|/
 
-// From babel-plugin-offside-js
-//     const tt_offside_disrupt_implicit_comma = new Set @#
-//       tt.comma, tt.dot, tt.arrow, tt.colon, tt.semi, tt.question
-//
+const rx_disrupt_comma_tail = @! ::
+  const opts = @[] rx_punct, /=>/, /[+-]/, rx_binary_ops
+  return new RegExp @ join_rx(opts) + '\\s*$'
 
-const rx_disrupt_comma_tail = /[,.;:?]\s*$|=>\s*$/ ;
-const rx_disrupt_comma_head = /^\s*[,.;:?]/ ;
+const rx_disrupt_comma_head = @! ::
+  const opts = @[] rx_punct, rx_binary_ops
+  return new RegExp @ '^\\s*' + join_rx(opts)
 
 const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
 export default checkOptionalComma
@@ -29,4 +31,10 @@ function checkSyntax(expr) ::
   catch err ::
     return false
 
+function join_rx(rx_options, capture) ::
+  const opts = Array.from(rx_options)
+    .map @ rx => rx && rx.source
+    .filter(Boolean).join('|')
+
+  return (capture ? '(' : '(?:') + opts + ')'
 

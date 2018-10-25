@@ -11,6 +11,12 @@ export function jsy_as_ast(jsy_code) ::
     const ast = acorn.parse(js_vanilla, {ecmaVersion: 9})
     return @{} ast, code: js_vanilla
   catch err ::
-    console.log @: js_vanilla
+    console.error()
+    console.error @ "--- Vanilla JS ---"
+    console.error()
+    console.error @ js_vanilla
+    console.error()
+    console.error @ "------------------"
+    console.error()
     throw new SyntaxError @ err.message
 

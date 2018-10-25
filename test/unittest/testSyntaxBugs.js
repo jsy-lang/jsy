@@ -12,37 +12,44 @@ function * iterSyntaxVariations() ::
 
 
 function * iterBugWithOptionalCommas() ::
-  yield @{} expectValid: true
+  yield @{}
     title: 'Msg-Fabric plugin/web problem with optional commas'
     source: @[]
       'websock.addEventListener @ "open"'
       '  () => resolve()'
       '  @{} passive: true, once: true'
-    
+
     tokens: @[] 'name', '.', 'name', '(', 'string', ',', '(', ')', '=>', 'name', '(', ')', ',', '{', 'name', ':', 'true', ',', 'name', ':', 'true', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'Msg-Fabric plugin/web problem with optional commas'
     source: @[]
       'websock.addEventListener @ "open"'
       '  (() => resolve())'
       '  @{} passive: true, once: true'
-    
+
     tokens: @[] 'name', '.', 'name', '(', 'string', ',', '(', '(', ')', '=>', 'name', '(', ')', ')', ',', '{', 'name', ':', 'true', ',', 'name', ':', 'true', '}', ')'
 
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'Msg-Fabric plugin/web problem with optional commas'
     source: @[]
       'websock.addEventListener @ "open"'
       '  @=> resolve()'
       '  @{} passive: true, once: true'
-    
+
     tokens: @[] 'name', '.', 'name', '(', 'string', ',', '(', '(', ')', '=>', 'name', '(', ')', ')', ',', '{', 'name', ':', 'true', ',', 'name', ':', 'true', '}', ')'
+
+  yield @{}
+    title: 'Msg-Fabric plugin/web problem with optional commas'
+    source: @[]
+      "  const find_ops = ({has, sans}) => all_ops.filter @ op => @"
+      "       @ !has  || has .split(' ').every @ a => op.attrs.includes @ a"
+      "    && @ !sans || sans.split(' ').every @ a => ! op.attrs.includes @ a"
 
 
 function * iterBugWithBlankFirstLine() ::
-  yield @{} expectValid: true
+  yield @{}
     title: 'Filled first line of block '
     source: @[]
       'const a = @{}'
@@ -52,7 +59,7 @@ function * iterBugWithBlankFirstLine() ::
       '  , v3: null'
     tokens: @[] 'const', 'name', '=', '{', 'name', ':', 'num', ',', 'name', ':', 'string', ',', 'name', ':', 'null', '}'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'Blank first line of block '
     source: @[]
       'const a = @{}'

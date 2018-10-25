@@ -12,7 +12,7 @@ function * iterSyntaxVariations() ::
   yield * iterOptionalCommaBugs()
 
 function * iterCallArgumentVariations() ::
-  yield @: expectValid: true
+  yield @:
     title: 'call arguments with implicit commas'
     source: @[]
       'method @'
@@ -21,7 +21,7 @@ function * iterCallArgumentVariations() ::
       '    thirdArg'
     tokens: @[] 'name', '(', 'name', ',', 'name', ',', 'name', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'call arguments mixed 1 with implicit commas'
     source: @[]
       'method @'
@@ -29,15 +29,15 @@ function * iterCallArgumentVariations() ::
       '    thirdArg'
     tokens: @[] 'name', '(', 'name', ',', 'name', ',', 'name', ')'
 
-  yield @: expectValid: true
-    title: 'call arguments mixed 2 with implicit commas'
+  yield @:
+    title: 'call arguments mixed 2 with explicit commas'
     source: @[]
       'method @'
       '    firstArg, secondArg, '
       '    thirdArg'
     tokens: @[] 'name', '(', 'name', ',', 'name', ',', 'name', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'call arguments mixed 3 with implicit commas'
     source: @[]
       'method @'
@@ -45,7 +45,7 @@ function * iterCallArgumentVariations() ::
       '    secondArg, thirdArg'
     tokens: @[] 'name', '(', 'name', ',', 'name', ',', 'name', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'call arguments mixed 4 with implicit commas'
     source: @[]
       'method @'
@@ -56,7 +56,7 @@ function * iterCallArgumentVariations() ::
 
 
 function * iterAdvancedCallMethods() ::
-  yield @: expectValid: true
+  yield @:
     title: 'advanced call methods -- simple with implicit commas, v1'
     source: @[]
       'method @'
@@ -68,7 +68,7 @@ function * iterAdvancedCallMethods() ::
       '  (err, cb) => ::'
     tokens: @[] 'name', '(', 'name', ',', '(', ')', '=>', '{', '}', ',', 'name', ',', 'name', '=>', 'name', '+/-', 'name', ',', '(', 'name', ',', 'name', ')', '=>', '{', '}', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'advanced call methods -- simple with implicit commas, v2'
     source: @[]
       'method @'
@@ -80,7 +80,7 @@ function * iterAdvancedCallMethods() ::
       '  (err, cb) => ::'
     tokens: @[] 'name', '(', 'name', ',', 'function', '(', ')', '{', '}', ',', 'name', ',', 'name', '=>', 'name', '+/-', 'name', ',', '(', 'name', ',', 'name', ')', '=>', '{', '}', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'advanced call methods -- simple with implicit commas, v3'
     source: @[]
       'method @'
@@ -90,7 +90,7 @@ function * iterAdvancedCallMethods() ::
       '  (err, cb) => ::'
     tokens: @[] 'name', '(', 'function', '(', ')', '{', '}', ',', 'name', '=>', 'name', '+/-', 'name', ',', '(', 'name', ',', 'name', ')', '=>', '{', '}', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'advanced call methods -- async with implicit commas, v1'
     source: @[]
       'method @'
@@ -102,7 +102,7 @@ function * iterAdvancedCallMethods() ::
       '    await a + await b'
     tokens: @[] 'name', '(', 'name', ',', 'name', 'function', '(', 'name', ')', '{', 'name', 'name', '}', ',', 'name', ',', 'name', '(', 'name', ',', 'name', ')', '=>', 'name', 'name', '+/-', 'name', 'name', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'advanced call methods -- async with implicit commas, v2'
     source: @[]
       'method @'
@@ -112,7 +112,7 @@ function * iterAdvancedCallMethods() ::
       '    await a + await b'
     tokens: @[] 'name', '(', 'name', 'function', '(', 'name', ')', '{', 'name', 'name', '}', ',', 'name', '(', 'name', ',', 'name', ')', '=>', 'name', 'name', '+/-', 'name', 'name', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'advanced call methods -- generator with implicit commas, v1'
     source: @[]
       'method @'
@@ -125,7 +125,7 @@ function * iterAdvancedCallMethods() ::
       '    yield b'
     tokens: @[] 'name', '(', 'name', ',', 'function', '*', '(', 'name', ')', '{', 'name', '*', 'name', '}', ',', 'name', ',', 'function', '*', '(', 'name', ')', '{', 'name', 'name', 'name', 'name', '}', ')'
 
-  yield @: expectValid: true
+  yield @:
     title: 'advanced call methods -- generator with implicit commas, v2'
     source: @[]
       'method @'
@@ -138,7 +138,7 @@ function * iterAdvancedCallMethods() ::
 
 
 function * iterObjectMethods() ::
-  yield @: expectValid: true
+  yield @:
     title: 'object methods -- simple with implicit commas'
     source: @[]
       'const api = @{}'
@@ -149,7 +149,7 @@ function * iterObjectMethods() ::
       '  anotherValue'
     tokens: @[] 'const', 'name', '=', '{', 'name', ',', 'name', '(', 'name', ',', 'name', ',', 'name', ')', '{', '}', ',', 'name', '(', ')', '{', '}', ',', 'name', '(', 'name', ',', 'name', ')', '{', '}', ',', 'name', '}'
 
-  yield @: expectValid: true
+  yield @:
     title: 'object methods -- async with explicit comma'
     source: @[]
       'const api = @{}'
@@ -158,7 +158,7 @@ function * iterObjectMethods() ::
       '    return await p'
     tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', 'name', 'name', '(', 'name', ')', '{', 'return', 'name', 'name', '}', '}'
 
-  yield @: expectValid: true
+  yield @:
     title: 'object methods -- async with implicit comma'
     source: @[]
       'const api = @{}'
@@ -167,7 +167,7 @@ function * iterObjectMethods() ::
       '    return await p'
     tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', 'name', 'name', '(', 'name', ')', '{', 'return', 'name', 'name', '}', '}'
 
-  yield @: expectValid: true
+  yield @:
     title: 'object methods -- generator with explicit comma'
     source: @[]
       'const api = @{}'
@@ -176,7 +176,7 @@ function * iterObjectMethods() ::
       '    yield * iterable'
     tokens: @[] 'const', 'name', '=', '{', 'name', '(', ')', '{', '}', ',', '*', 'name', '(', 'name', ')', '{', 'name', '*', 'name', '}', '}'
 
-  yield @: expectValid: true
+  yield @:
     title: 'object methods -- generator with implicit comma'
     source: @[]
       'const api = @{}'
@@ -187,7 +187,7 @@ function * iterObjectMethods() ::
 
 
 function * iterOptionalCommaBugs() ::
-  yield @: expectValid: true
+  yield @:
     title: 'object with arrow functions and template strings'
     source: @[]
       'const api = bind_api @:'
