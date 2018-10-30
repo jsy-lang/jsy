@@ -9,8 +9,17 @@ Please see [JSY language docs](https://github.com/jsy-lang/jsy-lang-docs) for de
 
 ## Use from the command line
 
-This module utilizes Node's fs.promises API - ensure Node is at version 10+.
+Ensure you are using Node 10.x or later.
 
 Install globally with `npm install -g jsy-transpile`
 
-Transpile a file with `jsy-transpile test.jsy > test.js`
+Transpile a JSY file with `npx jsy-transpile test.jsy > test.js`
+
+Run a JSY file with `npx jsy-node test.jsy` – see [jsy-node](https://github.com/jsy-lang/jsy-node)
+
+## Use from Bundlers
+
+- via `npm init jsy` – see [npm-create-jsy](https://github.com/jsy-lang/npm-create-jsy)
+- via Rollup with [rollup-plugin-jsy-lite](https://github.com/jsy-lang/rollup-plugin-jsy-lite)
+- via Babel with [babel-plugin-jsy-lite](https://github.com/jsy-lang/babel-plugin-jsy-lite)
+
