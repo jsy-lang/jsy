@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs')
+const { promisify } = require('util')
 const { jsy_transpile } = require('jsy-transpile')
 
 try { require('source-map-support').install() } catch (err) {}
@@ -9,7 +10,7 @@ try { SourceMapGenerator = require('source-map').SourceMapGenerator } catch (err
 
 async function main(filename) {
   const jsy_src = filename && '-' !== filename
-    ? await fs.promises.readFile(filename, 'utf-8')
+    ? await promisify(fs.readFile)(filename, 'utf-8')
     : await read_stdin()
 
   if (! jsy_src) throw new Error('jsy-transpile expected a filename argument or stdin input')
