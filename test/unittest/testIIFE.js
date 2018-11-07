@@ -9,6 +9,9 @@ describe @ 'Immediately Invoked Async Function Expressions',
 describe @ 'Immediately Invoked Function Expressions (Variants)',
   genMochaSyntaxTestCases @ iterImmediatelyInvokedGeneratorExpressionVariationsTests
 
+describe @ 'Immediately Invoked Block Expressions',
+  genMochaSyntaxTestCases @ iterImmediatelyInvokedBlockExpressionTests, standardTransforms
+
 
 function * iterImmediatelyInvokedFunctionExpressionTests() ::
   yield * iterIIArrowExpressions()
@@ -26,6 +29,11 @@ function * iterImmediatelyInvokedGeneratorExpressionVariationsTests() ::
 
   yield * iterIIAsyncGeneratorExpressions('@!*>')
   yield * iterIIAsyncGeneratorExpressions('@!=>>*')
+
+function * iterImmediatelyInvokedBlockExpressionTests() ::
+  yield * iterIIBlockExpressions()
+  yield * iterIIAsyncBlockExpressions()
+
 
 
 function * iterIIArrowExpressions() ::
@@ -163,4 +171,52 @@ function * iterIIAsyncGeneratorExpressions(variant='@!>*') ::
       '  yield await stmt_a'
       '  yield await stmt_b'
     tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')'
+
+
+
+function * iterIIBlockExpressions() ::
+  yield @{}
+    title: 'immediately invoked expression (@!)'
+    source: '::! expression_body'
+    tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', '}', ')', '(', ')', ';'
+
+  yield @{}
+    title: 'immediately invoked expression - two lines (@!)'
+    source: @[]
+      '::!'
+      '  stmt_a'
+      '  stmt_b'
+    tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
+
+  yield @{}
+    title: 'immediately invoked expression (@!)'
+    source: @[]
+      '::!'
+      '  stmt_a'
+      '  stmt_b'
+    tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
+
+
+function * iterIIAsyncBlockExpressions() ::
+  yield @{}
+    title: 'async immediately invoked expression (@!>)'
+    source: '::!> await expression_body'
+    tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
+
+  yield @{}
+    title: 'async immediately invoked expression - two lines (@!>)'
+    source: @[]
+      '::!>'
+      '  await stmt_a'
+      '  await stmt_b'
+    tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')', ';'
+
+  yield @{}
+    title: 'async immediately invoked expression (@!>)'
+    source: @[]
+      '::!> ::'
+      '  await stmt_a'
+      '  await stmt_b'
+    tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '(', ')', ';'
+
 
