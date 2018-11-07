@@ -176,12 +176,12 @@ function * iterIIAsyncGeneratorExpressions(variant='@!>*') ::
 
 function * iterIIBlockExpressions() ::
   yield @{}
-    title: 'immediately invoked expression (@!)'
+    title: 'immediately invoked block expression (::!)'
     source: '::! expression_body'
     tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', '}', ')', '(', ')', ';'
 
   yield @{}
-    title: 'immediately invoked expression - two lines (@!)'
+    title: 'immediately invoked block expression - two lines (::!)'
     source: @[]
       '::!'
       '  stmt_a'
@@ -189,7 +189,7 @@ function * iterIIBlockExpressions() ::
     tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
 
   yield @{}
-    title: 'immediately invoked expression (@!)'
+    title: 'immediately invoked block expression (::!)'
     source: @[]
       '::!'
       '  stmt_a'
@@ -199,12 +199,12 @@ function * iterIIBlockExpressions() ::
 
 function * iterIIAsyncBlockExpressions() ::
   yield @{}
-    title: 'async immediately invoked expression (@!>)'
+    title: 'async immediately invoked block expression (::!>)'
     source: '::!> await expression_body'
     tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
 
   yield @{}
-    title: 'async immediately invoked expression - two lines (@!>)'
+    title: 'async immediately invoked block expression - two lines (::!>)'
     source: @[]
       '::!>'
       '  await stmt_a'
@@ -212,7 +212,7 @@ function * iterIIAsyncBlockExpressions() ::
     tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')', ';'
 
   yield @{}
-    title: 'async immediately invoked expression (@!>)'
+    title: 'async immediately invoked block expression (::!>)'
     source: @[]
       '::!> ::'
       '  await stmt_a'

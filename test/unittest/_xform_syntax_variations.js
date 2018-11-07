@@ -4,7 +4,7 @@ import jsy_as_ast from './_jsy_as_ast'
 
 export function testSyntaxError(testCase) ::
   const block = () => ::
-    if (testCase.debug) ::
+    if testCase.debug ::
       console.dir @ testCase.source, @{} colors: true, depth: null
 
     let res = jsy_as_ast @ testCase.source
@@ -34,6 +34,8 @@ export function testSourceTransform(testCase) ::
 
 export function testTokens(testCase, code) ::
   const ignore_tokens = new Set @# ';', 'eof'
+  if testCase.tokens.includes(';') ::
+    ignore_tokens.delete(';')
 
   let tokens
   try ::
@@ -45,7 +47,7 @@ export function testTokens(testCase, code) ::
     .from @ tokens, token => token.type.label
     .filter @ token => token && ! ignore_tokens.has(token)
 
-  if ('tokens' === testCase.debug) ::
+  if 'tokens' === testCase.debug ::
     console.log @ tokens
 
   const expected_tokens = Array.from(testCase.tokens)
@@ -67,17 +69,17 @@ export function genMochaSyntaxTestCases(iterSyntaxVariations, transformVariation
 export function genSyntaxTestCases(it, iterable_test_cases) ::
   for (const testCase of iterable_test_cases) ::
     let testFn, title=testCase.title
-    if (testCase.expectSyntaxError) ::
+    if testCase.expectSyntaxError ::
       title += ' should THROW a syntax error'
       testFn = @=> testSyntaxError(testCase)
     else ::
       testFn = @=> testSourceTransform(testCase)
 
-    if (testCase.skip) ::
+    if testCase.skip ::
       it.skip @ title, testFn
-    else if (testCase.todo) ::
+    else if testCase.todo ::
       it.todo @ title, testFn
-    else if (testCase.only) ::
+    else if testCase.only ::
       it.only @ title, testFn
     else ::
       it @ title, testFn

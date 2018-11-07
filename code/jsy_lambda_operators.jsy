@@ -28,13 +28,10 @@ export const at_lambda_offside = @[]
       pre: '(()=>{', post: '})()',
       opResolve(p) ::
         const [_, suffix] = p.content.match(this.jsy_op)
-        return tableOpResolve @ iife_block_tbl, '', '', suffix
+        return tableOpResolve @ iife_expr_tbl, '', '', suffix
 
-  @{} jsy_op0: '::!', jsy_op: /::!([*>]*)/,
-      pre: ';(()=>{', post: '})();',
-      opResolve(p) ::
-        const [_, suffix] = p.content.match(this.jsy_op)
-        return tableOpResolve @ iife_block_tbl, '', '', suffix
+  @{} jsy_op: '::!', pre: ';(()=>{', post: '})();',
+  @{} jsy_op: '::!>', pre: ';(async ()=>{', post: '})();',
 
 export default at_lambda_offside
 
@@ -53,7 +50,7 @@ const lambda_arrow_tbl = @{}
   '>': a => @: pre: `(async (${a}) =>`, post: ')', implicitCommas: true
 
 
-const iife_block_tbl = @{}
+const iife_expr_tbl = @{}
   '': a => @: pre: `((${a}) => {`, post: '})()'
   '>': a => @: pre: `(async (${a}) => {`, post: '})()'
   '>*': a => @: pre: `(async function * (${a}) {`, post: '}).call(this)'
