@@ -14,12 +14,6 @@ const at_lambda_offside =[
         const ans = tableOpResolve(iife_arrow_tbl, '', '', suffix);
         return tableOpResolve(iife_arrow_tbl, '', '', suffix) } }
 
-, {jsy_op0: '@!', jsy_op: /@!([*>]*)/,
-      pre: '(()=>{', post: '})()',
-      opResolve(p) {
-        const [_, suffix] = p.content.match(this.jsy_op);
-        return tableOpResolve(iife_block_tbl, '', '', suffix) } }
-
 , {jsy_op0: '@\\=>', jsy_op: /@\\([*>]*)(.*?)=>([*>]*)/,
       pre: '(()=>', post: ')', implicitCommas: true,
       opResolve(p) {
@@ -30,7 +24,19 @@ const at_lambda_offside =[
       pre: '(()=>{', post: '})',
       opResolve(p) {
         const [_, prefix, args] = p.content.match(this.jsy_op);
-        return tableOpResolve(lambda_block_tbl, args, prefix, '') } } ];
+        return tableOpResolve(lambda_block_tbl, args, prefix, '') } }
+
+, {jsy_op0: '@!', jsy_op: /@!([*>]*)/,
+      pre: '(()=>{', post: '})()',
+      opResolve(p) {
+        const [_, suffix] = p.content.match(this.jsy_op);
+        return tableOpResolve(iife_block_tbl, '', '', suffix) } }
+
+, {jsy_op0: '::!', jsy_op: /::!([*>]*)/,
+      pre: ';(()=>{', post: '})();',
+      opResolve(p) {
+        const [_, suffix] = p.content.match(this.jsy_op);
+        return tableOpResolve(iife_block_tbl, '', '', suffix) } } ];
 
 
 
