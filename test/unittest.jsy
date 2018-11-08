@@ -12,6 +12,10 @@ import './unit/testScanners.js'
 import './unit/testSyntaxBugs.js'
 
 import './unit/testFunctionCall.js'
+import './unit/testLambdaCall.js'
+import './unit/testLambdaAsyncCall.js'
+import './unit/testLambdaGeneratorCall.js'
+import './unit/testLambdaAsyncGeneratorCall.js'
 import './unit/testIIFE.js'
 
 import './unit/testIfStatementVariations.js'

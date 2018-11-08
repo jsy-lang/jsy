@@ -1,16 +1,18 @@
 import { genMochaSyntaxTestCases, standardTransforms } from './_xform_syntax_variations'
 
-describe @ 'Immediately Invoked Function Expressions',
-  genMochaSyntaxTestCases @ iterImmediatelyInvokedFunctionExpressionTests, standardTransforms
+describe @ 'Immediately Invoked Expressions', @=> ::
 
-describe @ 'Immediately Invoked Async Function Expressions',
-  genMochaSyntaxTestCases @ iterImmediatelyInvokedGeneratorExpressionTests, standardTransforms
+  describe @ 'Immediately Invoked Function Expressions',
+    genMochaSyntaxTestCases @ iterImmediatelyInvokedFunctionExpressionTests, standardTransforms
 
-describe @ 'Immediately Invoked Function Expressions (Variants)',
-  genMochaSyntaxTestCases @ iterImmediatelyInvokedGeneratorExpressionVariationsTests
+  describe @ 'Immediately Invoked Async Function Expressions',
+    genMochaSyntaxTestCases @ iterImmediatelyInvokedGeneratorExpressionTests, standardTransforms
 
-describe @ 'Immediately Invoked Block Expressions',
-  genMochaSyntaxTestCases @ iterImmediatelyInvokedBlockExpressionTests, standardTransforms
+  describe @ 'Immediately Invoked Function Expressions (Variants)',
+    genMochaSyntaxTestCases @ iterImmediatelyInvokedGeneratorExpressionVariationsTests
+
+  describe @ 'Immediately Invoked Block Expressions',
+    genMochaSyntaxTestCases @ iterImmediatelyInvokedBlockExpressionTests, standardTransforms
 
 
 function * iterImmediatelyInvokedFunctionExpressionTests() ::
@@ -27,7 +29,7 @@ function * iterImmediatelyInvokedGeneratorExpressionTests() ::
 function * iterImmediatelyInvokedGeneratorExpressionVariationsTests() ::
   yield * iterIIGeneratorExpressions('@!=>*')
 
-  yield * iterIIAsyncGeneratorExpressions('@!*>')
+  yield * iterIIAsyncGeneratorExpressions('@!>*')
   yield * iterIIAsyncGeneratorExpressions('@!=>>*')
 
 function * iterImmediatelyInvokedBlockExpressionTests() ::

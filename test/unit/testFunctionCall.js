@@ -23,30 +23,30 @@ describe @ 'Function Hash Call Statements',
 
 
 function * iterCalls() ::
-  yield @{} expectValid: true
+  yield @{}
     title: 'simple call 0 args single line'
     source: @[] 'fn_target @'
     tokens: @[] 'name', '(', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'simple call 1 arg single line'
     source: @[] 'fn_target @ one'
     tokens: @[] 'name', '(', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'simple call 2 args single line'
     source: @[] 'fn_target @ one, two'
     tokens: @[] 'name', '(', 'name', ',', 'name', ')'
 
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'simple call 0 args multiple lines'
     source: @[]
       'fn_target @'
       ''
     tokens: @[] 'name', '(', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'simple call 1 arg multiple lines'
     source: @[] 'fn_target @ one'
     source: @[]
@@ -54,7 +54,7 @@ function * iterCalls() ::
       '  one'
     tokens: @[] 'name', '(', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'simple call 2 args multiple lines'
     source: @[]
       'fn_target @'
@@ -64,30 +64,30 @@ function * iterCalls() ::
 
 
 function * iterHashCalls() ::
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with hash 0 args single line'
     source: @[] 'fn_target @:', ''
     tokens: @[] 'name', '(', '{', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with hash 1 arg single line'
     source: @[] 'fn_target @: one'
     tokens: @[] 'name', '(', '{', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with hash 2 args single line'
     source: @[] 'fn_target @: one, two'
     tokens: @[] 'name', '(', '{', 'name', ',', 'name', '}', ')'
 
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with hash 0 args multiple lines'
     source: @[]
       'fn_target @:'
       ''
     tokens: @[] 'name', '(', '{', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with hash 1 arg multiple lines'
     source: @[] 'fn_target @: one'
     source: @[]
@@ -95,7 +95,7 @@ function * iterHashCalls() ::
       '  one'
     tokens: @[] 'name', '(', '{', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with hash 2 args multiple lines'
     source: @[]
       'fn_target @:'
@@ -105,30 +105,30 @@ function * iterHashCalls() ::
 
 
 function * iterArrayCalls() ::
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with array 0 args single line'
     source: @[] 'fn_target @#', ''
     tokens: @[] 'name', '(', '[', ']', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with array 1 arg single line'
     source: @[] 'fn_target @# one'
     tokens: @[] 'name', '(', '[', 'name', ']', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with array 2 args single line'
     source: @[] 'fn_target @# one, two'
     tokens: @[] 'name', '(', '[', 'name', ',', 'name', ']', ')'
 
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with array 0 args multiple lines'
     source: @[]
       'fn_target @#'
       ''
     tokens: @[] 'name', '(', '[', ']', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with array 1 arg multiple lines'
     source: @[] 'fn_target @# one'
     source: @[]
@@ -136,7 +136,7 @@ function * iterArrayCalls() ::
       '  one'
     tokens: @[] 'name', '(', '[', 'name', ']', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call with array 2 args multiple lines'
     source: @[]
       'fn_target @#'
@@ -146,34 +146,34 @@ function * iterArrayCalls() ::
 
 
 function * iterArrowCalls() ::
-  yield @{} expectValid: true
+  yield @{}
     title: 'vanilla call arrow with single line'
     source: @[] 'fn_target @ () => value'
     tokens: @[] 'name', '(', '(', ')', '=>', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with single line expression'
     source: @[] 'fn_target @=> value'
     tokens: @[] 'name', '(', '(', ')', '=>', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with multiple line expression'
     source: @[]
       'fn_target @=>'
       '  value'
     tokens: @[] 'name', '(', '(', ')', '=>', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with single line vanilla body'
     source: @[] 'fn_target @=> { value }'
     tokens: @[] 'name', '(', '(', ')', '=>', '{', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with single line body'
     source: @[] 'fn_target @=> :: value'
     tokens: @[] 'name', '(', '(', ')', '=>', '{', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with multiple line body'
     source: @[]
       'fn_target @=> ::'
@@ -181,7 +181,7 @@ function * iterArrowCalls() ::
       '  second'
     tokens: @[] 'name', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with multiple line paren expression'
     source: @[]
       'fn_target @=> @'
@@ -189,7 +189,7 @@ function * iterArrowCalls() ::
       '  , second'
     tokens: @[] 'name', '(', '(', ')', '=>', '(', 'name', ',', 'name', ')', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with multiple line hash expression'
     source: @[]
       'fn_target @=> @:'
@@ -197,7 +197,7 @@ function * iterArrowCalls() ::
       '  , second'
     tokens: @[] 'name', '(', '(', ')', '=>', '(', '{', 'name', ',', 'name', '}', ')', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call arrow with multiple line array expression'
     source: @[]
       'fn_target @=> @#'
@@ -207,34 +207,34 @@ function * iterArrowCalls() ::
 
 
 function * iterArrowAsyncCalls() ::
-  yield @{} expectValid: true
+  yield @{}
     title: 'vanilla call async arrow with single line'
     source: @[] 'fn_target @ async () => value'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with single line expression'
     source: @[] 'fn_target @=>> value'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with multiple line expression'
     source: @[]
       'fn_target @=>>'
       '  value'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', 'name', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with single line vanilla body'
     source: @[] 'fn_target @=>> { value }'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '{', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with single line body'
     source: @[] 'fn_target @=>> :: value'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '{', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with multiple line body'
     source: @[]
       'fn_target @=>> ::'
@@ -242,7 +242,7 @@ function * iterArrowAsyncCalls() ::
       '  second'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with multiple line paren expression'
     source: @[]
       'fn_target @=>> @'
@@ -250,7 +250,7 @@ function * iterArrowAsyncCalls() ::
       '  , second'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '(', 'name', ',', 'name', ')', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with multiple line hash expression'
     source: @[]
       'fn_target @=>> @:'
@@ -258,7 +258,7 @@ function * iterArrowAsyncCalls() ::
       '  , second'
     tokens: @[] 'name', '(', 'name', '(', ')', '=>', '(', '{', 'name', ',', 'name', '}', ')', ')'
 
-  yield @{} expectValid: true
+  yield @{}
     title: 'call async arrow with multiple line array expression'
     source: @[]
       'fn_target @=>> @#'
@@ -269,12 +269,12 @@ function * iterArrowAsyncCalls() ::
 
 function * iterArrowGeneratorCalls() ::
   yield @{}
-    title: `immediately invoked generator expression (@=>*)`
+    title: `call generator expression (@=>*)`
     source: `@=>* yield expression_body`
     tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
 
   yield @{}
-    title: `immediately invoked generator expression - two lines (@=>*)`
+    title: `call generator expression - two lines (@=>*)`
     source: @[]
       '@=>*'
       '  yield stmt_a'
@@ -282,7 +282,7 @@ function * iterArrowGeneratorCalls() ::
     tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
 
   yield @{}
-    title: `immediately invoked generator expression (@=>*)`
+    title: `call generator expression (@=>*)`
     source: @[]
       `@=>* ::`
       '  yield stmt_a'
@@ -292,12 +292,12 @@ function * iterArrowGeneratorCalls() ::
 
 function * iterArrowAsyncGeneratorCalls() ::
   yield @{}
-    title: `async immediately invoked generator expression (@=>>*)`
+    title: `async call generator expression (@=>>*)`
     source: `@=>>* yield await expression_body`
     tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
 
   yield @{}
-    title: `async immediately invoked generator expression - two lines (@=>>*)`
+    title: `async call generator expression - two lines (@=>>*)`
     source: @[]
       '@=>>*'
       '  yield await stmt_a'
@@ -305,7 +305,7 @@ function * iterArrowAsyncGeneratorCalls() ::
     tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
 
   yield @{}
-    title: `async immediately invoked generator expression (@=>>*)`
+    title: `async call generator expression (@=>>*)`
     source: @[]
       `@=>>* ::`
       '  yield await stmt_a'
