@@ -15,7 +15,9 @@ export function scan_jsy(source, feedback) ::
 
     const idx_dedent = parts.findIndex @ p => 'offside_dedent' === p.type
     const last = parts[idx_dedent - 1]
-    if undefined !== last && 'jsy_op' === last.type ::
+    if undefined === last :: continue
+
+    if last.type.startsWith('jsy_op') ::
       parts[idx_dedent].ends_with_jsy_op = true
       last.ending_jsy_op = true
 
