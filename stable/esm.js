@@ -1,37 +1,44 @@
 const at_lambda_offside =[
-  {jsy_op0: '@=>', jsy_op: /@=>([*>]*)/,
+  {jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
       pre: '(()=>', post: ')',
       opResolve(p) {
         const [_, suffix] = p.content.match(this.jsy_op);
         return tableOpResolve(lambda_arrow_tbl, '', '', suffix) } }
 
-, {jsy_op0: '@!=>', jsy_op: /@!=>([*>]*)/,
+, {jsy_op0: '@\\=>', jsy_op: /@\\(>?\*?)(.*?)=>(>?\*?)/,
+      pre: '(()=>', post: ')', implicitCommas: true,
+      opResolve(p) {
+        const [_, prefix, args, suffix] = p.content.match(this.jsy_op);
+        return tableOpResolve(lambda_arrow_tbl, args, prefix, suffix) } }
+
+, {jsy_op0: '@\\::', jsy_op: /@\\(>?\*?)(.*?)::/,
+      pre: '(()=>{', post: '})',
+      opResolve(p) {
+        const [_, prefix, args] = p.content.match(this.jsy_op);
+        return tableOpResolve(lambda_block_tbl, args, prefix, '') } } ];
+
+
+const at_lambda_iife_offside =[
+  {jsy_op: '::!', pre: ';(()=>{', post: '})();'}
+, {jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'}
+
+, {jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
       pre: '(()=>', post: ')()',
       opResolve(p) {
         const [_, suffix] = p.content.match(this.jsy_op);
         const ans = tableOpResolve(iife_arrow_tbl, '', '', suffix);
         return tableOpResolve(iife_arrow_tbl, '', '', suffix) } }
 
-, {jsy_op0: '@\\=>', jsy_op: /@\\([*>]*)(.*?)=>([*>]*)/,
-      pre: '(()=>', post: ')', implicitCommas: true,
-      opResolve(p) {
-        const [_, prefix, args, suffix] = p.content.match(this.jsy_op);
-        return tableOpResolve(lambda_arrow_tbl, args, prefix, suffix) } }
-
-, {jsy_op0: '@\\::', jsy_op: /@\\([*>]*)(.*?)::/,
-      pre: '(()=>{', post: '})',
-      opResolve(p) {
-        const [_, prefix, args] = p.content.match(this.jsy_op);
-        return tableOpResolve(lambda_block_tbl, args, prefix, '') } }
-
-, {jsy_op0: '@!', jsy_op: /@!([*>]*)/,
+, {jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
       pre: '(()=>{', post: '})()',
       opResolve(p) {
         const [_, suffix] = p.content.match(this.jsy_op);
-        return tableOpResolve(iife_expr_tbl, '', '', suffix) } }
+        return tableOpResolve(iife_expr_tbl, '', '', suffix) } } ];
 
-, {jsy_op: '::!', pre: ';(()=>{', post: '})();',}
-, {jsy_op: '::!>', pre: ';(async ()=>{', post: '})();',} ];
+
+var at_lambda_offside$1 = [].concat(
+  at_lambda_offside
+, at_lambda_iife_offside);
 
 
 
@@ -73,8 +80,7 @@ function tableOpResolve(table, args, prefix, suffix) {
 
 // Order matters here -- list more specific matchers higher (first) in the order
 const at_outer_offside =[
-  {jsy_op: '::@', pre: '(', post: ')', nestBreak: true}
-, {jsy_op: '::()', pre: '(', post: ')', nestBreak: true}
+  {jsy_op: '::()', pre: '(', post: ')', nestBreak: true}
 , {jsy_op: '::{}', pre: '{', post: '}', nestBreak: true}
 , {jsy_op: '::[]', pre: '[', post: ']', nestBreak: true}
 , {jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true} ];
@@ -96,7 +102,7 @@ const at_experimental =[
 const at_offside = [].concat(
   at_outer_offside
 , at_inner_offside
-, at_lambda_offside
+, at_lambda_offside$1
 , at_experimental);
 
 const at_offside_map = at_offside.reduce(
@@ -1360,7 +1366,9 @@ function scan_jsy(source, feedback) {
 
     const idx_dedent = parts.findIndex(p => 'offside_dedent' === p.type);
     const last = parts[idx_dedent - 1];
-    if (undefined !== last && 'jsy_op' === last.type) {
+    if (undefined === last) {continue}
+
+    if (last.type.startsWith('jsy_op')) {
       parts[idx_dedent].ends_with_jsy_op = true;
       last.ending_jsy_op = true;} }
 
