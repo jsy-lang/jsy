@@ -1,6 +1,5 @@
 // Order matters here -- list more specific matchers higher (first) in the order
 export const at_outer_offside = @[]
-  @{} jsy_op: '::@', pre: '(', post: ')', nestBreak: true
   @{} jsy_op: '::()', pre: '(', post: ')', nestBreak: true
   @{} jsy_op: '::{}', pre: '{', post: '}', nestBreak: true
   @{} jsy_op: '::[]', pre: '[', post: ']', nestBreak: true
