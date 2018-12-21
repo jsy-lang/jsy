@@ -42,14 +42,14 @@ function * iterIIArrowExpressions() ::
   yield @{}
     title: 'arrow expression (@!=>)'
     source: '@!=> expression_body'
-    tokens: @[] '(', '(', ')', '=>', 'name', ')', '(', ')'
+    tokens: @[] '(', '(', '(', ')', '=>', 'name', ')', '(', ')', ')'
 
   yield @{}
     title: 'arrow expression - two lines (@!=>)'
     source: @[]
       '@!=>'
       '  expression_body'
-    tokens: @[] '(', '(', ')', '=>', 'name', ')', '(', ')'
+    tokens: @[] '(', '(', '(', ')', '=>', 'name', ')', '(', ')', ')'
 
   yield @{}
     title: 'arrow block expression (@!=>)'
@@ -57,21 +57,21 @@ function * iterIIArrowExpressions() ::
       '@!=> ::'
       '  stmt_a'
       '  stmt_b'
-    tokens: @[] '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')'
+    tokens: @[] '(', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ')'
 
 
 function * iterIIAsyncArrowExpressions() ::
   yield @{}
     title: 'async arrow expression (@!=>>)'
     source: '@!=>> await expression_body'
-    tokens: @[] '(', 'name', '(', ')', '=>', 'name', 'name', ')', '(', ')'
+    tokens: @[] '(', '(', 'name', '(', ')', '=>', 'name', 'name', ')', '(', ')', ')'
 
   yield @{}
     title: 'async arrow expression - two lines (@!=>>)'
     source: @[]
       '@!=>>'
       '  await expression_body'
-    tokens: @[] '(', 'name', '(', ')', '=>', 'name', 'name', ')', '(', ')'
+    tokens: @[] '(', '(', 'name', '(', ')', '=>', 'name', 'name', ')', '(', ')', ')'
 
   yield @{}
     title: 'async arrow block expression (@!=>>)'
@@ -79,14 +79,14 @@ function * iterIIAsyncArrowExpressions() ::
       '@!=>> ::'
       '  await stmt_a'
       '  await stmt_b'
-    tokens: @[] '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')'
+    tokens: @[] '(', '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')', ')'
 
 
 function * iterIIFuncExpressions() ::
   yield @{}
     title: 'immediately invoked expression (@!)'
     source: '@! expression_body'
-    tokens: @[] '(', '(', ')', '=>', '{', 'name', '}', ')', '(', ')'
+    tokens: @[] '(', '(', '(', ')', '=>', '{', 'name', '}', ')', '(', ')', ')'
 
   yield @{}
     title: 'immediately invoked expression - two lines (@!)'
@@ -94,7 +94,7 @@ function * iterIIFuncExpressions() ::
       '@!'
       '  stmt_a'
       '  stmt_b'
-    tokens: @[] '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')'
+    tokens: @[] '(', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ')'
 
   yield @{}
     title: 'immediately invoked expression (@!)'
@@ -102,14 +102,14 @@ function * iterIIFuncExpressions() ::
       '@! ::'
       '  stmt_a'
       '  stmt_b'
-    tokens: @[] '(', '(', ')', '=>', '{', '{', 'name', 'name', '}', '}', ')', '(', ')'
+    tokens: @[] '(', '(', '(', ')', '=>', '{', '{', 'name', 'name', '}', '}', ')', '(', ')', ')'
 
 
 function * iterIIAsyncFuncExpressions() ::
   yield @{}
     title: 'async immediately invoked expression (@!>)'
     source: '@!> await expression_body'
-    tokens: @[] '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')'
+    tokens: @[] '(', '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ')'
 
   yield @{}
     title: 'async immediately invoked expression - two lines (@!>)'
@@ -117,7 +117,7 @@ function * iterIIAsyncFuncExpressions() ::
       '@!>'
       '  await stmt_a'
       '  await stmt_b'
-    tokens: @[] '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')'
+    tokens: @[] '(', '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')', ')'
 
   yield @{}
     title: 'async immediately invoked expression (@!>)'
@@ -125,14 +125,14 @@ function * iterIIAsyncFuncExpressions() ::
       '@!> ::'
       '  await stmt_a'
       '  await stmt_b'
-    tokens: @[] '(', 'name', '(', ')', '=>', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '(', ')'
+    tokens: @[] '(', '(', 'name', '(', ')', '=>', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '(', ')', ')'
 
 
 function * iterIIGeneratorExpressions(variant='@!*') ::
   yield @{}
     title: `immediately invoked generator expression (${variant})`
     source: `${variant} yield expression_body`
-    tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'function', '*', '(', ')', '{', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `immediately invoked generator expression - two lines (${variant})`
@@ -140,7 +140,7 @@ function * iterIIGeneratorExpressions(variant='@!*') ::
       variant
       '  yield stmt_a'
       '  yield stmt_b'
-    tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `immediately invoked generator expression (${variant})`
@@ -148,7 +148,7 @@ function * iterIIGeneratorExpressions(variant='@!*') ::
       `${variant} ::`
       '  yield stmt_a'
       '  yield stmt_b'
-    tokens: @[] '(', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
 
 
@@ -156,7 +156,7 @@ function * iterIIAsyncGeneratorExpressions(variant='@!>*') ::
   yield @{}
     title: `async immediately invoked generator expression (${variant})`
     source: `${variant} yield await expression_body`
-    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `async immediately invoked generator expression - two lines (${variant})`
@@ -164,7 +164,7 @@ function * iterIIAsyncGeneratorExpressions(variant='@!>*') ::
       variant
       '  yield await stmt_a'
       '  yield await stmt_b'
-    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `async immediately invoked generator expression (${variant})`
@@ -172,7 +172,7 @@ function * iterIIAsyncGeneratorExpressions(variant='@!>*') ::
       `${variant} ::`
       '  yield await stmt_a'
       '  yield await stmt_b'
-    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'name', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
 
 

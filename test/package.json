@@ -5,11 +5,11 @@
   },
   "devDependencies": {
     "acorn": "^5.7.1",
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "mocha": "^5.2.0",
-    "rollup": "^0.66.0",
-    "rollup-plugin-commonjs": "^9.1.5",
-    "rollup-plugin-node-resolve": "^3.3.0"
+    "rollup": "^0.68.1",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0"
   },
   "scripts": {
     "prebuild": "test -d ./node_modules || npm -s install",

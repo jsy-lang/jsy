@@ -271,7 +271,7 @@ function * iterArrowGeneratorCalls() ::
   yield @{}
     title: `call generator expression (@=>*)`
     source: `@=>* yield expression_body`
-    tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'function', '*', '(', ')', '{', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `call generator expression - two lines (@=>*)`
@@ -279,7 +279,7 @@ function * iterArrowGeneratorCalls() ::
       '@=>*'
       '  yield stmt_a'
       '  yield stmt_b'
-    tokens: @[] '(', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `call generator expression (@=>*)`
@@ -287,14 +287,14 @@ function * iterArrowGeneratorCalls() ::
       `@=>* ::`
       '  yield stmt_a'
       '  yield stmt_b'
-    tokens: @[] '(', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
 
 function * iterArrowAsyncGeneratorCalls() ::
   yield @{}
     title: `async call generator expression (@=>>*)`
     source: `@=>>* yield await expression_body`
-    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `async call generator expression - two lines (@=>>*)`
@@ -302,7 +302,7 @@ function * iterArrowAsyncGeneratorCalls() ::
       '@=>>*'
       '  yield await stmt_a'
       '  yield await stmt_b'
-    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'name', 'function', '*', '(', ')', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', ')', '.', 'name', '(', 'this', ')', ')'
 
   yield @{}
     title: `async call generator expression (@=>>*)`
@@ -310,5 +310,5 @@ function * iterArrowAsyncGeneratorCalls() ::
       `@=>>* ::`
       '  yield await stmt_a'
       '  yield await stmt_b'
-    tokens: @[] '(', 'name', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')'
+    tokens: @[] '(', '(', 'name', 'function', '*', '(', ')', '{', '{', 'name', 'name', 'name', 'name', 'name', 'name', '}', '}', ')', '.', 'name', '(', 'this', ')', ')'
 

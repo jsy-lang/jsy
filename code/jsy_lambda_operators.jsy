@@ -23,13 +23,13 @@ export const at_lambda_iife_offside = @[]
   @{} jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'
 
   @{} jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
-      pre: '(()=>', post: ')()',
+      pre: '((()=>', post: ')())',
       opResolve(p) ::
         const [_, suffix] = p.content.match(this.jsy_op)
         return tableOpResolve @ iife_arrow_tbl, '', suffix
 
   @{} jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
-      pre: '(()=>{', post: '})()',
+      pre: '((()=>{', post: '})())',
       opResolve(p) ::
         const [_, suffix] = p.content.match(this.jsy_op)
         return tableOpResolve @ iife_expr_tbl, '', suffix
@@ -44,9 +44,9 @@ export default [].concat @
 const lambda_block_tbl = @{}
   '': a => @: pre: `((${a}) => {`, post: '})'
   '>': a => @: pre: `(async (${a}) => {`, post: '})'
-  '>*': a => @: pre: `(async function * (${a}) {`, post: '}).bind(this)'
-  '*>': a => @: pre: `(async function * (${a}) {`, post: '}).bind(this)'
-  '*': a => @: pre: `(function * (${a}) {`, post: '}).bind(this)'
+  '>*': a => @: pre: `((async function * (${a}) {`, post: '}).bind(this))'
+  '*>': a => @: pre: `((async function * (${a}) {`, post: '}).bind(this))'
+  '*': a => @: pre: `((function * (${a}) {`, post: '}).bind(this))'
 
 const lambda_arrow_tbl = @{}
   __proto__: lambda_block_tbl
@@ -55,16 +55,16 @@ const lambda_arrow_tbl = @{}
 
 
 const iife_expr_tbl = @{}
-  '': a => @: pre: `((${a}) => {`, post: '})()'
-  '>': a => @: pre: `(async (${a}) => {`, post: '})()'
-  '>*': a => @: pre: `(async function * (${a}) {`, post: '}).call(this)'
-  '*>': a => @: pre: `(async function * (${a}) {`, post: '}).call(this)'
-  '*': a => @: pre: `(function * (${a}) {`, post: '}).call(this)'
+  '': a => @: pre: `(((${a}) => {`, post: '})())'
+  '>': a => @: pre: `((async (${a}) => {`, post: '})())'
+  '>*': a => @: pre: `((async function * (${a}) {`, post: '}).call(this))'
+  '*>': a => @: pre: `((async function * (${a}) {`, post: '}).call(this))'
+  '*': a => @: pre: `((function * (${a}) {`, post: '}).call(this))'
 
 const iife_arrow_tbl = @{}
   __proto__: lambda_block_tbl
-  '': a => @: pre: `((${a}) =>`, post: ')()', implicitCommas: true
-  '>': a => @: pre: `(async (${a}) =>`, post: ')()', implicitCommas: true
+  '': a => @: pre: `(((${a}) =>`, post: ')())', implicitCommas: true
+  '>': a => @: pre: `((async (${a}) =>`, post: ')())', implicitCommas: true
 
 
 function tableOpResolve(table, args, suffix) ::
