@@ -150,9 +150,17 @@ const transpile_visitor = @{}
   checkOptionalComma
 
   stack_push(op, p) ::
+    if op.foldTop && this.head.isFoldable ::
+      this.stack_pop()
+
+    if null === op.post ::
+      if op.pre :: this.emit @ op.pre
+      return
+
     const {len_indent, loc} = p
     const head = @{} __proto__: this.head
       op, len_indent, loc
+      isFoldable: op.isFoldable
       nestBreak: op.nestBreak
 
     if true === op.implicitCommas ::
