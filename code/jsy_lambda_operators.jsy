@@ -1,44 +1,3 @@
-export const at_lambda_offside = @[]
-  @{} jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
-      pre: '(()=>', post: ')',
-      opResolve(p) ::
-        const [_, suffix] = p.content.match(this.jsy_op)
-        return tableOpResolve @ lambda_arrow_tbl, '', suffix
-
-  @{} jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
-      pre: '(()=>', post: ')', implicitCommas: true,
-      opResolve(p) ::
-        const [_, args, suffix] = p.content.match(this.jsy_op)
-        return tableOpResolve @ lambda_arrow_tbl, args, suffix
-
-  @{} jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
-      pre: '(()=>{', post: '})',
-      opResolve(p) ::
-        const [_, args, suffix] = p.content.match(this.jsy_op)
-        return tableOpResolve @ lambda_block_tbl, args, suffix
-
-
-export const at_lambda_iife_offside = @[]
-  @{} jsy_op: '::!', pre: ';(()=>{', post: '})();'
-  @{} jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'
-
-  @{} jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
-      pre: '((()=>', post: ')())',
-      opResolve(p) ::
-        const [_, suffix] = p.content.match(this.jsy_op)
-        return tableOpResolve @ iife_arrow_tbl, '', suffix
-
-  @{} jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
-      pre: '((()=>{', post: '})())',
-      opResolve(p) ::
-        const [_, suffix] = p.content.match(this.jsy_op)
-        return tableOpResolve @ iife_expr_tbl, '', suffix
-
-
-export default [].concat @
-  at_lambda_offside
-  at_lambda_iife_offside
-
 
 
 const lambda_block_tbl = @{}
@@ -62,16 +21,54 @@ const iife_expr_tbl = @{}
   '*': a => @: pre: `((function * (${a}) {`, post: '}).call(this))'
 
 const iife_arrow_tbl = @{}
-  __proto__: lambda_block_tbl
+  __proto__: iife_expr_tbl
   '': a => @: pre: `(((${a}) =>`, post: ')())', implicitCommas: true
   '>': a => @: pre: `((async (${a}) =>`, post: ')())', implicitCommas: true
 
 
-function tableOpResolve(table, args, suffix) ::
-  const entry = table[ suffix || '' ]
-  if undefined === entry ::
-    throw new SyntaxError @ `JSY lambda expression unrecognized specifier ("${suffix}")`
+const bindOpResolve = (table, withArgs) =>
+  function opResolve(p) ::
+    const [_, m1, m2] = p.content.match(this.jsy_op)
+    const args = withArgs ? m1 || '' : ''
+    const suffix = (withArgs ? m2 : m1) || ''
 
-  return entry(args)
+    const entry = table[suffix]
+    if undefined === entry ::
+      throw new SyntaxError @ `JSY lambda expression unrecognized specifier ("${suffix}")`
+
+    return entry(args)
+
+
+
+export const at_lambda_offside = @[]
+  @{} jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
+      pre: '(()=>', post: ')',
+      opResolve: bindOpResolve @ lambda_arrow_tbl
+
+  @{} jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
+      pre: '(()=>', post: ')', implicitCommas: true,
+      opResolve: bindOpResolve @ lambda_arrow_tbl, true
+
+  @{} jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindOpResolve @ lambda_block_tbl, true
+
+
+export const at_lambda_iife_offside = @[]
+  @{} jsy_op: '::!', pre: ';(()=>{', post: '})();'
+  @{} jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'
+
+  @{} jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
+      pre: '((()=>', post: ')())',
+      opResolve: bindOpResolve @ iife_arrow_tbl
+
+  @{} jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
+      pre: '((()=>{', post: '})())',
+      opResolve: bindOpResolve @ iife_expr_tbl
+
+
+export default [].concat @
+  at_lambda_offside
+  at_lambda_iife_offside
 
 
