@@ -58,6 +58,14 @@ export const at_lambda_iife_offside = @[]
   @{} jsy_op: '::!', pre: ';(()=>{', post: '})();'
   @{} jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'
 
+  @{} jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
+      pre: '((()=>', post: ')())',
+      opResolve: bindOpResolve @ iife_expr_tbl, true
+
+  @{} jsy_op0: '@!\\=>', jsy_op: /@!\\(.*?)=>(>?\*?)/,
+      pre: '((()=>', post: ')())',
+      opResolve: bindOpResolve @ iife_arrow_tbl, true
+
   @{} jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
       pre: '((()=>', post: ')())',
       opResolve: bindOpResolve @ iife_arrow_tbl
