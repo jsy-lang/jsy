@@ -1,0 +1,39 @@
+// Allow use of ';' prefix to JSY operators to foldTop and perform operation
+
+export const at_foldTop = @[]
+  @{} jsy_op0: ';', jsy_op: /;([^@;\s\w]+)/
+    pre: ' ', post: null, foldTop: true
+    opResolve: p => @: pre: ' '+p.op_args[0], post: null, foldTop: true
+
+export function at_prefixFoldTop(at_op) ::
+  let {jsy_op0, jsy_op} = at_op
+  if ! /^[@?]/.test @ jsy_op0 || jsy_op ::
+    return
+
+  if undefined === jsy_op0 ::
+    jsy_op = ';' + jsy_op
+    return @{} ...at_op,
+      jsy_op, foldTop: true
+
+
+  if 'function' !== typeof jsy_op.exec ::
+    throw new Error @ 'Unexpected jsy_op type'
+
+  jsy_op0 = ';' + jsy_op0
+  jsy_op = new RegExp @ `;${jsy_op.source}`, jsy_op.flags
+
+  if 'function' === typeof at_op.opResolve ::
+    return @{} ...at_op,
+      jsy_op0, jsy_op, foldTop: true
+      opResolve: p => @: ... at_op.opResolve(p), foldTop: true
+
+
+export function apply_prefixFoldTop(... args) ::
+  const res = []
+  for const at_op_list of args ::
+    for const at_op of at_op_list ::
+      const ea = at_prefixFoldTop @ at_op
+      if undefined !== ea ::
+        res.push @ ea
+  return res
+

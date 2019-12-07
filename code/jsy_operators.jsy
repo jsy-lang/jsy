@@ -1,4 +1,5 @@
 import at_lambda_offside from './jsy_lambda_operators.jsy'
+import { at_foldTop, apply_prefixFoldTop } from './jsy_foldTop_operators.jsy'
 
 // Order matters here -- list more specific matchers higher (first) in the order
 export const at_outer_offside = @[]
@@ -43,7 +44,13 @@ export const at_experimental = @[]
 
 export const at_inner_offside = [].concat @
   at_inner_offside_basic
+  apply_prefixFoldTop @ at_inner_offside_basic
+
   at_lambda_offside
+  apply_prefixFoldTop @ at_lambda_offside
+
+  at_foldTop
+
   at_experimental_inner_offside_folded
 
 
