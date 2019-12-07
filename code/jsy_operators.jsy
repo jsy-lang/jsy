@@ -18,6 +18,15 @@ export const at_inner_offside_basic = @[]
 
 
 
+export const at_experimental_optional_chaining = @[]
+  @{} jsy_op: '?@:', pre: '?.({', post: '})', implicitCommas: true, isFoldable: true
+  @{} jsy_op: '?@#', pre: '?.([', post: '])', implicitCommas: true, isFoldable: true
+  @{} jsy_op: '?@()', pre: '?.(', post: ')', implicitCommas: true, isFoldable: true
+  @{} jsy_op: '?@[]', pre: '?.[', post: ']', implicitCommas: true, isFoldable: true
+  @{} jsy_op: '?@', pre: '?.(', post: ')', implicitCommas: true, isFoldable: true
+
+
+
 const deprecated_suffix_offside_fold = @{}
   warn({op}) :: warn_deprecated @ 'suffix offside fold experiment in v0.6.0.  ', {op}
 
@@ -50,6 +59,9 @@ export const at_inner_offside = [].concat @
   apply_prefixFoldTop @ at_lambda_offside
 
   at_foldTop
+
+  at_experimental_optional_chaining
+  apply_prefixFoldTop @ at_experimental_optional_chaining
 
   at_experimental_inner_offside_folded
 
