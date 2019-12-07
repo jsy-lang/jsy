@@ -14,7 +14,7 @@ export const rx_keyword_ops = new RegExp @
   , 'g' // global regexp for lastIndex support
 
 
-const rx_escape_offside_ops = /[|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
+const rx_escape_offside_ops = /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
 const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
 const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
 
