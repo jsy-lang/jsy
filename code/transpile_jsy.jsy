@@ -202,19 +202,28 @@ const transpile_visitor = @{}
     this.stack_push @ kw_op, p
 
   v$jsy_op(p) ::
-    const jsy_op = at_offside_map[p.op]
+    this._jsy_op @ at_offside_map[p.op], p
 
+  v$jsy_op_args(p) ::
+    this._jsy_op @ at_offside_map[p.op], p
+
+  _jsy_op(jsy_op, p) ::
+    if ! jsy_op ::
+      throw new Error @ `JSY op handler not found for "${p.op}"`
+
+    if jsy_op.warn :: jsy_op.warn(p)
+
+    if jsy_op.opResolve ::
+      jsy_op = validate_jsy_op_item @ jsy_op.opResolve(p)
+      if jsy_op.warn :: jsy_op.warn(p)
+
+    this._jsy_op_exec(jsy_op, p)
+
+  _jsy_op_exec(jsy_op, p) ::
     if jsy_op.is_kw_close ::
       this._dedent_nested_block(p)
 
     this.stack_push @ jsy_op, p
-
-  v$jsy_op_args(p) ::
-    const jsy_op_args = at_offside_map[p.op]
-    const item = jsy_op_args.opResolve(p)
-    if 'string' !== typeof item.pre || 'string' !== typeof item.post ::
-      throw new Error @ 'Invalid jsy_op_args.opResolve result'
-    this.stack_push @ item, p
 
 
   _dedent_nested_block(p) ::
@@ -360,7 +369,15 @@ const transpile_visitor = @{}
 function raw_src(p) :: this.emit_raw @ p.content
 function direct_src(p) :: this.emit @ p.content, p.loc.start
 
+function validate_jsy_op_item(jsy_op_item) ::
+  const {pre, post} = jsy_op_item
 
+  if null !== pre && 'string' !== typeof pre ::
+    throw new Error @ 'Invalid resolved jsy_op_item.pre result'
+  if null !== post && 'string' !== typeof post ::
+    throw new Error @ 'Invalid resolved jsy_op_item.post result'
+
+  return jsy_op_item
 
 export function sourcemap_comment(srcmap_json) ::
   if 'string' !== typeof srcmap_json ::

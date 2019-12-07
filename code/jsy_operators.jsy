@@ -1,3 +1,5 @@
+import at_lambda_offside from './jsy_lambda_operators.jsy'
+
 // Order matters here -- list more specific matchers higher (first) in the order
 export const at_outer_offside = @[]
   @{} jsy_op: '::()', pre: '(', post: ')', nestBreak: true
@@ -5,7 +7,7 @@ export const at_outer_offside = @[]
   @{} jsy_op: '::[]', pre: '[', post: ']', nestBreak: true
   @{} jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true
 
-export const at_inner_offside = @[]
+export const at_inner_offside_basic = @[]
   @{} jsy_op: '@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true
   @{} jsy_op: '@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true
   @{} jsy_op: '@()', pre: '(', post: ')', implicitCommas: true, isFoldable: true
@@ -13,31 +15,42 @@ export const at_inner_offside = @[]
   @{} jsy_op: '@[]', pre: '[', post: ']', implicitCommas: true, isFoldable: true
   @{} jsy_op: '@', pre: '(', post: ')', implicitCommas: true, isFoldable: true
 
+
+
+const deprecated_suffix_offside_fold = @{}
+  warn({op}) :: warn_deprecated @ 'suffix offside fold experiment in v0.6.0.  ', {op}
+
 export const at_experimental_inner_offside_folded = @[]
   /* experimental ideas; may be removed at any time */
-  @{} jsy_op: '@@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true, foldTop: true
-  @{} jsy_op: '@@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true, foldTop: true
-  @{} jsy_op: '@@()', pre: '(', post: ')', implicitCommas: true, isFoldable: true, foldTop: true
-  @{} jsy_op: '@@{}', pre: '{', post: '}', implicitCommas: true, isFoldable: true, foldTop: true
-  @{} jsy_op: '@@[]', pre: '[', post: ']', implicitCommas: true, isFoldable: true, foldTop: true
-  @{} jsy_op: '@@', pre: '(', post: ')', implicitCommas: true, isFoldable: true, foldTop: true
-  @{} jsy_op: '@;', pre: ' ', post: null, foldTop: true
-  @{} jsy_op: '@;,', pre: ', ', post: null, foldTop: true
-  @{} jsy_op: '@,', pre: ', ', post: null, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@@', pre: '(', post: ')', implicitCommas: true, isFoldable: true, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@,', pre: ', ', post: null, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true
 
-import at_lambda_offside from './jsy_lambda_operators.jsy'
+
+const deprecated_functional_composition_experiment = @{}
+  warn({op}) :: warn_deprecated @ 'functional composition experiment in v0.6.0.  ', {op}
 
 export const at_experimental = @[]
   /* experimental ideas; may be removed at any time */
-  @{} jsy_op: '@|>', pre: '([', post: '].reduce((v,f)=>f(v)))', implicitCommas: true
-  @{} jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true
+  @{} ... deprecated_functional_composition_experiment, jsy_op: '@|>', pre: '([', post: '].reduce((v,f)=>f(v)))', implicitCommas: true
+  @{} ... deprecated_functional_composition_experiment, jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true
+
+
+
+
+export const at_inner_offside = [].concat @
+  at_inner_offside_basic
+  at_lambda_offside
+  at_experimental_inner_offside_folded
+
 
 
 export const at_offside = [].concat @
   at_outer_offside
   at_inner_offside
-  at_experimental_inner_offside_folded
-  at_lambda_offside
   at_experimental
 
 export const at_offside_map = at_offside.reduce @
@@ -62,4 +75,14 @@ export const keywords_locator_parts = [].concat @
   keywords_with_args.map @ e => `else ${e}`
   keywords_with_args
   @[] 'catch'
+
+
+
+const dep_warn_style = @ 'undefined' === typeof HTMLElement
+  ? @[] '%s', '\x1b[33m', '\x1b[0m'
+  : @[] '%c', 'color: red', ''
+
+function warn_deprecated(msg, ...args) ::
+  const [c, s, e] = dep_warn_style
+  console.warn(`${c}DEPRECATED: ${msg}${c}`, s, ...args, e)
 
