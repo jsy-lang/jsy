@@ -1,7 +1,9 @@
 // Allow use of ';' prefix to JSY operators to foldTop and perform operation
 
 export const at_foldTop = @[]
-  @{} jsy_op0: ';', jsy_op: /;([^@;\s\w]+)/
+  @{} jsy_op: ';::', pre: ' {', post: '}', foldTop: true
+
+  @{} jsy_op0: ';', jsy_op: @ /;([-+*\/%^<>&|!?=,.:]+)/
     pre: ' ', post: null, foldTop: true
     opResolve: p => @: pre: ' '+p.op_args[0], post: null, foldTop: true
 
