@@ -1,53 +1,9 @@
-const at_lambda_offside =[
-  {jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
-      pre: '(()=>', post: ')',
-      opResolve(p) {
-        const [_, suffix] = p.content.match(this.jsy_op);
-        return tableOpResolve(lambda_arrow_tbl, '', '', suffix) } }
-
-, {jsy_op0: '@\\=>', jsy_op: /@\\(>?\*?)(.*?)=>(>?\*?)/,
-      pre: '(()=>', post: ')', implicitCommas: true,
-      opResolve(p) {
-        const [_, prefix, args, suffix] = p.content.match(this.jsy_op);
-        return tableOpResolve(lambda_arrow_tbl, args, prefix, suffix) } }
-
-, {jsy_op0: '@\\::', jsy_op: /@\\(>?\*?)(.*?)::/,
-      pre: '(()=>{', post: '})',
-      opResolve(p) {
-        const [_, prefix, args] = p.content.match(this.jsy_op);
-        return tableOpResolve(lambda_block_tbl, args, prefix, '') } } ];
-
-
-const at_lambda_iife_offside =[
-  {jsy_op: '::!', pre: ';(()=>{', post: '})();'}
-, {jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'}
-
-, {jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
-      pre: '(()=>', post: ')()',
-      opResolve(p) {
-        const [_, suffix] = p.content.match(this.jsy_op);
-        const ans = tableOpResolve(iife_arrow_tbl, '', '', suffix);
-        return tableOpResolve(iife_arrow_tbl, '', '', suffix) } }
-
-, {jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
-      pre: '(()=>{', post: '})()',
-      opResolve(p) {
-        const [_, suffix] = p.content.match(this.jsy_op);
-        return tableOpResolve(iife_expr_tbl, '', '', suffix) } } ];
-
-
-var at_lambda_offside$1 = [].concat(
-  at_lambda_offside
-, at_lambda_iife_offside);
-
-
-
 const lambda_block_tbl ={
   '': a =>({pre: `((${a}) => {`, post: '})'})
 , '>': a =>({pre: `(async (${a}) => {`, post: '})'})
-, '>*': a =>({pre: `(async function * (${a}) {`, post: '}).bind(this)'})
-, '*>': a =>({pre: `(async function * (${a}) {`, post: '}).bind(this)'})
-, '*': a =>({pre: `(function * (${a}) {`, post: '}).bind(this)'}) };
+, '>*': a =>({pre: `((async function * (${a}) {`, post: '}).bind(this))'})
+, '*>': a =>({pre: `((async function * (${a}) {`, post: '}).bind(this))'})
+, '*': a =>({pre: `((function * (${a}) {`, post: '}).bind(this))'}) };
 
 const lambda_arrow_tbl ={
   __proto__: lambda_block_tbl
@@ -56,27 +12,111 @@ const lambda_arrow_tbl ={
 
 
 const iife_expr_tbl ={
-  '': a =>({pre: `((${a}) => {`, post: '})()'})
-, '>': a =>({pre: `(async (${a}) => {`, post: '})()'})
-, '>*': a =>({pre: `(async function * (${a}) {`, post: '}).call(this)'})
-, '*>': a =>({pre: `(async function * (${a}) {`, post: '}).call(this)'})
-, '*': a =>({pre: `(function * (${a}) {`, post: '}).call(this)'}) };
+  '': a =>({pre: `(((${a}) => {`, post: '})())'})
+, '>': a =>({pre: `((async (${a}) => {`, post: '})())'})
+, '>*': a =>({pre: `((async function * (${a}) {`, post: '}).call(this))'})
+, '*>': a =>({pre: `((async function * (${a}) {`, post: '}).call(this))'})
+, '*': a =>({pre: `((function * (${a}) {`, post: '}).call(this))'}) };
 
 const iife_arrow_tbl ={
-  __proto__: lambda_block_tbl
-, '': a =>({pre: `((${a}) =>`, post: ')()', implicitCommas: true})
-, '>': a =>({pre: `(async (${a}) =>`, post: ')()', implicitCommas: true}) };
+  __proto__: iife_expr_tbl
+, '': a =>({pre: `(((${a}) =>`, post: ')())', implicitCommas: true})
+, '>': a =>({pre: `((async (${a}) =>`, post: ')())', implicitCommas: true}) };
 
 
-function tableOpResolve(table, args, prefix, suffix) {
-  if (prefix && suffix) {
-    throw new SyntaxError(`JSY lambda expression overspecified ("${prefix}" and "${suffix}")`) }
+const bindOpResolve = (table, withArgs) =>
+  function opResolve(p) {
+    const [_, m1, m2] = p.content.match(this.jsy_op);
+    const args = withArgs ? m1 || '' : '';
+    const suffix = (withArgs ? m2 : m1) || '';
 
-  const entry = table[ prefix || suffix || '' ];
-  if (undefined === entry) {
-    throw new SyntaxError(`JSY lambda expression unrecognized specifier ("${prefix || suffix}")`) }
+    const entry = table[suffix];
+    if (undefined === entry) {
+      throw new SyntaxError(`JSY lambda expression unrecognized specifier ("${suffix}")`) }
 
-  return entry(args)}
+    return entry(args)};
+
+
+
+const at_lambda_offside =[
+  {jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
+      pre: '(()=>', post: ')',
+      opResolve: bindOpResolve(lambda_arrow_tbl) }
+
+, {jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
+      pre: '(()=>', post: ')', implicitCommas: true,
+      opResolve: bindOpResolve(lambda_arrow_tbl, true) }
+
+, {jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindOpResolve(lambda_block_tbl, true) } ];
+
+
+const at_lambda_iife_offside =[
+  {jsy_op: '::!', pre: ';(()=>{', post: '})();'}
+, {jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'}
+
+, {jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
+      pre: '((()=>', post: ')())',
+      opResolve: bindOpResolve(iife_expr_tbl, true) }
+
+, {jsy_op0: '@!\\=>', jsy_op: /@!\\(.*?)=>(>?\*?)/,
+      pre: '((()=>', post: ')())',
+      opResolve: bindOpResolve(iife_arrow_tbl, true) }
+
+, {jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
+      pre: '((()=>', post: ')())',
+      opResolve: bindOpResolve(iife_arrow_tbl) }
+
+, {jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
+      pre: '((()=>{', post: '})())',
+      opResolve: bindOpResolve(iife_expr_tbl) } ];
+
+
+var at_lambda_offside$1 = [].concat(
+  at_lambda_offside
+, at_lambda_iife_offside);
+
+// Allow use of ';' prefix to JSY operators to foldTop and perform operation
+
+const at_foldTop =[
+  {jsy_op: ';::', pre: ' {', post: '}', foldTop: true}
+
+, {jsy_op0: ';', jsy_op:(/;([-+*\/%^<>&|!?=,.:]+)/)
+  , pre: ' ', post: null, foldTop: true
+  , opResolve: p =>({pre: ' '+p.op_args[0], post: null, foldTop: true}) } ];
+
+function at_prefixFoldTop(at_op) {
+  let {jsy_op0, jsy_op} = at_op;
+  if  (! /^[@?]/.test(jsy_op0 || jsy_op) ) {
+    return}
+
+  if (undefined === jsy_op0) {
+    jsy_op = ';' + jsy_op;
+    return {...at_op,
+      jsy_op, foldTop: true} }
+
+
+  if  ('function' !== typeof jsy_op.exec) {
+    throw new Error('Unexpected jsy_op type') }
+
+  jsy_op0 = ';' + jsy_op0;
+  jsy_op = new RegExp(`;${jsy_op.source}`, jsy_op.flags);
+
+  if  ('function' === typeof at_op.opResolve) {
+    return {...at_op,
+      jsy_op0, jsy_op, foldTop: true
+    , opResolve: p =>({... at_op.opResolve(p), foldTop: true}) } } }
+
+
+function apply_prefixFoldTop(... args) {
+  const res = [];
+  for (const at_op_list of args) {
+    for (const at_op of at_op_list) {
+      const ea = at_prefixFoldTop(at_op);
+      if (undefined !== ea) {
+        res.push(ea); } } }
+  return res}
 
 // Order matters here -- list more specific matchers higher (first) in the order
 const at_outer_offside =[
@@ -85,24 +125,68 @@ const at_outer_offside =[
 , {jsy_op: '::[]', pre: '[', post: ']', nestBreak: true}
 , {jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true} ];
 
-const at_inner_offside =[
-  {jsy_op: '@:', pre: '({', post: '})', implicitCommas: true}
-, {jsy_op: '@#', pre: '([', post: '])', implicitCommas: true}
-, {jsy_op: '@()', pre: '(', post: ')', implicitCommas: true}
-, {jsy_op: '@{}', pre: '{', post: '}', implicitCommas: true}
-, {jsy_op: '@[]', pre: '[', post: ']', implicitCommas: true}
-, {jsy_op: '@', pre: '(', post: ')', implicitCommas: true} ];
+const at_inner_offside_basic =[
+  {jsy_op: '@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true}
+, {jsy_op: '@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true}
+, {jsy_op: '@()', pre: '(', post: ')', implicitCommas: true, isFoldable: true}
+, {jsy_op: '@{}', pre: '{', post: '}', implicitCommas: true, isFoldable: true}
+, {jsy_op: '@[]', pre: '[', post: ']', implicitCommas: true, isFoldable: true}
+, {jsy_op: '@', pre: '(', post: ')', implicitCommas: true, isFoldable: true} ];
+
+
+
+const at_experimental_optional_chaining =[
+  {jsy_op: '?@:', pre: '?.({', post: '})', implicitCommas: true, isFoldable: true}
+, {jsy_op: '?@#', pre: '?.([', post: '])', implicitCommas: true, isFoldable: true}
+, {jsy_op: '?@()', pre: '?.(', post: ')', implicitCommas: true, isFoldable: true}
+, {jsy_op: '?@[]', pre: '?.[', post: ']', implicitCommas: true, isFoldable: true}
+, {jsy_op: '?@', pre: '?.(', post: ')', implicitCommas: true, isFoldable: true} ];
+
+
+
+const deprecated_suffix_offside_fold ={
+  warn({op}) {warn_deprecated('suffix offside fold experiment in v0.6.0.  ', {op});} };
+
+const at_experimental_inner_offside_folded =[
+  /* experimental ideas; may be removed at any time */
+  {... deprecated_suffix_offside_fold, jsy_op: '@@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true, foldTop: true}
+, {... deprecated_suffix_offside_fold, jsy_op: '@@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true, foldTop: true}
+, {... deprecated_suffix_offside_fold, jsy_op: '@@', pre: '(', post: ')', implicitCommas: true, isFoldable: true, foldTop: true}
+, {... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true}
+, {... deprecated_suffix_offside_fold, jsy_op: '@,', pre: ', ', post: null, foldTop: true}
+, {... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true} ];
+
+
+const deprecated_functional_composition_experiment ={
+  warn({op}) {warn_deprecated('functional composition experiment in v0.6.0.  ', {op});} };
 
 const at_experimental =[
   /* experimental ideas; may be removed at any time */
-  {jsy_op: '@|>', pre: '([', post: '].reduce((v,f)=>f(v)))', implicitCommas: true}
-, {jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true} ];
+  {... deprecated_functional_composition_experiment, jsy_op: '@|>', pre: '([', post: '].reduce((v,f)=>f(v)))', implicitCommas: true}
+, {... deprecated_functional_composition_experiment, jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true} ];
+
+
+
+
+const at_inner_offside = [].concat(
+  at_inner_offside_basic
+, apply_prefixFoldTop(at_inner_offside_basic)
+
+, at_lambda_offside$1
+, apply_prefixFoldTop(at_lambda_offside$1)
+
+, at_foldTop
+
+, at_experimental_optional_chaining
+, apply_prefixFoldTop(at_experimental_optional_chaining)
+
+, at_experimental_inner_offside_folded);
+
 
 
 const at_offside = [].concat(
   at_outer_offside
 , at_inner_offside
-, at_lambda_offside$1
 , at_experimental);
 
 const at_offside_map = at_offside.reduce(
@@ -127,6 +211,16 @@ const keywords_locator_parts = [].concat(
   keywords_with_args.map(e => `else ${e}`)
 , keywords_with_args
 , ['catch'] );
+
+
+
+const dep_warn_style =('undefined' === typeof HTMLElement
+  ?['%s', '\x1b[33m', '\x1b[0m']
+  :['%c', 'color: red', ''] );
+
+function warn_deprecated(msg, ...args) {
+  const [c, s, e] = dep_warn_style;
+  console.warn(`${c}DEPRECATED: ${msg}${c}`, s, ...args, e);}
 
 const rx_all_space = /^[ \t]*$/ ;
 
@@ -237,13 +331,13 @@ function bindAnswerFor(defines) {
 const rx_punct = /[,.;:?]/;
 const rx_binary_ops = /\&\&|\|\|/;
 
-const rx_disrupt_comma_tail = (()=>{ {
+const rx_disrupt_comma_tail = ((() => { {
   const opts =[rx_punct, /=>/, /[+-]/, rx_binary_ops];
-  return new RegExp(join_rx(opts) + '\\s*$') } })();
+  return new RegExp(join_rx(opts) + '\\s*$') } })());
 
-const rx_disrupt_comma_head = (()=>{ {
+const rx_disrupt_comma_head = ((() => { {
   const opts =[rx_punct, rx_binary_ops];
-  return new RegExp('^\\s*' + join_rx(opts)) } })();
+  return new RegExp('^\\s*' + join_rx(opts)) } })());
 
 const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
 function checkOptionalComma(op, pre_body, post_body) {
@@ -287,7 +381,7 @@ const rx_keyword_ops = new RegExp(
   , 'g' );// global regexp for lastIndex support
 
 
-const rx_escape_offside_ops = /[|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
+const rx_escape_offside_ops = /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
 const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
 const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
 
@@ -992,7 +1086,7 @@ function bind_context_scanner(context_scanners) {
 
 
 function compile_context_scanner(context_scanners) {
-  const ds_first = build_composite_scanner(context_scanners);
+  const ds_first = build_composite_scanner();
   return context_scanner
 
   function context_scanner(offside_lines) {
@@ -1050,7 +1144,7 @@ function compile_context_scanner(context_scanners) {
 
 function scan_offside_contexts(source, feedback, disp_name, context_scanners) {
   // see scan_javascript and scan_clike for good context_scanners
-  const context_scanner = bind_context_scanner(disp_name, context_scanners);
+  const context_scanner = bind_context_scanner(disp_name);
   return context_scanner(basic_offside_scanner(source, feedback)) }
 
 const scanner_source =
@@ -1620,9 +1714,17 @@ const transpile_visitor ={
 , checkOptionalComma
 
 , stack_push(op, p) {
+    if (op.foldTop && this.head.isFoldable) {
+      this.stack_pop();}
+
+    if (null === op.post) {
+      if (op.pre) {this.emit(op.pre);}
+      return}
+
     const {len_indent, loc} = p;
     const head ={__proto__: this.head
     , op, len_indent, loc
+    , isFoldable: op.isFoldable
     , nestBreak: op.nestBreak};
 
     if (true === op.implicitCommas) {
@@ -1664,19 +1766,28 @@ const transpile_visitor ={
     this.stack_push(kw_op, p); }
 
 , v$jsy_op(p) {
-    const jsy_op = at_offside_map[p.op];
+    this._jsy_op(at_offside_map[p.op], p); }
 
+, v$jsy_op_args(p) {
+    this._jsy_op(at_offside_map[p.op], p); }
+
+, _jsy_op(jsy_op, p) {
+    if  (! jsy_op) {
+      throw new Error(`JSY op handler not found for "${p.op}"`) }
+
+    if (jsy_op.warn) {jsy_op.warn(p);}
+
+    if (jsy_op.opResolve) {
+      jsy_op = validate_jsy_op_item(jsy_op.opResolve(p));
+      if (jsy_op.warn) {jsy_op.warn(p);} }
+
+    this._jsy_op_exec(jsy_op, p);}
+
+, _jsy_op_exec(jsy_op, p) {
     if (jsy_op.is_kw_close) {
       this._dedent_nested_block(p);}
 
     this.stack_push(jsy_op, p); }
-
-, v$jsy_op_args(p) {
-    const jsy_op_args = at_offside_map[p.op];
-    const item = jsy_op_args.opResolve(p);
-    if  ('string' !== typeof item.pre || 'string' !== typeof item.post) {
-      throw new Error('Invalid jsy_op_args.opResolve result') }
-    this.stack_push(item, p); }
 
 
 , _dedent_nested_block(p) {
@@ -1822,7 +1933,15 @@ const transpile_visitor ={
 function raw_src(p) {this.emit_raw(p.content);}
 function direct_src(p) {this.emit(p.content, p.loc.start);}
 
+function validate_jsy_op_item(jsy_op_item) {
+  const {pre, post} = jsy_op_item;
 
+  if (null !== pre && 'string' !== typeof pre) {
+    throw new Error('Invalid resolved jsy_op_item.pre result') }
+  if (null !== post && 'string' !== typeof post) {
+    throw new Error('Invalid resolved jsy_op_item.post result') }
+
+  return jsy_op_item}
 
 function sourcemap_comment(srcmap_json) {
   if  ('string' !== typeof srcmap_json) {
