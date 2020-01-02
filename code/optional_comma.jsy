@@ -23,13 +23,24 @@ export function checkOptionalComma(op, pre_body, post_body) ::
 
   return a1 || a2
 
-function checkSyntax(expr) ::
-  // use built-in Function from source to check syntax
-  try ::
-    new Function @ `return ${expr}`
-    return true
-  catch err ::
+
+const checkSyntax = @!
+  const fn_flavors =
+    @[] 'function', 'function*', 'async function', 'async function*'
+    .map @ flavor => ::
+      try :: return Function(`return (${flavor}(){}).constructor`)()
+      catch err :: return null
+    .filter @ e => e
+
+  return function checkSyntax(expr) ::
+    for const FuncKind of fn_flavors ::
+      try ::
+        new FuncKind @ `return ${expr}`
+        return true
+      catch err ::
+
     return false
+
 
 function join_rx(rx_options, capture) ::
   const opts = Array.from(rx_options)
