@@ -49,6 +49,13 @@ export const at_experimental = @[]
   @{} ... deprecated_functional_composition_experiment, jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true
 
 
+export const at_unknown_ops = @[]
+  @{} jsy_op0: '?@', jsy_op: /\?@[^\w\s]+/,
+    opResolve(...args) :: console.error @ 'UNKNOWN', args
+  @{} jsy_op0: '::', jsy_op: /::[^\w\s]+/,
+    opResolve(...args) :: console.error @ 'UNKNOWN', args
+  @{} jsy_op0: '@', jsy_op: /@[^\w\s]+/,
+    opResolve(...args) :: console.error @ 'UNKNOWN', args
 
 
 export const at_inner_offside = [].concat @

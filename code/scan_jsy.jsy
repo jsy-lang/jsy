@@ -1,4 +1,4 @@
-import { rx_offside_ops, rx_keyword_ops } from './jsy_regexp.jsy'
+import { rx_offside_ops, rx_keyword_ops, rx_unknown_ops } from './jsy_regexp.jsy'
 import inject_dedent from './scanner/inject_dedent.jsy'
 import scan_jsx_javascript from './scanner/scan_jsx_javascript.jsy'
 
@@ -116,9 +116,23 @@ function transform_jsy_part(res, part, ln) ::
 
       res.push @ op_part
 
+  function _unknown_ops(content, loc_tip, idx0) ::
+    rx_unknown_ops.lastIndex = idx0
+    const op_unknown = rx_unknown_ops.exec(content)
+    if op_unknown ::
+      const op = op_unknown[0].trim()
+      const start = loc_tip
+      const end = loc_tip = loc_tip.move(op_unknown[0])
+      res.push @:
+        type: 'jsy_unknown', op
+        loc: @{} start, end
+        len_indent: ln.len_indent
+        content: op_unknown[0]
 
   function _inner(loc_tip, idx0, idx_content) ::
     const pre = part.content.slice(idx0, idx_content)
+    _unknown_ops(pre, loc_tip, idx0)
+
     const start = loc_tip
     const end = loc_tip.move(pre)
     res.push @ as_src_ast @ pre, start, end
@@ -127,6 +141,8 @@ function transform_jsy_part(res, part, ln) ::
   function _tail(loc_tip, idx0) ::
     const rest = part.content.slice(idx0)
     if rest ::
+      _unknown_ops(rest, loc_tip, idx0)
+
       const start = loc_tip
       const end = start.move(rest)
       res.push @ as_src_ast @ rest, start, end

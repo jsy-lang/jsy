@@ -1,4 +1,4 @@
-import {at_offside, keywords_locator_parts} from './jsy_operators.jsy'
+import {at_offside, at_unknown_ops, keywords_locator_parts} from './jsy_operators.jsy'
 
 const regexp_keyword = sz => ::
   sz = sz.replace(/[ ]+/g, '[ ]+') // allow one or more spaces
@@ -32,6 +32,13 @@ const regexp_from_offside_op = offside_op => ::
 
 export const rx_offside_ops = new RegExp @
   at_offside
+    .map(regexp_from_offside_op)
+    .filter(Boolean)
+    .join('|')
+  'g' // global regexp
+
+export const rx_unknown_ops = new RegExp @
+  at_unknown_ops
     .map(regexp_from_offside_op)
     .filter(Boolean)
     .join('|')

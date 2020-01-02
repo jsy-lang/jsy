@@ -18,19 +18,24 @@ async function main(filename) {
   const sourcemap = filename && SourceMapGenerator && new SourceMapGenerator()
   //sourcemap.setSourceContent(filename, jsy_src)
 
-  const src = jsy_transpile(jsy_src, {
-    addSourceMapping(arg) {
-      if (!sourcemap) return
-      arg.source = filename
-      sourcemap.addMapping(arg)
-    },
-    inlineSourceMap() {
-      if (!sourcemap) return
-      return sourcemap.toString()
-    }
-  })
+  try {
+    const src = jsy_transpile(jsy_src, {
+      addSourceMapping(arg) {
+        if (!sourcemap) return
+        arg.source = filename
+        sourcemap.addMapping(arg)
+      },
+      inlineSourceMap() {
+        if (!sourcemap) return
+        return sourcemap.toString()
+      }
+    })
 
-  process.stdout.write(src)
+    process.stdout.write(src)
+  } catch (err) {
+    console.error(err)
+    return
+  }
 }
 
 function read_stdin(stdin) {

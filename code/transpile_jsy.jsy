@@ -193,6 +193,9 @@ const transpile_visitor = @{}
     if src ::
       this.emit @ c ? ' '+src : src
 
+  v$jsy_unknown(p) ::
+    throw p.loc.start.syntaxError @
+      `JSY unknown operator "${p.op}"`
 
   v$jsy_kw(p) ::
     const kw_op = p.explicit
