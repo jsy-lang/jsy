@@ -81,19 +81,21 @@ function transform_jsy_keyword(res, idx, ln) ::
 
 
 function transform_jsy_part(res, part, ln) ::
-  rx_offside_ops.lastIndex = 0
+  ::
+    rx_offside_ops.lastIndex = 0
 
-  let loc_tip = part.loc.start
-  while true ::
-    let start = loc_tip, idx0 = rx_offside_ops.lastIndex
-    const op_match = rx_offside_ops.exec(part.content)
+    let loc_tip = part.loc.start
+    while true ::
+      let start = loc_tip, idx0 = rx_offside_ops.lastIndex
+      const op_match = rx_offside_ops.exec(part.content)
 
-    if null != op_match ::
+      if ! op_match ::
+        _tail(loc_tip, idx0)
+        return res
+
       if idx0 < op_match.index ::
-        const pre = part.content.slice(idx0, op_match.index)
-        const end = loc_tip = loc_tip.move(pre)
-        res.push @ as_src_ast @ pre, start, end
-        start = end; idx0 = rx_offside_ops.lastIndex
+        start = loc_tip = _inner(loc_tip, idx0, op_match.index)
+        idx0 = rx_offside_ops.lastIndex
 
 
       const op = op_match[0].trim()
@@ -114,13 +116,20 @@ function transform_jsy_part(res, part, ln) ::
 
       res.push @ op_part
 
-    else ::
-      const rest = part.content.slice(idx0)
-      if rest ::
-        const end = loc_tip = loc_tip.move(rest)
-        res.push @ as_src_ast @ rest, start, end
 
-      return res
+  function _inner(loc_tip, idx0, idx_content) ::
+    const pre = part.content.slice(idx0, idx_content)
+    const start = loc_tip
+    const end = loc_tip.move(pre)
+    res.push @ as_src_ast @ pre, start, end
+    return end
+
+  function _tail(loc_tip, idx0) ::
+    const rest = part.content.slice(idx0)
+    if rest ::
+      const start = loc_tip
+      const end = start.move(rest)
+      res.push @ as_src_ast @ rest, start, end
 
 function as_src_ast(content, start, end) ::
   return @{} type: 'src', loc: {start, end}, content
