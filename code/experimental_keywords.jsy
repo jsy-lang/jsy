@@ -1,0 +1,22 @@
+
+const kw_expansion = @{}
+  'elif': @{} pre: 'else if', post: ''
+  'unless': @{} pre: 'if (!', post: ')'
+  'else unless': @{} pre: 'else if (!', post: ')'
+
+function kwExpandOp(p) ::
+  const kw = kw_expansion[p.kw] || {pre: p.kw, post:''}
+  return @{} __proto__: this
+    pre: kw.pre + this.pre
+    post: this.post + kw.post
+
+const experimental_keywords_with_args = [] // @[] 'unless'
+const experimental_keywords_zero_args = [] // @[] 'elif'
+
+const keywords_locator_parts = [].concat @
+  keywords_with_args.map @ e => `else ${e}`
+  experimental_keywords_with_args.map @ e => `else ${e}`
+  keywords_with_args
+  experimental_keywords_with_args
+  keywords_zero_args
+  experimental_keywords_zero_args

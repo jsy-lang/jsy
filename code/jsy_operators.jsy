@@ -51,11 +51,8 @@ export const at_experimental = @[]
 
 export const at_unknown_ops = @[]
   @{} jsy_op0: '?@', jsy_op: /\?@[^\w\s]+/,
-    opResolve(...args) :: console.error @ 'UNKNOWN', args
   @{} jsy_op0: '::', jsy_op: /::[^\w\s]+/,
-    opResolve(...args) :: console.error @ 'UNKNOWN', args
   @{} jsy_op0: '@', jsy_op: /@[^\w\s]+/,
-    opResolve(...args) :: console.error @ 'UNKNOWN', args
 
 
 export const at_inner_offside = [].concat @
@@ -90,17 +87,22 @@ export const at_offside_map = at_offside.reduce @
   {}
 
 
+function kwExpandOp(p) ::
+  return @{} __proto__: this, pre: p.kw + this.pre
+
 export const extra_jsy_ops = @{}
-  kw_normal: @{} jsy_op: 'kw', pre: ' (', post: ')', in_nested_block: true
-  kw_explicit: @{} jsy_op: 'kw', pre: '', post: '', in_nested_block: true
+  kw_normal: @{} jsy_op: 'kw', pre: ' (', post: ')', kwExpandOp, in_nested_block: true
+  kw_explicit: @{} jsy_op: 'kw', pre: '', post: '', kwExpandOp, in_nested_block: true
   tmpl_param: @{} jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true
   jsx_param: @{} jsy_op: 'jsx_param', pre: '', post: '', in_nested_block: true
 
 export const keywords_with_args = @[] 'if', 'while', 'for await', 'for', 'switch'
+export const keywords_zero_args = @[] 'catch'
+
 export const keywords_locator_parts = [].concat @
   keywords_with_args.map @ e => `else ${e}`
   keywords_with_args
-  @[] 'catch'
+  keywords_zero_args
 
 
 

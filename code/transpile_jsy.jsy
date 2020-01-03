@@ -202,7 +202,7 @@ const transpile_visitor = @{}
       ? extra_jsy_ops.kw_explicit
       : extra_jsy_ops.kw_normal
 
-    this.stack_push @ kw_op, p
+    this.stack_push @ kw_op.kwExpandOp(p), p
 
   v$jsy_op(p) ::
     this._jsy_op @ at_offside_map[p.op], p

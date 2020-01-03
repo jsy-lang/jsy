@@ -53,16 +53,14 @@ function transform_jsy_keyword(res, idx, ln) ::
 
   rx_keyword_ops.lastIndex = 0
   const kw_match = rx_keyword_ops.exec(first.content)
-  if ! kw_match :: return
+  if ! kw_match :: return false
 
   const rest = kw_match.input.slice @ rx_keyword_ops.lastIndex
   if '(' === rest[0] ::
     return res // explicit keyword arguments
 
-  const kw_end = first.loc.start.move @ kw_match[0]
-
-  const pre_node = as_src_ast @ kw_match[0], first.loc.start, kw_end
-
+  const kw_start = first.loc.start
+  const kw_end = kw_start.move @ kw_match[0]
   const kw = kw_match[0].split(' ').filter(Boolean).join(' ')
 
   const after = rest ? null : res[1+idx]
@@ -70,14 +68,14 @@ function transform_jsy_keyword(res, idx, ln) ::
 
   const kw_node = @{}
     type: 'jsy_kw', kw, 
-    loc: @{} start: kw_end, end: kw_end
+    loc: @{} start: kw_start, end: kw_end
     len_indent: ln.len_indent
     explicit
 
   const post_node = as_src_ast @ rest, kw_end, first.loc.end
 
-  res.splice @ idx, 1, pre_node, kw_node, post_node
-
+  res.splice @ idx, 1, kw_node, post_node
+  return true
 
 
 function transform_jsy_part(res, part, ln) ::
