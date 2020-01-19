@@ -49,6 +49,10 @@ export const at_lambda_offside = @[]
       pre: '(()=>', post: ')', implicitCommas: true,
       opResolve: bindOpResolve @ lambda_arrow_tbl, true
 
+  @{} jsy_op0: '@::', jsy_op: /@::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindOpResolve @ lambda_block_tbl
+
   @{} jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
       pre: '(()=>{', post: '})',
       opResolve: bindOpResolve @ lambda_block_tbl, true
