@@ -1,4 +1,4 @@
-const rx_punct = /[,.;:?]/
+const rx_punct = /[,.;:?](?:[^.]|$)/
 const rx_binary_ops = /\&\&|\|\|/
 
 const rx_disrupt_comma_tail = @! ::
