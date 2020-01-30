@@ -12,7 +12,7 @@ const plugins = [rpi_jsy]
 
 // unittesting compile rollup
 const test_plugins = plugins.concat([
-  rpi_resolve({ module: true, main: true }),
+  rpi_resolve(),
   rpi_commonjs({ include: 'node_modules/**'}),
 ])
 
