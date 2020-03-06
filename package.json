@@ -1,6 +1,6 @@
 {
   "name": "jsy-transpile",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Offside (indention) JSY syntax transpiler to standard JavaScript — without Babel",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
   "license": "BSD-2-Clause",
@@ -37,8 +37,11 @@
   "module": "esm/index.mjs",
   "browser": "umd/jsy-transpile.js",
   "exports": {
-    "import": "./esm/index.mjs",
-    "require": "./cjs/index.cjs"
+    "./": "./",
+    ".": {
+      "import": "./esm/index.mjs",
+      "require": "./cjs/index.cjs"
+    }
   },
   "dependencies": {},
   "devDependencies": {
