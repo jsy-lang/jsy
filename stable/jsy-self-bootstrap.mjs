@@ -47,6 +47,10 @@ const at_lambda_offside =[
       pre: '(()=>', post: ')', implicitCommas: true,
       opResolve: bindOpResolve(lambda_arrow_tbl, true) }
 
+, {jsy_op0: '@::', jsy_op: /@::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindOpResolve(lambda_block_tbl) }
+
 , {jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
       pre: '(()=>{', post: '})',
       opResolve: bindOpResolve(lambda_block_tbl, true) } ];
@@ -88,7 +92,7 @@ const at_foldTop =[
 
 function at_prefixFoldTop(at_op) {
   let {jsy_op0, jsy_op} = at_op;
-  if  (! /^[@?]/.test(jsy_op0 || jsy_op) ) {
+  if (! /^[@?]/.test(jsy_op0 || jsy_op) ) {
     return}
 
   if (undefined === jsy_op0) {
@@ -97,13 +101,13 @@ function at_prefixFoldTop(at_op) {
       jsy_op, foldTop: true} }
 
 
-  if  ('function' !== typeof jsy_op.exec) {
+  if ('function' !== typeof jsy_op.exec) {
     throw new Error('Unexpected jsy_op type') }
 
   jsy_op0 = ';' + jsy_op0;
   jsy_op = new RegExp(`;${jsy_op.source}`, jsy_op.flags);
 
-  if  ('function' === typeof at_op.opResolve) {
+  if ('function' === typeof at_op.opResolve) {
     return {...at_op,
       jsy_op0, jsy_op, foldTop: true
     , opResolve: p =>({... at_op.opResolve(p), foldTop: true}) } } }
@@ -166,6 +170,10 @@ const at_experimental =[
 , {... deprecated_functional_composition_experiment, jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true} ];
 
 
+const at_unknown_ops =[
+  {jsy_op0: '?@', jsy_op: /\?@[^\w\s]+/,}
+, {jsy_op0: '::', jsy_op: /::[^\w\s]+/,}
+, {jsy_op0: '@', jsy_op: /@[^\w\s]+/,} ];
 
 
 const at_inner_offside = [].concat(
@@ -194,23 +202,28 @@ const at_offside_map = at_offside.reduce(
     if (ea.jsy_op0) {
       m[ea.jsy_op0] = ea;}
 
-    if  ('string' === typeof ea.jsy_op) {
+    if ('string' === typeof ea.jsy_op) {
       m[ea.jsy_op] = ea;}
     return m}
 , {});
 
 
+function kwExpandOp(p) {
+  return {__proto__: this, pre: p.kw + this.pre} }
+
 const extra_jsy_ops ={
-  kw_normal:{jsy_op: 'kw', pre: ' (', post: ')', in_nested_block: true}
-, kw_explicit:{jsy_op: 'kw', pre: '', post: '', in_nested_block: true}
+  kw_normal:{jsy_op: 'kw', pre: ' (', post: ')', kwExpandOp, in_nested_block: true}
+, kw_explicit:{jsy_op: 'kw', pre: '', post: '', kwExpandOp, in_nested_block: true}
 , tmpl_param:{jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true}
 , jsx_param:{jsy_op: 'jsx_param', pre: '', post: '', in_nested_block: true} };
 
 const keywords_with_args =['if', 'while', 'for await', 'for', 'switch'];
+const keywords_zero_args =['catch'];
+
 const keywords_locator_parts = [].concat(
   keywords_with_args.map(e => `else ${e}`)
 , keywords_with_args
-, ['catch'] );
+, keywords_zero_args);
 
 
 
@@ -229,15 +242,15 @@ const xform_proto ={
   __proto__: null
 
 , update(arg) {
-    if  ('function' === typeof arg) {
+    if ('function' === typeof arg) {
       this.process = arg;}
-    else if  ('boolean' === typeof arg) {
+    else if ('boolean' === typeof arg) {
       if (arg) {return this.dedent()}
       this.process = noop;}
-    else if  ('object' === typeof arg) {
+    else if ('object' === typeof arg) {
       Object.assign(this, arg);
       const process = this.process;
-      if  ('function' !== typeof process  && 'object' !== typeof process) {
+      if ('function' !== typeof process  && 'object' !== typeof process) {
         return this.update(process)} }
     else {
       throw new TypeError(`Unsupported update type: ${typeof arg}`) }
@@ -271,19 +284,19 @@ function applyPreprocessor(feedback) {
 
 
 function basicPreprocessor(answerFor) {
-  if  ('object' === typeof answerFor) {
+  if ('object' === typeof answerFor) {
     answerFor = bindAnswerFor(answerFor);}
-  else if  ('function' !== typeof answerFor) {
+  else if ('function' !== typeof answerFor) {
     throw new TypeError(`Expected a function or object for basicPreprocessor`) }
 
 
   const directives ={
     IF(p, arg, state) {
-      if  (! arg) {throw syntaxError(p)}
+      if (! arg) {throw syntaxError(p)}
       return state.handled = !! answerFor(arg)}
 
   , ELIF(p, arg, state) {
-      if  (! arg || 'boolean' !== typeof state.handled) {
+      if (! arg || 'boolean' !== typeof state.handled) {
         throw syntaxError(p)}
       if (state.handled) {return false}
       return state.handled = !! answerFor(arg)}
@@ -302,9 +315,9 @@ function basicPreprocessor(answerFor) {
   return (p, add_xform) => {
     const m = rx.exec(p.content);
     const dispatch = m && directives[m[1]];
-    if  (! dispatch) {throw syntaxError(p)}
+    if (! dispatch) {throw syntaxError(p)}
 
-    if  (! allow) {
+    if (! allow) {
       state = null;
       return false}
 
@@ -331,34 +344,55 @@ function bindAnswerFor(defines) {
 const rx_punct = /[,.;:?]/;
 const rx_binary_ops = /\&\&|\|\|/;
 
-const rx_disrupt_comma_tail = ((() => { {
+const rx_disrupt_comma_tail = ((() => {
   const opts =[rx_punct, /=>/, /[+-]/, rx_binary_ops];
-  return new RegExp(join_rx(opts) + '\\s*$') } })());
+  return new RegExp(join_rx(opts) + '\\s*$') })());
 
-const rx_disrupt_comma_head = ((() => { {
+const rx_disrupt_comma_head = ((() => {
   const opts =[rx_punct, rx_binary_ops];
-  return new RegExp('^\\s*' + join_rx(opts)) } })());
+  return new RegExp('^\\s*' + join_rx(opts)) })());
+
+const rx_rescue_comma_head = ((() => {
+  const opts =[/\.\.\./];
+  return new RegExp('^\\s*' + join_rx(opts)) })());
 
 const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
 function checkOptionalComma(op, pre_body, post_body) {
   const pre_end = pre_body.split(rx_last_bits).pop();
+  if (rx_disrupt_comma_tail.test(pre_end)) {
+    return false}
+
   const post_start = post_body.split(rx_last_bits).shift();
+  if (rx_disrupt_comma_head.test(post_start)) {
+    if (! rx_rescue_comma_head.test(post_start)) {
+      return false} }
 
-  if (rx_disrupt_comma_tail.test(pre_end)) {return false}
-  if (rx_disrupt_comma_head.test(post_start)) {return false}
-
-  const a1 = checkSyntax(`${op.pre} ${pre_body} , post_body ${op.post}`);
-  const a2 = checkSyntax(`${op.pre} pre_body, ${post_body} ${op.post}`);
-
-  return a1 || a2}
-
-function checkSyntax(expr) {
-  // use built-in Function from source to check syntax
-  try {
-    new Function(`return ${expr}`);
+  if (checkSyntax(`${op.pre} ${pre_body} , post_body ${op.post}`) ) {
     return true}
-  catch (err) {
-    return false} }
+
+  if (checkSyntax(`${op.pre} pre_body , ${post_body} ${op.post}`) ) {
+    return true}
+
+  return false}
+
+
+const checkSyntax = ((() => {
+  const fn_flavors =
+    ['function', 'function*', 'async function', 'async function*']
+    .map(flavor => {
+      try {return Function(`return (${flavor}(){}).constructor`)()}
+      catch (err) {return null} } )
+    .filter(e => e);
+
+  return function checkSyntax(expr) {
+    for (const FuncKind of fn_flavors) {
+      try {
+        new FuncKind(`return ${expr}`);
+        return true}
+      catch (err) {} }
+
+    return false} })());
+
 
 function join_rx(rx_options, capture) {
   const opts = Array.from(rx_options)
@@ -387,7 +421,7 @@ const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
 
 const regexp_from_offside_op = offside_op => {
   let op = offside_op.jsy_op;
-  if  ('string' === typeof op) {
+  if ('string' === typeof op) {
     // escape Offside operator chars to RegExp
     op = op.replace(rx_escape_offside_ops, '\\$&');
     // surrounded by newlines or spacees
@@ -404,8 +438,15 @@ const rx_offside_ops = new RegExp(
     .join('|')
 , 'g' );// global regexp
 
+const rx_unknown_ops = new RegExp(
+  at_unknown_ops
+    .map(regexp_from_offside_op)
+    .filter(Boolean)
+    .join('|')
+, 'g' );// global regexp
+
 function inject_dedent(offside_lines, trailing_types) {
-  if  ('function' !== typeof trailing_types) {
+  if ('function' !== typeof trailing_types) {
     const s_trailing_types = new Set(
       trailing_types || ['comment_eol']);
     trailing_types = k => s_trailing_types.has(k);}
@@ -456,9 +497,9 @@ const SourceLocation ={
       __proto__: this.__root__}) }
 
 , move(char_len) {
-    if  ('string' === typeof char_len) {
+    if ('string' === typeof char_len) {
       char_len = char_len.length;}
-    else if  ('number' === typeof char_len) {
+    else if ('number' === typeof char_len) {
       char_len |= 0;}
     else throw new TypeError('Expected move to be a string or number')
 
@@ -518,7 +559,7 @@ function basic_offside_scanner(source, feedback) {
     const loc_indent = loc.start.move(match[1]);
     const is_blank = 0 === match[2].length;
 
-    if  (! rx_indent_order.test(match[1])) {
+    if (! rx_indent_order.test(match[1])) {
       throw loc.start.syntaxError(`Mixed tab and space indent (${loc_indent})`, ) }
 
     const raw ={
@@ -707,7 +748,7 @@ class DispatchScanner {
     const kind = match.filter(Boolean)[1];
     const op = this.by_kind[kind];
     const op_scanner = this.by_op[op];
-    if  (! op_scanner) {
+    if (! op_scanner) {
       throw new Error(`No scanner registered for « ${kind} »`) }
 
     return op_scanner.scan(ctx, idx1)}
@@ -787,7 +828,7 @@ class SourceCodeScanner extends BaseSourceScanner {
 class NestedCodeScanner extends SourceCodeScanner {
   constructor(options) {
     super(options);
-    if  (! this.char_pairs) {
+    if (! this.char_pairs) {
       throw new Error('Missing required char_pairs mapping') }
 
     const chars = Object.keys(this.char_pairs).join('\\');
@@ -795,7 +836,7 @@ class NestedCodeScanner extends SourceCodeScanner {
 
   withOuter(options) {
     const scanner = options.scanner;
-    if  ('function' !== typeof scanner.scan) {
+    if ('function' !== typeof scanner.scan) {
       throw new Error(`Expected valid outer scanner`) }
     delete options.scanner;
 
@@ -873,7 +914,7 @@ class RegExpScanner extends BaseSourceScanner {
 
 
   newline(ctx, is_blank) {
-    if  (! this.multiline && ! this.allow_blank_close) {
+    if (! this.multiline && ! this.allow_blank_close) {
       throw ctx.ln.loc.end.syntaxError(
         `Newline in ${this.description} (${ctx.ln.loc.end})`) } }
 
@@ -919,12 +960,12 @@ class RegExpScanner extends BaseSourceScanner {
     return content}
 
   post_scan(ctx, close) {
-    if  (! close) {
+    if (! close) {
       if (this.invert_close) {
         // e.g. no '\' continuations at end of line
         return true}
 
-      if  (! this.allow_blank_close) {
+      if (! this.allow_blank_close) {
         ctx.scanner = this.continueScanner(ctx);}
       return}
 
@@ -951,11 +992,11 @@ class RegExpScanner extends BaseSourceScanner {
       ctx.scanner = hostScanner.continueScanner(ctx);
       return}
 
-    else if  ('function' === typeof nested.nestedScanner) {
+    else if ('function' === typeof nested.nestedScanner) {
       ctx.scanner = nested.nestedScanner(ctx);
       return}
 
-    else if  ('function' === typeof nested) {
+    else if ('function' === typeof nested) {
       return nested(ctx, hostScanner) }
 
     return nested}
@@ -1071,7 +1112,7 @@ class EmbeddedDynamicScanner extends DynamicScanner {
     return ds_body} }
 
 function bind_context_scanner(context_scanners) {
-  if  (! Object.isFrozen(context_scanners) || ! Array.isArray(context_scanners)) {
+  if (! Object.isFrozen(context_scanners) || ! Array.isArray(context_scanners)) {
     throw new TypeError(`Expected a frozen array of context scanners`) }
 
   const cache = bind_context_scanner.cache || new WeakMap();
@@ -1134,7 +1175,7 @@ function compile_context_scanner(context_scanners) {
     ds_first.description = 'Firstline Dispatch scanner (0)';
 
     for (const scanner of context_scanners) {
-      if  (! scanner) {continue}
+      if (! scanner) {continue}
 
       const ds = scanner.firstline ? ds_first : ds_body;
       ds.addScanner(scanner);}
@@ -1474,7 +1515,7 @@ function transform_jsy_ops(parts, ln) {
   const res = [];
 
   for (let p, i=0; undefined !== (p = parts[i]) ; i++) {
-    if  ('src' === p.type) {
+    if ('src' === p.type) {
       transform_jsy_part(res, p, ln);}
     else res.push(p);}
 
@@ -1486,7 +1527,7 @@ function transform_jsy_ops(parts, ln) {
       transform_jsy_keyword(res, idx, ln);
       kw_allowed = false;}
 
-    else if  ('jsy_op' === res[idx].type) {
+    else if ('jsy_op' === res[idx].type) {
       kw_allowed = '::' === res[idx].op;} }
 
   return res}
@@ -1498,16 +1539,14 @@ function transform_jsy_keyword(res, idx, ln) {
 
   rx_keyword_ops.lastIndex = 0;
   const kw_match = rx_keyword_ops.exec(first.content);
-  if  (! kw_match) {return}
+  if (! kw_match) {return false}
 
   const rest = kw_match.input.slice(rx_keyword_ops.lastIndex);
-  if  ('(' === rest[0]) {
+  if ('(' === rest[0]) {
     return res }// explicit keyword arguments
 
-  const kw_end = first.loc.start.move(kw_match[0]);
-
-  const pre_node = as_src_ast(kw_match[0], first.loc.start, kw_end);
-
+  const kw_start = first.loc.start;
+  const kw_end = kw_start.move(kw_match[0]);
   const kw = kw_match[0].split(' ').filter(Boolean).join(' ');
 
   const after = rest ? null : res[1+idx];
@@ -1515,30 +1554,32 @@ function transform_jsy_keyword(res, idx, ln) {
 
   const kw_node ={
     type: 'jsy_kw', kw, 
-    loc:{start: kw_end, end: kw_end}
+    loc:{start: kw_start, end: kw_end}
   , len_indent: ln.len_indent
   , explicit};
 
   const post_node = as_src_ast(rest, kw_end, first.loc.end);
 
-  res.splice(idx, 1, pre_node, kw_node, post_node); }
-
+  res.splice(idx, 1, kw_node, post_node);
+  return true}
 
 
 function transform_jsy_part(res, part, ln) {
-  rx_offside_ops.lastIndex = 0;
+   {
+    rx_offside_ops.lastIndex = 0;
 
-  let loc_tip = part.loc.start;
-  while (true) {
-    let start = loc_tip, idx0 = rx_offside_ops.lastIndex;
-    const op_match = rx_offside_ops.exec(part.content);
+    let loc_tip = part.loc.start;
+    while (true) {
+      let start = loc_tip, idx0 = rx_offside_ops.lastIndex;
+      const op_match = rx_offside_ops.exec(part.content);
 
-    if (null != op_match) {
+      if (! op_match) {
+        _tail(loc_tip, idx0);
+        return res}
+
       if (idx0 < op_match.index) {
-        const pre = part.content.slice(idx0, op_match.index);
-        const end = loc_tip = loc_tip.move(pre);
-        res.push(as_src_ast(pre, start, end));
-        start = end; idx0 = rx_offside_ops.lastIndex;}
+        start = loc_tip = _inner(loc_tip, idx0, op_match.index);
+        idx0 = rx_offside_ops.lastIndex;}
 
 
       const op = op_match[0].trim();
@@ -1557,15 +1598,38 @@ function transform_jsy_part(res, part, ln) {
         op_part.op = op_args.reduce(
           (op, p) => op.replace(p, ''), op); }
 
-      res.push(op_part); }
+      res.push(op_part); } }
 
-    else {
-      const rest = part.content.slice(idx0);
-      if (rest) {
-        const end = loc_tip = loc_tip.move(rest);
-        res.push(as_src_ast(rest, start, end)); }
+  function _unknown_ops(content, loc_tip, idx0) {
+    rx_unknown_ops.lastIndex = idx0;
+    const op_unknown = rx_unknown_ops.exec(content);
+    if (op_unknown) {
+      const op = op_unknown[0].trim();
+      const start = loc_tip;
+      const end = loc_tip = loc_tip.move(op_unknown[0]);
+      res.push({
+        type: 'jsy_unknown', op
+      , loc:{start, end}
+      , len_indent: ln.len_indent
+      , content: op_unknown[0]}); } }
 
-      return res} } }
+  function _inner(loc_tip, idx0, idx_content) {
+    const pre = part.content.slice(idx0, idx_content);
+    _unknown_ops(pre, loc_tip, idx0);
+
+    const start = loc_tip;
+    const end = loc_tip.move(pre);
+    res.push(as_src_ast(pre, start, end));
+    return end}
+
+  function _tail(loc_tip, idx0) {
+    const rest = part.content.slice(idx0);
+    if (rest) {
+      _unknown_ops(rest, loc_tip, idx0);
+
+      const start = loc_tip;
+      const end = start.move(rest);
+      res.push(as_src_ast(rest, start, end)); } } }
 
 function as_src_ast(content, start, end) {
   return {type: 'src', loc: {start, end}, content} }
@@ -1575,8 +1639,8 @@ const rx_leading_space = /^[ \t]+/ ;
 transpile_jsy.transpile_jsy = transpile_jsy;
 transpile_jsy.jsy_transpile = transpile_jsy;
 function transpile_jsy(jsy_ast, feedback) {
-  if  (! feedback) {feedback = {};}
-  if  ('string' === typeof jsy_ast) {
+  if (! feedback) {feedback = {};}
+  if ('string' === typeof jsy_ast) {
     jsy_ast = scan_jsy(jsy_ast, feedback);}
 
   const visitor ={__proto__: transpile_visitor};
@@ -1590,7 +1654,7 @@ function transpile_jsy(jsy_ast, feedback) {
       addSourceMapping:{value: feedback.addSourceMapping} } ); }
 
   const preprocess = applyPreprocessor(feedback);
-  if  ('function' === typeof preprocess) {
+  if ('function' === typeof preprocess) {
     visitor.preprocess = preprocess;}
 
   const lines = [];
@@ -1654,7 +1718,7 @@ const transpile_visitor ={
 
 , finish_line(ln) {
     let line_src = this._cur;
-    if  ('function' === typeof line_src.finish_commas) {
+    if ('function' === typeof line_src.finish_commas) {
       line_src = line_src.finish_commas(line_src);}
 
     const comma_body = this.head.comma_body;
@@ -1700,7 +1764,7 @@ const transpile_visitor ={
 
     cur.finish_commas = cur => {
       const pre = comma_body[0];
-      if  (! pre) {return cur}
+      if (! pre) {return cur}
 
       const post = comma_body.slice(1).join('');
       const opt_comma = this.checkOptionalComma(comma_body.op, pre, post);
@@ -1757,13 +1821,16 @@ const transpile_visitor ={
     if (src) {
       this.emit(c ? ' '+src : src); } }
 
+, v$jsy_unknown(p) {
+    throw p.loc.start.syntaxError(
+      `JSY unknown operator "${p.op}"`) }
 
 , v$jsy_kw(p) {
     const kw_op = p.explicit
       ? extra_jsy_ops.kw_explicit
       : extra_jsy_ops.kw_normal;
 
-    this.stack_push(kw_op, p); }
+    this.stack_push(kw_op.kwExpandOp(p), p); }
 
 , v$jsy_op(p) {
     this._jsy_op(at_offside_map[p.op], p); }
@@ -1772,7 +1839,7 @@ const transpile_visitor ={
     this._jsy_op(at_offside_map[p.op], p); }
 
 , _jsy_op(jsy_op, p) {
-    if  (! jsy_op) {
+    if (! jsy_op) {
       throw new Error(`JSY op handler not found for "${p.op}"`) }
 
     if (jsy_op.warn) {jsy_op.warn(p);}
@@ -1791,7 +1858,7 @@ const transpile_visitor ={
 
 
 , _dedent_nested_block(p) {
-    if  (! this.head.in_nested_block) {return}
+    if (! this.head.in_nested_block) {return}
 
     if (null != p) {
       p.len_indent = this.head.nested_block_indent;}
@@ -1802,7 +1869,7 @@ const transpile_visitor ={
       this.stack_pop(c++); } }
 
 , _dedent_multi_ops() {
-    if  (! this.head.loc) {return}
+    if (! this.head.loc) {return}
 
     const line = this.cur_ln.loc.start.line;
     const t = this.head.tail
@@ -1816,7 +1883,7 @@ const transpile_visitor ={
       this.stack_pop(c++); } }
 
 , v$offside_dedent(p) {
-    if  (! p.ends_with_jsy_op) {
+    if (! p.ends_with_jsy_op) {
       this._dedent_multi_ops();}
 
     let c = 0;
@@ -1857,7 +1924,7 @@ const transpile_visitor ={
 
 , v$src(p, ln, p0) {
     let content = p.content;
-    if  ({jsy_op:1, jsy_kw:1}[p0.type] && rx_leading_space.test(content)) {
+    if ({jsy_op:1, jsy_kw:1}[p0.type] && rx_leading_space.test(content)) {
       content = content.replace(rx_leading_space, '');}
 
     this.emit(content, p.loc.start); }
@@ -1873,9 +1940,9 @@ const transpile_visitor ={
 
     if (p === ans) {
       return this.emit(p.content, p.loc.start) }
-    else if  ('string' === typeof ans) {
+    else if ('string' === typeof ans) {
       return this.emit(ans, p.loc.start) }
-    else if  ('boolean' === typeof ans || 'function' === typeof ans) {
+    else if ('boolean' === typeof ans || 'function' === typeof ans) {
       this.push_xform(ln, xform_cur).update(ans);}
 
     return this.emit_raw('')}
@@ -1944,7 +2011,7 @@ function validate_jsy_op_item(jsy_op_item) {
   return jsy_op_item}
 
 function sourcemap_comment(srcmap_json) {
-  if  ('string' !== typeof srcmap_json) {
+  if ('string' !== typeof srcmap_json) {
     srcmap_json = JSON.stringify(srcmap_json);}
 
   const b64 = 'undefined' !== typeof Buffer
@@ -1955,4 +2022,4 @@ function sourcemap_comment(srcmap_json) {
   return `//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}`}
 
 export default transpile_jsy;
-//# sourceMappingURL=esm.js.map
+//# sourceMappingURL=jsy-self-bootstrap.mjs.map

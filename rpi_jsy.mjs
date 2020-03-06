@@ -1,7 +1,11 @@
-import { createFilter } from 'rollup-pluginutils'
+import { createFilter } from '@rollup/pluginutils'
+import jsy_transpile_stable from './stable/jsy-self-bootstrap.mjs'
 
 const { SourceMapGenerator } = require('source-map')
-const default_config = { exclude: 'node_modules/**' }
+const default_config = {
+  exclude: 'node_modules/**',
+  jsy_transpile: jsy_transpile_stable,
+}
 
 export default rpi_bound_jsy_lite
 function rpi_bound_jsy_lite(config=default_config) {

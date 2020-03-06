@@ -1,3 +1,9 @@
+//
+// 2020-01-03
+// What would JSY look like with keywords like `elif unless else unless` ?
+//
+// Neat, but let's not. Let's keep with "standard" javascript keywords with some simple punctuation
+//
 
 const kw_expansion = @{}
   'elif': @{} pre: 'else if', post: ''

@@ -1,13 +1,12 @@
-import rpi_resolve from 'rollup-plugin-node-resolve'
-import rpi_commonjs from 'rollup-plugin-commonjs'
-import jsy_transpile_stable from '../stable/esm'
+import rpi_resolve from '@rollup/plugin-node-resolve'
+import rpi_commonjs from '@rollup/plugin-commonjs'
 import rpi_bound_jsy_lite from '../rpi_jsy.mjs'
 
 
 const sourcemap = 'inline'
 const external = []
 
-const rpi_jsy = rpi_bound_jsy_lite({jsy_transpile: jsy_transpile_stable})
+const rpi_jsy = rpi_bound_jsy_lite()
 const plugins = [rpi_jsy]
 
 // unittesting compile rollup
