@@ -38,7 +38,9 @@ function add_jsy(name) {
     input: `code/${name}.jsy`,
     output: [
       { file: `cjs/${name}.js`, format: 'cjs', exports:'named', sourcemap },
+      { file: `cjs/${name}.cjs`, format: 'cjs', exports:'named', sourcemap },
       { file: `esm/${name}.js`, format: 'es', sourcemap },
+      { file: `esm/${name}.mjs`, format: 'es', sourcemap },
     ],
     plugins, external })
 
