@@ -217,3 +217,68 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
 
+    describe @ 'eval shunting yard', @=> ::
+
+      let ast_src
+      beforeEach @=> ::
+        ast_src = scan_jsy_lines @#
+          '# IF OPT_A && OPT_B && OPT_C'
+          '    body_abc'
+          '# ELIF OPT_A && OPT_C || OPT_B && OPT_C'
+          '    body_ac_or_bc'
+          '# ELIF OPT_A || OPT_B && OPT_C'
+          '    body_a_or_bc'
+          '# ELIF OPT_A && OPT_B || OPT_C'
+          '    body_ab_or_c'
+          '# ELSE'
+          '    body_last'
+
+      it @ 'A && B && C', @=> ::
+        const js_src = transpile_jsy @ ast_src, @{}
+          defines: @{} OPT_A: true, OPT_B: true, OPT_C: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'body_abc'
+
+      it @ 'A', @=> ::
+        const js_src = transpile_jsy @ ast_src, @{}
+          defines: @{} OPT_A: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'body_a_or_bc'
+
+      it @ 'B', @=> ::
+        const js_src = transpile_jsy @ ast_src, @{}
+          defines: @{} OPT_B: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'body_last'
+
+      it @ 'C', @=> ::
+        const js_src = transpile_jsy @ ast_src, @{}
+          defines: @{} OPT_C: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'body_ab_or_c'
+
+      it @ 'BC', @=> ::
+        const js_src = transpile_jsy @ ast_src, @{}
+          defines: @{} OPT_B: true, OPT_C: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'body_ac_or_bc'
+
+      it @ 'AB', @=> ::
+        const js_src = transpile_jsy @ ast_src, @{}
+          defines: @{} OPT_A: true, OPT_B: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'body_a_or_bc'
+
+      it @ 'AC', @=> ::
+        const js_src = transpile_jsy @ ast_src, @{}
+          defines: @{} OPT_A: true, OPT_C: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'body_ac_or_bc'
+
