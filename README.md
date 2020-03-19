@@ -23,3 +23,14 @@ Run a JSY file with `npx jsy-node test.jsy` – see [jsy-node](https://github.co
 - via Rollup with [rollup-plugin-jsy-lite](https://github.com/jsy-lang/rollup-plugin-jsy-lite)
 - via Babel with [babel-plugin-jsy-lite](https://github.com/jsy-lang/babel-plugin-jsy-lite)
 
+
+## Use directly from HTML
+
+```html
+...
+<script type='module' src='https://cdn.jsdelivr.net/npm/jsy-transpile/umd/jsy-script.min.js'></script>
+...
+<jsy-script src='./example.jsy'></jsy-script>
+...
+```
+
