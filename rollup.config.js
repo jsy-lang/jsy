@@ -20,13 +20,27 @@ configs.push(
       { file: pkg.module, sourcemap, format: 'es' },
       { file: pkg.module.replace('.mjs', '.js'), sourcemap, format: 'es' },
     ],
-    plugins, external})
+    plugins, external},
+
+    { input: 'code/jsy-script.jsy',
+      output: [
+        { file: 'esm/jsy-script.js', sourcemap, format: 'es'},
+        { file: 'esm/jsy-script.mjs', sourcemap, format: 'es'},
+        { file: 'umd/jsy-script.js', sourcemap, format: 'iife'},
+      ],
+      plugins: plugins_browser, external},
+  )
 
 if (plugins_browser)
   configs.push(
     { input: 'code/index.jsy',
       output: { file: pkg.browser, sourcemap, format: 'umd', name:'jsy_transpile' },
-      plugins: plugins_browser, external})
+      plugins: plugins_browser, external},
+
+    { input: 'code/jsy-script.jsy',
+      output: { file: 'umd/jsy-script.min.js', sourcemap, format: 'iife'},
+      plugins: plugins_browser, external},
+  )
 
 
 add_jsy('scanner/index')

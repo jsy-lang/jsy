@@ -1,0 +1,6 @@
+import {jsy_transpile} from './transpile_jsy.jsy'
+import {JSYScript} from './jsy-script-elem.jsy'
+
+window.customElements.define @ 'jsy-script', JSYScript
+window.jsy_transpile = jsy_transpile
+
