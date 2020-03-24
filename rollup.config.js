@@ -26,8 +26,6 @@ configs.push(
       output: [
         { file: 'esm/jsy-script.js', sourcemap, format: 'es'},
         { file: 'esm/jsy-script.mjs', sourcemap, format: 'es'},
-        { file: 'umd/jsy-script.js', sourcemap, format: 'iife'},
-        { file: 'iife/jsy-script.js', sourcemap, format: 'iife'},
       ],
       plugins: plugins_browser, external},
   )
@@ -42,8 +40,6 @@ if (plugins_browser)
       output: [
         { file: 'esm/jsy-script.min.js', sourcemap, format: 'es'},
         { file: 'esm/jsy-script.min.mjs', sourcemap, format: 'es'},
-        { file: 'umd/jsy-script.min.js', sourcemap, format: 'iife'},
-        { file: 'iife/jsy-script.min.js', sourcemap, format: 'iife'},
       ],
       plugins: plugins_browser, external},
   )

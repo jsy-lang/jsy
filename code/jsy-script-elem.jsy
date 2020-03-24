@@ -1,13 +1,7 @@
-'use strict';
-
 import {jsy_transpile} from './transpile_jsy.jsy'
 
 export default JSYScript
 export class JSYScript extends HTMLElement ::
-  constructor() ::
-    super()
-    this.style = 'display: none'
-
   replace_script(js_src) ::
     const elem = this.ownerDocument.createElement('script')
     elem.type = this.getAttribute('type') || 'module'
@@ -15,7 +9,13 @@ export class JSYScript extends HTMLElement ::
     this.parentElement.replaceChild @ elem, this
     return elem
 
-  async connectedCallback() ::
+  connectedCallback() ::
+    const jsy_src = this.textContent
+    this.textContent = ''
+    this._render_src(jsy_src)
+
+  async _render_src(jsy_src) ::
+    //this.style = 'display: none'
     const url_src = this.getAttribute('src')
     if url_src ::
       const resp = await fetch @ url_src,
@@ -24,11 +24,12 @@ export class JSYScript extends HTMLElement ::
       return this.as_jsy_script @ 
         await resp.text()
 
-    return this.as_jsy_script @ 
-      this.textContent
+    return this.as_jsy_script @ jsy_src
 
   as_jsy_script(jsy_src) ::
+    //console.log @ 'as_jsy_script', @{} jsy_src
     const js_src = jsy_transpile(jsy_src)
+    //console.log @: js_src, v: !! js_src
     if js_src ::
       this.replace_script @ js_src
 

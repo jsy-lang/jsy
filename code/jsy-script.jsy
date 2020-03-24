@@ -1,3 +1,5 @@
+'use strict';
+
 import {jsy_transpile} from './transpile_jsy.jsy'
 import {JSYScript} from './jsy-script-elem.jsy'
 
