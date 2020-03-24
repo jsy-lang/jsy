@@ -335,11 +335,57 @@ function basicPreprocessor(answerFor) {
   function syntaxError(p) {
     return p.loc.start.syntaxError(`Preprocessor Invalid: "${p.content}"`) } }
 
-function bindAnswerFor(defines) {
-  return function answerFor(key) {
-    const ans = defines[key];
-    return 'function' === typeof ans
-      ? ans(key) : ans} }
+
+function not_stkop(args) {
+  const a=args.pop();
+  return !a}
+function and_stkop(args) {
+  const a=args.pop(), b=args.pop();
+  return a && b}
+function or_stkop(args) {
+  const a=args.pop(), b=args.pop();
+  return a || b}
+const preprocessor_stack_ops ={
+  'false': false, 'true': true, 'FALSE': false, 'TRUE': true
+, '!': Object.assign(not_stkop, {order: 0})
+, '&&': Object.assign(and_stkop, {order: 10})
+, '||': Object.assign(or_stkop, {order: 20})
+, 'NOT': and_stkop
+, 'AND': and_stkop
+, 'OR': or_stkop};
+
+function bindAnswerFor(defines, preproc_ops=preprocessor_stack_ops) {
+  return function answerFor(expr_src) {
+    const pp_expr = expr_src.split(/\s+/)
+      .map(key => defines[key] || preproc_ops[key]);
+
+    return eval_shuntingYard(pp_expr, expr_src)} }
+
+function eval_shuntingYard(expr, expr_src) {
+  // see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+  const args=[], ops=[];
+
+  for (const ea of expr) {
+    if ('function' === typeof ea) {
+      // eval all lesser order operations
+      while (0!==ops.length && (0 | ops[0].order) <= (0 | ea.order)) {
+        args.push(ops.shift()(args)); }
+
+      // push this operator on the stack
+      ops.unshift(ea);}
+
+    else {
+      args.push(ea);} }
+
+  // evaluate all operations
+  while (0 !== ops.length) {
+    args.push(ops.shift()(args)); }
+
+  if (1 !== args.length) {
+    throw new SyntaxError(
+      `Invalid preprocessor expression: "${expr_src}"`) }
+
+  return args[0]}
 
 const rx_punct = /[,.;:?]/;
 const rx_binary_ops = /\&\&|\|\|/;
