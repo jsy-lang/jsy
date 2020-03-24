@@ -1,6 +1,7 @@
 cjs/
 umd/
 esm/
+iife/
 test/__*
 test/dbg/*
 *.map
