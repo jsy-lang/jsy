@@ -59,8 +59,8 @@ export const at_lambda_offside = @[]
 
 
 export const at_lambda_iife_offside = @[]
-  @{} jsy_op: '::!', pre: ';(()=>{', post: '})();'
-  @{} jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'
+  @{} jsy_op: '::!', pre: '{(()=>{', post: '})()}', is_kw_close: true
+  @{} jsy_op: '::!>', pre: '{(async ()=>{', post: '})()}', is_kw_close: true
 
   @{} jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
       pre: '((()=>', post: ')())',

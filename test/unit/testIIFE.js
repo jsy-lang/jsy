@@ -180,7 +180,7 @@ function * iterIIBlockExpressions() ::
   yield @{}
     title: 'immediately invoked block expression (::!)'
     source: '::! expression_body'
-    tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', '}', ')', '(', ')', ';'
+    tokens: @[] '{', '(', '(', ')', '=>', '{', 'name', '}', ')', '(', ')', '}'
 
   yield @{}
     title: 'immediately invoked block expression - two lines (::!)'
@@ -188,7 +188,7 @@ function * iterIIBlockExpressions() ::
       '::!'
       '  stmt_a'
       '  stmt_b'
-    tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
+    tokens: @[] '{', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', '}'
 
   yield @{}
     title: 'immediately invoked block expression (::!)'
@@ -196,14 +196,14 @@ function * iterIIBlockExpressions() ::
       '::!'
       '  stmt_a'
       '  stmt_b'
-    tokens: @[] ';', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
+    tokens: @[] '{', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', '}'
 
 
 function * iterIIAsyncBlockExpressions() ::
   yield @{}
     title: 'async immediately invoked block expression (::!>)'
     source: '::!> await expression_body'
-    tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', ';'
+    tokens: @[] '{', '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')', '(', ')', '}'
 
   yield @{}
     title: 'async immediately invoked block expression - two lines (::!>)'
@@ -211,7 +211,7 @@ function * iterIIAsyncBlockExpressions() ::
       '::!>'
       '  await stmt_a'
       '  await stmt_b'
-    tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')', ';'
+    tokens: @[] '{', '(', 'name', '(', ')', '=>', '{', 'name', 'name', 'name', 'name', '}', ')', '(', ')', '}'
 
   yield @{}
     title: 'async immediately invoked block expression (::!>)'
@@ -219,6 +219,6 @@ function * iterIIAsyncBlockExpressions() ::
       '::!> ::'
       '  await stmt_a'
       '  await stmt_b'
-    tokens: @[] ';', '(', 'name', '(', ')', '=>', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '(', ')', ';'
+    tokens: @[] '{', '(', 'name', '(', ')', '=>', '{', '{', 'name', 'name', 'name', 'name', '}', '}', ')', '(', ')', '}'
 
 

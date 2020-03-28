@@ -37,7 +37,7 @@ export const at_experimental_inner_offside_folded = @[]
   @{} ... deprecated_suffix_offside_fold, jsy_op: '@@', pre: '(', post: ')', implicitCommas: true, isFoldable: true, foldTop: true
   @{} ... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true
   @{} ... deprecated_suffix_offside_fold, jsy_op: '@,', pre: ', ', post: null, foldTop: true
-  @{} ... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@.', pre: '.', post: null, foldTop: true
 
 
 const deprecated_functional_composition_experiment = @{}
