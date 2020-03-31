@@ -62,6 +62,11 @@ export class DispatchScanner ::
       ds_body: @{} value: ds_body, writable: true
 
 
+  clone0() ::
+    if undefined !== this.level ::
+      throw new Error @ `Invalid clone0`
+    return this.cloneWithScanner()
+
   cloneWithScanner(...scanners) ::
     return this.cloneWithScannerList(scanners)
   cloneWithScannerList(scanners) ::
@@ -94,6 +99,9 @@ export class DispatchScanner ::
     this.set_active_dispatch(ctx)
 
     if undefined === this.ln_first ::
+      if undefined === this.level ::
+        throw new Error('Scanner with level: undefined')
+
       this.ln_first = ctx.ln
 
     ensure_indent(ctx, this)
@@ -131,6 +139,10 @@ export class DispatchScanner ::
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 export class DispatchFirstlineScanner extends DispatchScanner ::
+  clone0() ::
+    const self = super.clone0()
+    self.ds_body = self.ds_body.clone0()
+    return self
   scan(ctx, idx0) ::
     ctx.scanner = this.ds_body
     return super.scan(ctx, idx0)

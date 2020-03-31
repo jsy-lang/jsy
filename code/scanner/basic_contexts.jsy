@@ -21,7 +21,7 @@ function compile_context_scanner(context_scanners) ::
   return context_scanner
 
   function context_scanner(offside_lines) ::
-    const ctx = @{} scanner: ds_first
+    const ctx = @{} scanner: ds_first.clone0()
 
     for const ln of offside_lines ::
       if ln.is_blank ::
