@@ -1,6 +1,9 @@
 import tiny_sourcemap from 'tiny-source-map'
 import {jsy_transpile} from './transpile_jsy.jsy'
 
+const _jsy_script_ctx = @{}
+  i: 1, ts: Date.now().toString(36)
+
 export default JSYScript
 export class JSYScript extends HTMLElement ::
   replace_script(js_src) ::
@@ -20,11 +23,11 @@ export class JSYScript extends HTMLElement ::
       const resp = await fetch @ url_src,
         @{} method: 'GET', mode: 'cors'
 
-      return this.as_jsy_script @ 
+      return this.as_jsy_script @
         await resp.text(), url_src
 
     return this.as_jsy_script @
-      jsy_src, '<jsy-script>.jsy'
+      jsy_src, `<jsy-script-${_jsy_script_ctx.i++}-${_jsy_script_ctx.ts}>.jsy`
 
   as_jsy_script(jsy_src, source) ::
     const src_map = tiny_sourcemap()
@@ -40,4 +43,3 @@ export class JSYScript extends HTMLElement ::
 
     if js_src ::
       this.replace_script(js_src)
-
