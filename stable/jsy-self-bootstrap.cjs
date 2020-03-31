@@ -13,6 +13,35 @@ const lambda_arrow_tbl ={
 , '>': a =>({pre: `(async (${a}) =>`, post: ')', implicitCommas: true}) };
 
 
+const lambda_kw_block_tbl ={
+  '': a =>({pre: `(({${a}}) => {`, post: '})'})
+, '>': a =>({pre: `(async ({${a}}) => {`, post: '})'})
+, '>*': a =>({pre: `((async function * ({${a}}) {`, post: '}).bind(this))'})
+, '*>': a =>({pre: `((async function * ({${a}}) {`, post: '}).bind(this))'})
+, '*': a =>({pre: `((function * ({${a}}) {`, post: '}).bind(this))'}) };
+
+const lambda_kw_arrow_tbl ={
+  '': a =>({pre: `(({${a}}) =>`, post: ')', implicitCommas: true})
+, '>': a =>({pre: `(async ({${a}}) =>`, post: ')', implicitCommas: true})
+, '>*': a =>({pre: `((async function * ({${a}}) {`, post: '}).bind(this))'})
+, '*>': a =>({pre: `((async function * ({${a}}) {`, post: '}).bind(this))'})
+, '*': a =>({pre: `((function * ({${a}}) {`, post: '}).bind(this))'}) };
+
+const lambda_pos_block_tbl ={
+  '': a =>({pre: `(([${a}]) => {`, post: '})'})
+, '>': a =>({pre: `(async ([${a}]) => {`, post: '})'})
+, '>*': a =>({pre: `((async function * ([${a}]) {`, post: '}).bind(this))'})
+, '*>': a =>({pre: `((async function * ([${a}]) {`, post: '}).bind(this))'})
+, '*': a =>({pre: `((function * ([${a}]) {`, post: '}).bind(this))'}) };
+
+const lambda_pos_arrow_tbl ={
+  '': a =>({pre: `(([${a}]) =>`, post: ')', implicitCommas: true})
+, '>': a =>({pre: `(async ([${a}]) =>`, post: ')', implicitCommas: true})
+, '>*': a =>({pre: `((async function * ([${a}]) {`, post: '}).bind(this))'})
+, '*>': a =>({pre: `((async function * ([${a}]) {`, post: '}).bind(this))'})
+, '*': a =>({pre: `((function * ([${a}]) {`, post: '}).bind(this))'}) };
+
+
 const iife_expr_tbl ={
   '': a =>({pre: `(((${a}) => {`, post: '})())'})
 , '>': a =>({pre: `((async (${a}) => {`, post: '})())'})
@@ -45,6 +74,14 @@ const at_lambda_offside =[
       pre: '(()=>', post: ')',
       opResolve: bindOpResolve(lambda_arrow_tbl) }
 
+, {jsy_op0: '@\\:=>', jsy_op: /@\\:(.+?)=>(>?\*?)/,
+      pre: '(()=>', post: ')', implicitCommas: true,
+      opResolve: bindOpResolve(lambda_kw_arrow_tbl, true) }
+
+, {jsy_op0: '@\\#=>', jsy_op: /@\\#(.+?)=>(>?\*?)/,
+      pre: '(()=>', post: ')', implicitCommas: true,
+      opResolve: bindOpResolve(lambda_pos_arrow_tbl, true) }
+
 , {jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
       pre: '(()=>', post: ')', implicitCommas: true,
       opResolve: bindOpResolve(lambda_arrow_tbl, true) }
@@ -53,14 +90,27 @@ const at_lambda_offside =[
       pre: '(()=>{', post: '})',
       opResolve: bindOpResolve(lambda_block_tbl) }
 
+, {jsy_op0: '@\\:::', jsy_op: /@\\:(.+?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindOpResolve(lambda_kw_block_tbl, true) }
+
+, {jsy_op0: '@\\#::', jsy_op: /@\\#(.+?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindOpResolve(lambda_pos_block_tbl, true) }
+
 , {jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
       pre: '(()=>{', post: '})',
       opResolve: bindOpResolve(lambda_block_tbl, true) } ];
 
 
 const at_lambda_iife_offside =[
-  {jsy_op: '::!', pre: ';(()=>{', post: '})();'}
-, {jsy_op: '::!>', pre: ';(async ()=>{', post: '})();'}
+  {jsy_op: '::!', pre: '{(()=>{', post: '})()}', is_kw_close: true}
+, {jsy_op: '::!>', pre: '{(async ()=>{', post: '})()}', is_kw_close: true}
+
+, {jsy_op: '@*', pre: '(function *(){', post: '})()'}
+, {jsy_op: '@*>', pre: '(async function *(){', post: '})()'}
+, {jsy_op: '@*[]', pre: '[... (function *(){', post: '})()]'}
+, {jsy_op: '@*#', pre: '([... (function *(){', post: '})()])'}
 
 , {jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
       pre: '((()=>', post: ')())',
@@ -160,7 +210,7 @@ const at_experimental_inner_offside_folded =[
 , {... deprecated_suffix_offside_fold, jsy_op: '@@', pre: '(', post: ')', implicitCommas: true, isFoldable: true, foldTop: true}
 , {... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true}
 , {... deprecated_suffix_offside_fold, jsy_op: '@,', pre: ', ', post: null, foldTop: true}
-, {... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true} ];
+, {... deprecated_suffix_offside_fold, jsy_op: '@.', pre: '.', post: null, foldTop: true} ];
 
 
 const deprecated_functional_composition_experiment ={
