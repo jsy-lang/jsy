@@ -8,4 +8,3 @@ export * from './transpile_jsy.jsy'
 export * from './optional_comma.jsy'
 export * from './preprocess_jsy.jsy'
 
-export * from './jsy-script-elem.jsy'

@@ -1,4 +1,5 @@
 import pkg from './package.json'
+import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_bound_jsy_lite from './rpi_jsy.mjs'
 import {terser as rpi_terser} from 'rollup-plugin-terser'
 
@@ -9,8 +10,11 @@ const sourcemap = true
 const external = []
 
 const rpi_jsy = rpi_bound_jsy_lite()
-const plugins = [rpi_jsy]
-const plugins_browser = [...plugins, rpi_terser()]
+const plugins = [rpi_resolve(), rpi_jsy]
+const plugins_browser = [
+  ...plugins,
+  rpi_terser(),
+]
 
 configs.push(
   { input: 'code/index.jsy',
@@ -28,6 +32,10 @@ configs.push(
         { file: 'esm/jsy-script.mjs', sourcemap, format: 'es'},
       ],
       plugins: plugins_browser, external},
+
+    { input: 'code/rollup.jsy',
+      output: { file: 'esm/rollup.mjs', sourcemap, format: 'es'},
+      plugins, external: ['path', 'util', ... external]},
   )
 
 if (plugins_browser)

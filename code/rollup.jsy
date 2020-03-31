@@ -1,0 +1,42 @@
+import {createFilter} from '@rollup/pluginutils'
+import tiny_sourcemap from 'tiny-source-map'
+import {jsy_transpile} from './transpile_jsy.jsy'
+
+export default jsy_rollup_plugin
+
+const default_jsy_config = @{}
+  exclude: 'node_modules/**'
+  create_sourcemap: tiny_sourcemap
+  jsy_transpile
+
+export function jsy_rollup_plugin(config) ::
+  config = Object.assign @ {}, default_jsy_config, config
+
+  const filter = createFilter @ config.include, config.exclude
+  const sourcemap = false !== config.sourcemap && false !== config.sourceMap
+  const { preprocess, preprocessor, defines } = config
+
+  return @{}
+    name: 'jsy-lite',
+    transform(code, id) ::
+      if ! filter(id) :: return
+
+      const src_map = sourcemap ? config.create_sourcemap() : null
+      if null !== src_map ::
+        src_map.setSourceContent @ id, code
+
+      try ::
+        const res = config.jsy_transpile @ code, @{}
+          preprocess, preprocessor, defines,
+          addSourceMapping(arg) ::
+            if null === src_map :: return
+            arg.source = id
+            src_map.addMapping(arg)
+
+        return @{} code: res, map: src_map.toJSON()
+
+      catch (err) ::
+        if undefined !== err.src_loc ::
+          this.error @ err, err.src_loc.pos
+        else throw err
+
