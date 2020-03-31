@@ -15,7 +15,7 @@ export default function jsy_rollup_plugin(config) ::
   const { preprocess, preprocessor, defines } = config
 
   return @{}
-    name: 'jsy-lite',
+    name: 'jsy',
     transform(code, id) ::
       if ! filter(id) :: return
 
