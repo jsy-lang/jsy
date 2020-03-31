@@ -1,6 +1,6 @@
 import pkg from './package.json'
 import rpi_resolve from '@rollup/plugin-node-resolve'
-import rpi_bound_jsy_lite from './rpi_jsy.mjs'
+import rpi_jsy from './stable/rollup-jsy-bootstrap.mjs'
 import {terser as rpi_terser} from 'rollup-plugin-terser'
 
 const configs = []
@@ -9,8 +9,11 @@ export default configs
 const sourcemap = true
 const external = []
 
-const rpi_jsy = rpi_bound_jsy_lite()
-const plugins = [rpi_resolve(), rpi_jsy]
+const plugins = [
+  rpi_resolve(),
+  rpi_jsy(),
+]
+
 const plugins_browser = [
   ...plugins,
   rpi_terser(),

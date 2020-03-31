@@ -1,14 +1,14 @@
-import jsy_transpile_tip from './esm/index.mjs'
-import rpi_bound_jsy_lite from './rpi_jsy.mjs'
+import rpi_resolve from '@rollup/plugin-node-resolve'
+import rpi_jsy from './esm/rollup.mjs'
 
 const configs = []
 export default configs
 
 const sourcemap = true
-const external = []
-
-const rpi_jsy = rpi_bound_jsy_lite({ jsy_transpile: jsy_transpile_tip })
-const plugins = [rpi_jsy]
+const plugins = [
+  rpi_resolve(),
+  rpi_jsy(),
+]
 
 configs.push(
   { input: 'code/index.jsy',
@@ -16,5 +16,10 @@ configs.push(
       {file: 'stable/jsy-self-bootstrap.mjs', sourcemap, format: 'es' },
       {file: 'stable/jsy-self-bootstrap.cjs', sourcemap, format: 'cjs' },
     ],
-    plugins, external})
+    plugins, external: []},
+
+  { input: 'code/rollup.jsy',
+    output: {file: 'stable/rollup-jsy-bootstrap.mjs', sourcemap, format: 'es' },
+    plugins, external: ['path', 'util']},
+)
 
