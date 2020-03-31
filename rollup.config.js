@@ -29,17 +29,21 @@ configs.push(
     ],
     plugins, external},
 
-    { input: 'code/jsy-script.jsy',
-      output: [
-        { file: 'esm/jsy-script.js', sourcemap, format: 'es'},
-        { file: 'esm/jsy-script.mjs', sourcemap, format: 'es'},
-      ],
-      plugins: plugins_browser, external},
+  { input: 'code/jsy-script.jsy',
+    output: [
+      { file: 'esm/jsy-script.js', sourcemap, format: 'es'},
+      { file: 'esm/jsy-script.mjs', sourcemap, format: 'es'},
+    ],
+    plugins: plugins_browser, external},
 
-    { input: 'code/rollup.jsy',
-      output: { file: 'esm/rollup.mjs', sourcemap, format: 'es'},
-      plugins, external: ['path', 'util', ... external]},
-  )
+  { input: 'code/rollup.jsy',
+    output: { file: 'esm/rollup.mjs', sourcemap, format: 'es'},
+    plugins, external: ['path', 'util', ... external]},
+
+  { input: 'code/cli_transpile.jsy',
+    output: { file: './cjs/cli_transpile.cjs', sourcemap, format: 'cjs'},
+    plugins, external: ['fs', 'path', 'util', ... external]},
+)
 
 if (plugins_browser)
   configs.push(

@@ -1,0 +1,53 @@
+import {readFile} from 'fs'
+import {promisify} from 'util'
+const fsp_readFile = promisify @ readFile
+import tiny_sourcemap from 'tiny-source-map'
+import {jsy_transpile} from './transpile_jsy.jsy'
+
+try { require('source-map-support/register') } catch (err) {}
+
+export async function main(filename) ::
+  try ::
+    const jsy_src = filename && '-' !== filename
+      ? await fsp_readFile(filename, 'utf-8')
+      : await read_stdin()
+
+    if ! jsy_src ::
+      throw new Error('jsy-transpile expected a filename argument or stdin input')
+
+    const src_map = filename && tiny_sourcemap()
+    //src_map.setSourceContent(filename, jsy_src)
+
+    const src = jsy_transpile @ jsy_src, @{}
+      addSourceMapping(arg) ::
+        if !src_map :: return
+        arg.source = filename
+        src_map.addMapping(arg)
+
+      inlineSourceMap() ::
+        if !src_map :: return
+        return src_map.toString()
+
+    process.stdout.write(src)
+  catch (err) ::
+    console.error(err)
+    process.exit(1)
+    return
+
+const read_stdin = stdin => new Promise @\ resolve ::
+  // from MIT © Sindre Sorhus, https://github.com/sindresorhus/get-stdin/blob/83c5c9f9059f0a66a6c9acef03c19546e2cb175b/index.js
+  if (null == stdin)
+    stdin = process.stdin
+
+  if stdin.isTTY ::
+    return resolve(null)
+
+  stdin.setEncoding('utf8')
+
+  let ret = ''
+  stdin.on @ 'end', () => resolve(ret)
+  stdin.on @ 'readable', @::
+    let chunk
+    while chunk = stdin.read() ::
+      ret += chunk
+
