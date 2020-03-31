@@ -192,9 +192,10 @@ export const scanner_jsx_fragment =
 
 
 
-export const jsx_context_scanners = Object.freeze @ js_context_scanners.concat @#
+export const jsx_context_scanners = Object.freeze @#
   scanner_jsx_fragment
   scanner_jsx
+  ... js_context_scanners
 
 export default scan_javascript_with_jsx
 export function scan_javascript_with_jsx(source, feedback) ::

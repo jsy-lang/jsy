@@ -192,6 +192,23 @@ describe @ 'JSY Scanner (misc)', @=> ::
       @[] 'src "line3"'
           'offside_dedent'
 
+  it @ 'allow complex regexp with nested slashes', @=> ::
+    const offside_ast = scan_jsy_lines @#
+      'line1'
+      'const rx_close = /(^[*!]|[/()[\\]{}"])/'
+      'line3'
+
+    test_ast_tokens_content @ offside_ast,
+      @[] 'src "line1"'
+          'offside_dedent'
+
+      @[] 'src "const rx_close = "'
+          'regexp /(^[*!]|[/()[\\]{}"])/'
+          'offside_dedent'
+
+      @[] 'src "line3"'
+          'offside_dedent'
+
   it @ 'a complex template string that fights like a regexp', @=> ::
     const offside_ast = scan_jsy_lines @#
       "return `//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}`}"

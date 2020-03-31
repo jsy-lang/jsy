@@ -1,7 +1,6 @@
 import scan_offside_contexts from './basic_offside_contexts.jsy'
 import { RegExpScanner, MultiLineScanner } from './context_scanner.jsy'
-import { clike_context_scanners, scanner_nestedSrc } from './scan_clike.jsy'
-
+import { scanner_source, clike_context_scanners, scanner_nestedSrc } from './scan_clike.jsy'
 
 export const scanner_regexp =
   new RegExpScanner @:
@@ -9,7 +8,34 @@ export const scanner_regexp =
       example: '/regexp/'
       op: 'regexp'
       kind: '/'
-      rx_open: /(\/)(?![\/\*])(?:\\.|[^\\\/])+(?=\/)/
+
+      /*
+      rx_open: rx_or_parts @:
+        opts: @[]
+          /(\/)(?![\/\*])/    // start of a potential regexp literal, but not a comment
+
+          @{}                 // ...complex regexp grammar...
+            pre: ''
+            opts: @[]
+              /\\./           // ...any escaped character...
+              /[^\\\/\[]/     // ...or any non-special character...
+
+              @{}             // ... or a bracket [] expression...
+                pre: '\\['        // started with a '[' character
+                opts: @[]
+                  /\\./           // ...with any escaped character
+                  /[^\]]/         // ...or any non-escaped non-ending ']' character
+                post: '*\\]'      // ended with an ending ']' character
+
+            post: '+'         // one or more interior expressions
+
+          /(?=\/)/            // (lookahead) end of a regexp literal
+      */
+
+      rx_open: new RegExp @
+        /(\/)(?![\/\*])/ .source + // a RegExp start but not a comment
+        /(?:\\.|[^\\\/\[]|\[(?:\\.|[^\]])*\])+/ .source +
+        /(?=\/)/ .source
       rx_close: /(\/[a-z]*)/
 
 
@@ -37,11 +63,23 @@ function templateArgNesting(ctx, hostScanner) ::
 
 
 
-export const js_context_scanners = Object.freeze @ clike_context_scanners.concat @#
+export const js_context_scanners = Object.freeze @#
   scanner_regexp
   scanner_strTemplate
+  ... clike_context_scanners
 
 export default scan_javascript
 export function scan_javascript(source, feedback) ::
   return scan_offside_contexts(source, feedback, js_context_scanners)
 
+if 0 ::!
+  console.log @ "SHANE", scanner_regexp
+  const source = '/(^[*!]|[/()[\\]{}"])/'
+  console.log @ "SRC:",source
+  const res = 
+    scan_offside_contexts @ source, {},
+      Object.freeze @#
+        scanner_source
+        scanner_regexp
+
+  console.log @ "ANS:", res[0].content

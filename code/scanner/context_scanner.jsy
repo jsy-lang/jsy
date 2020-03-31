@@ -298,6 +298,7 @@ export class RegExpScanner extends BaseSourceScanner ::
 
   newline(ctx, is_blank) ::
     if ! this.multiline && ! this.allow_blank_close ::
+      console.log @ this
       throw ctx.ln.loc.end.syntaxError @
         `Newline in ${this.description} (${ctx.ln.loc.end})`
 
@@ -489,7 +490,7 @@ export class EmbeddedDynamicScanner extends DynamicScanner ::
     return ds_body
 
   andDispatchWith(options) ::
-    options.scannerList = options.scannerList.concat @# this
+    options.scannerList = @[] ... options.scannerList, this
     const ds_body = new EmbeddedDispatchScanner(options)
     this.ds_body = ds_body
     return ds_body
