@@ -53,7 +53,7 @@ describe @ 'JSY Scanner (doc example)', @=> ::
 
   it @ 'transpiles to valid JavaScript', @=> ::
     const js_src = transpile_jsy @ offside_ast
-    new Function(`{\njs_src\n}`)
+    new Function(`{\n${js_src}\n}`)
 
   it @ 'has source-maps', @=> ::
     const sourcemap = new SourceMapGenerator()
@@ -108,6 +108,28 @@ describe @ 'JSY Scanner (misc)', @=> ::
       'const sz = "unterminated string example'
       'line3'
 
+  it @ 'correctly handles @{} at end of line with trailing spaces', @=> ::
+    const offside_ast = scan_jsy_lines @#
+      'const test = @{} a, b, c: @[] '
+      '  d, e, f'
+
+    test_ast_tokens_content @ offside_ast,
+      @[] 'src "const test ="'
+          'jsy_op " @{}"'
+          'src " a, b, c:"'
+          'jsy_op " @[]"'
+          'src " "'
+          'offside_dedent'
+
+      @[] 'src "d, e, f"'
+          'offside_dedent'
+
+    const js_src = transpile_jsy @ offside_ast
+    assert.deepEqual @ js_src.split('\n'), @[]
+      'const test ={a, b, c:['
+      '  d, e, f] }'
+
+describe @ 'JSY RegExp handling', @=> ::
   it @ 'allow division operator', @=> ::
     const offside_ast = scan_jsy_lines @#
       'line1'

@@ -14,12 +14,16 @@ export function scan_jsy(source, feedback) ::
     ln.content = parts
 
     const idx_dedent = parts.findIndex @ p => 'offside_dedent' === p.type
-    const last = parts[idx_dedent - 1]
-    if undefined === last :: continue
 
-    if last.type.startsWith('jsy_op') ::
-      parts[idx_dedent].ends_with_jsy_op = true
-      last.ending_jsy_op = true
+    for let i_last=idx_dedent-1; i_last >= 0; i_last-- ::
+      const last = parts[i_last]
+      if undefined === last ::
+        continue
+      else if last.type.startsWith('jsy_op') ::
+        parts[idx_dedent].ends_with_jsy_op = true
+        last.ending_jsy_op = true
+      else if 'src' !== last.type || last.content.trim() ::
+        break
 
   return jsy_ast
 
