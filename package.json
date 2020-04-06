@@ -26,8 +26,9 @@
     "cjs",
     "esm",
     "umd",
+    "iife",
     "code",
-    "transpile.js",
+    "transpile.cjs",
     "unittest.html",
     "test/browser_unittest.js",
     "test/__unittest.iife.js"
@@ -54,7 +55,7 @@
     "tiny-source-map": "^0.0.1"
   },
   "scripts": {
-    "clean": "rm -rf cjs/ umd/ esm/",
+    "clean": "rm -rf cjs/ umd/ esm/ iife/",
     "build": "rollup --config",
     "build:stable": "rollup --config rollup.stable.js",
     "watch": "npm -s run build -- --watch",

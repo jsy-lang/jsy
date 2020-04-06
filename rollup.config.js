@@ -1,4 +1,3 @@
-import pkg from './package.json'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_jsy from './stable/rollup-jsy-bootstrap.mjs'
 import {terser as rpi_terser} from 'rollup-plugin-terser'
@@ -7,77 +6,81 @@ const configs = []
 export default configs
 
 const sourcemap = true
-const external = []
 
 const plugins = [
   rpi_resolve(),
   rpi_jsy(),
 ]
 
-const plugins_browser = [
+const plugins_web_min = [
   ...plugins,
   rpi_terser(),
 ]
 
-configs.push(
-  { input: 'code/index.jsy',
-    output: [
-      { file: pkg.main, sourcemap, format: 'cjs' },
-      { file: pkg.main.replace('.cjs', '.js'), sourcemap, format: 'cjs' },
-      { file: pkg.module, sourcemap, format: 'es' },
-      { file: pkg.module.replace('.mjs', '.js'), sourcemap, format: 'es' },
-    ],
-    plugins, external},
 
-  { input: 'code/jsy-script.jsy',
-    output: [
-      { file: 'esm/jsy-script.js', sourcemap, format: 'es'},
-      { file: 'esm/jsy-script.mjs', sourcemap, format: 'es'},
-    ],
-    plugins: plugins_browser, external},
-
-  { input: 'code/rollup.jsy',
-    output: { file: 'esm/rollup.mjs', sourcemap, format: 'es'},
-    plugins, external: ['path', 'util', ... external]},
-
-  { input: 'code/cli_transpile.jsy',
-    output: { file: './cjs/cli_transpile.cjs', sourcemap, format: 'cjs'},
-    plugins, external: ['fs', 'path', 'util', ... external]},
-)
-
-if (plugins_browser)
-  configs.push(
-    { input: 'code/index.jsy',
-      output: { file: pkg.browser, sourcemap, format: 'umd', name:'jsy_transpile' },
-      plugins: plugins_browser, external},
-
-    { input: 'code/jsy-script.jsy',
-      output: [
-        { file: 'esm/jsy-script.min.js', sourcemap, format: 'es'},
-        { file: 'esm/jsy-script.min.mjs', sourcemap, format: 'es'},
-      ],
-      plugins: plugins_browser, external},
-  )
+add_jsy_core('index', {name: 'jsy_transpile'})
+add_jsy_core('scanner/index')
+add_jsy_core('all')
 
 
-add_jsy('scanner/index')
-add_jsy('all')
+add_jsy_web('jsy-script')
 
 
-function add_jsy(name) {
+add_jsy_node('rollup', ['esm'], {external: ['path', 'util']})
+add_jsy_node('cli_transpile', ['cjs'], {external: ['path', 'util', 'fs']})
+
+
+
+function add_jsy_core(src_name, opt={}) {
   configs.push({
-    input: `code/${name}.jsy`,
+    input: `code/${src_name}.jsy`,
     output: [
-      { file: `cjs/${name}.js`, format: 'cjs', exports:'named', sourcemap },
-      { file: `cjs/${name}.cjs`, format: 'cjs', exports:'named', sourcemap },
-      { file: `esm/${name}.js`, format: 'es', sourcemap },
-      { file: `esm/${name}.mjs`, format: 'es', sourcemap },
+      { file: `cjs/${src_name}.js`, format: 'cjs', exports:'named', sourcemap },
+      { file: `cjs/${src_name}.cjs`, format: 'cjs', exports:'named', sourcemap },
+      { file: `esm/${src_name}.js`, format: 'es', sourcemap },
+      { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
     ],
-    plugins, external })
+    plugins })
 
-  if (plugins_browser)
+  if (opt.name && plugins_web_min)
     configs.push({
-      input: `code/${name}.jsy`,
-      output: { file: `umd/${name}.js`, format: 'umd', name, exports:'named', sourcemap },
-      plugins: plugins_browser, external })
+      input: `code/${src_name}.jsy`,
+      output: { file: `umd/${src_name}.js`, format: 'umd', name: opt.name, exports:'named', sourcemap },
+      plugins: plugins_web_min })
+}
+
+function add_jsy_web(src_name, name=src_name) {
+  configs.push({
+    input: `code/${src_name}.jsy`,
+    output: [
+      { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
+      { file: `umd/${src_name}.js`, format: 'umd', name, sourcemap },
+      { file: `iife/${src_name}.js`, format: 'iife', sourcemap },
+    ],
+    plugins })
+
+  if (plugins_web_min)
+    configs.push({
+      input: `code/${src_name}.jsy`,
+      output: [
+        { file: `esm/${src_name}.min.mjs`, format: 'es', sourcemap },
+        { file: `umd/${src_name}.min.js`, format: 'umd', name, sourcemap },
+        { file: `iife/${src_name}.min.js`, format: 'iife', sourcemap },
+      ],
+      plugins: plugins_web_min })
+}
+
+function add_jsy_node(src_name, output_formats, kw={}) {
+  const fmt_map = {'esm': 'es', 'cjs': 'cjs'}
+  const fmt_ext = {'esm': 'mjs', 'cjs': 'cjs'}
+
+  configs.push({
+    input: `code/${src_name}.jsy`,
+    output: output_formats.map(fmt => (
+      { file: `${fmt}/${src_name}.${fmt_ext[fmt].trim()}`,
+        format: fmt_map[fmt].trim(),
+        exports: 'named' ,
+        sourcemap,
+      })),
+    plugins, ...kw})
 }
