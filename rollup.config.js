@@ -19,6 +19,7 @@ const plugins_web_min = [
 
 
 add_jsy_core('index', {name: 'jsy_transpile'})
+add_jsy_core('with_srcmap', {name: 'jsy_transpile'})
 add_jsy_core('scanner/index')
 add_jsy_core('all')
 

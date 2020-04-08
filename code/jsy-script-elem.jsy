@@ -1,5 +1,4 @@
-import tiny_sourcemap from 'tiny-source-map'
-import {jsy_transpile} from './transpile_jsy.jsy'
+import jsy_transpile_srcmap from './with_srcmap.jsy'
 
 const _jsy_script_ctx = @{}
   i: 1, ts: Date.now().toString(36)
@@ -30,16 +29,6 @@ export class JSYScript extends HTMLElement ::
       jsy_src, `<jsy-script-${_jsy_script_ctx.i++}-${_jsy_script_ctx.ts}>.jsy`
 
   as_jsy_script(jsy_src, source) ::
-    const src_map = tiny_sourcemap()
-    src_map.setSourceContent @ source, jsy_src
-
-    const js_src = jsy_transpile @ jsy_src, @{}
-      addSourceMapping(arg) ::
-        arg.source = source
-        src_map.addMapping(arg)
-
-      inlineSourceMap()  ::
-        return src_map.toString()
-
+    const js_src = jsy_transpile_srcmap @ jsy_src, source
     if js_src ::
       this.replace_script(js_src)

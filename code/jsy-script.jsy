@@ -1,8 +1,8 @@
 'use strict';
 
-import {jsy_transpile} from './transpile_jsy.jsy'
+import jsy_transpile_srcmap from './with_srcmap.jsy'
 import {JSYScript} from './jsy-script-elem.jsy'
 
 window.customElements.define @ 'jsy-script', JSYScript
-window.jsy_transpile = jsy_transpile
+window.jsy_transpile = jsy_transpile_srcmap
 
