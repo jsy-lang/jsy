@@ -1,10 +1,15 @@
 import tiny_sourcemap from 'tiny-source-map'
 import {jsy_transpile} from './transpile_jsy.jsy'
 
+const _jsy_srcmap_ctx = @{}
+  i: 1, ts: Date.now().toString(36)
+
 export default function jsy_transpile_srcmap(jsy_src, source, opt={}) ::
+  if null == source ::
+    source = `<jsy-${_jsy_srcmap_ctx.i++}-${_jsy_srcmap_ctx.ts}>.jsy`
+
   const src_map = tiny_sourcemap()
-  if source ::
-    src_map.setSourceContent @ source, jsy_src
+  src_map.setSourceContent @ source, jsy_src
 
   return jsy_transpile @ jsy_src, @{}
     addSourceMapping(arg) ::

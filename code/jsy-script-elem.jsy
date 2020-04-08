@@ -1,7 +1,5 @@
 import jsy_transpile_srcmap from './with_srcmap.jsy'
 
-const _jsy_script_ctx = @{}
-  i: 1, ts: Date.now().toString(36)
 
 export default JSYScript
 export class JSYScript extends HTMLElement ::
@@ -26,7 +24,7 @@ export class JSYScript extends HTMLElement ::
         await resp.text(), url_src
 
     return this.as_jsy_script @
-      jsy_src, `<jsy-script-${_jsy_script_ctx.i++}-${_jsy_script_ctx.ts}>.jsy`
+      jsy_src, null
 
   as_jsy_script(jsy_src, source) ::
     const js_src = jsy_transpile_srcmap @ jsy_src, source
