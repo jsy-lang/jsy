@@ -72,14 +72,3 @@ export default scan_javascript
 export function scan_javascript(source, feedback) ::
   return scan_offside_contexts(source, feedback, js_context_scanners)
 
-if 0 ::!
-  console.log @ "SHANE", scanner_regexp
-  const source = '/(^[*!]|[/()[\\]{}"])/'
-  console.log @ "SRC:",source
-  const res = 
-    scan_offside_contexts @ source, {},
-      Object.freeze @#
-        scanner_source
-        scanner_regexp
-
-  console.log @ "ANS:", res[0].content

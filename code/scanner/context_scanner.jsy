@@ -298,7 +298,6 @@ export class RegExpScanner extends BaseSourceScanner ::
 
   newline(ctx, is_blank) ::
     if ! this.multiline && ! this.allow_blank_close ::
-      console.log @ this
       throw ctx.ln.loc.end.syntaxError @
         `Newline in ${this.description} (${ctx.ln.loc.end})`
 
