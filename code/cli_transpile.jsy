@@ -19,6 +19,9 @@ export async function main(filename) ::
     //src_map.setSourceContent(filename, jsy_src)
 
     const src = jsy_transpile @ jsy_src, @{}
+      defines: @{}
+        PLAT_CLI: true
+
       addSourceMapping(arg) ::
         if !src_map :: return
         arg.source = filename
