@@ -3,7 +3,9 @@ import tiny_sourcemap from 'tiny-source-map'
 import {jsy_transpile} from './transpile_jsy.jsy'
 
 const default_jsy_config = @{}
-  exclude: 'node_modules/**'
+  include: ['**/*.jsy']
+  exclude: ['**/*.mjs', '**/*.cjs', 'node_modules/**']
+
   create_sourcemap: tiny_sourcemap
   jsy_transpile
 
