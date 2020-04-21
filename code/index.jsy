@@ -1,1 +1,3 @@
-export {default as default} from './transpile_jsy.jsy'
+import {default as jsy_transpile} from './transpile_jsy.jsy'
+jsy_transpile.default = jsy_transpile
+export default jsy_transpile

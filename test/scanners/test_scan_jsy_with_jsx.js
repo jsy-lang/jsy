@@ -16,6 +16,19 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'offside_dedent'
 
 
+    it @ 'basic body with attr only', @=> ::
+      const offside_ast = scan_jsy_lines @#
+        '<section hidden>example</section>'
+
+      test_ast_tokens_content @ offside_ast,
+        @[] 'jsx_tag "<section "'
+            'jsx_attr_name_only "hidden"'
+            'jsx_tag_part ">"'
+            'jsx_content "example"'
+            'jsx_tag_close "</section>"'
+            'offside_dedent'
+
+
     it @ 'basic body with attr', @=> ::
       const offside_ast = scan_jsy_lines @#
         '<section class="nice">example</section>'

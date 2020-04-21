@@ -16,18 +16,29 @@ export const scanner_jsxContentExpr =
       example: '{ param }'
       op: 'jsx_content_expr'
       kind: '{'
-      rx_open: /({)/,
-      rx_close: /.*()/,
+      rx_open: /\s*({)/,
+      rx_close: /()/,
 
       nestTrim(content, close) :: return ''
       post_scan(ctx) :: jsxArgNesting @ ctx, null
 
-export const scanner_jsxAttrName =
+export const scanner_jsxAttrNameValue =
   new RegExpScanner @:
-      description: 'JSX attribute name'
+      description: 'JSX attribute name value'
       op: 'jsx_attr_name'
-      rx_open: /([a-zA-Z0-9_:.\-]+)/,
+      rx_open: /\s*([a-zA-Z0-9_:.\-]+)/,
       rx_close: /\s*(=)\s*/,
+
+export const scanner_jsxAttrNameOnly =
+  new RegExpScanner @:
+      description: 'JSX attribute name only'
+      op: 'jsx_attr_name_only'
+      rx_open: /\s*([a-zA-Z0-9_:.\-]+)/,
+      rx_close: /()/,
+
+      post_scan(ctx, close) ::
+        return this.nestMatch @ close,
+          ctx, this.hostScanner || this
 
 export const scanner_jsxAttrSingle =
   new RegExpScanner @:
@@ -74,8 +85,8 @@ export const scanner_jsxTag =
       op: 'jsx_tag'
       op_continue: 'jsx_tag_part'
 
-      rx_open: /(<)tag\s*/
-      rx_close: /\s*($|\/?>|[{'"]|[a-zA-Z0-9_:.\-]+=)/
+      rx_open: /(<)tag\b\s*/
+      rx_close: /\s*?($|\/>|[{'">]|[a-zA-Z0-9_:.\-]+=?)/
 
       nesting: @{}
         '>': 'host' // use hostScanner
@@ -83,18 +94,19 @@ export const scanner_jsxTag =
 
       nestingEnd: @{}
         '{': jsxArgNesting
-        '=': scanner_jsxAttrName
+        '=': scanner_jsxAttrNameValue
         "'": scanner_jsxAttrSingle
         '"': scanner_jsxAttrDouble
 
       nestTrim(content, close, isContinue) ::
-        if this.nestingEnd[close.slice(-1)] ::
-          return content.slice(0, - close.length)
-        return content
+        return this.nesting[close] ? content
+          : content.slice(0, - close.length)
+
       nestMatch(close, ctx, hostScanner) ::
         let inner = this.nesting[close]
         if undefined === inner ::
           inner = this.nestingEnd[close.slice(-1)]
+            || scanner_jsxAttrNameOnly
 
         if true !== inner && 'host' !== inner ::
           // we're actually pushign two scanners onto the stack
@@ -127,7 +139,7 @@ export const scanner_jsx =
       op: 'jsx'
 
       // recognize by '<tag' followed by 'attr=' or '/>' or '>'
-      rx_open: /(<)([a-zA-Z0-9_:.\-]+)\s*(\/?>|[{]|[a-zA-Z0-9_:\-]+=|$)/
+      rx_open: /(<)([a-zA-Z0-9_:.\-]+)(?=\s*?(?:$|\/>|>|\s{|\s[a-zA-Z0-9_:\-]+=?))/
       rx_close: /.*$/
 
       leader: scanner_jsxTag

@@ -18,7 +18,7 @@ const plugins_web_min = [
 ]
 
 
-add_jsy_core('index', {name: 'jsy_transpile'})
+add_jsy_core('index', {name: 'jsy_transpile', exports:'default'})
 add_jsy_core('with_srcmap', {name: 'jsy_transpile'})
 add_jsy_core('scanner/index')
 add_jsy_core('all')
@@ -36,8 +36,8 @@ function add_jsy_core(src_name, opt={}) {
   configs.push({
     input: `code/${src_name}.jsy`,
     output: [
-      { file: `cjs/${src_name}.js`, format: 'cjs', exports:'named', sourcemap },
-      { file: `cjs/${src_name}.cjs`, format: 'cjs', exports:'named', sourcemap },
+      { file: `cjs/${src_name}.js`, format: 'cjs', exports:opt.exports || 'named', sourcemap },
+      { file: `cjs/${src_name}.cjs`, format: 'cjs', exports:opt.exports || 'named', sourcemap },
       { file: `esm/${src_name}.js`, format: 'es', sourcemap },
       { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
     ],
@@ -46,7 +46,7 @@ function add_jsy_core(src_name, opt={}) {
   if (opt.name && plugins_web_min)
     configs.push({
       input: `code/${src_name}.jsy`,
-      output: { file: `umd/${src_name}.js`, format: 'umd', name: opt.name, exports:'named', sourcemap },
+      output: { file: `umd/${src_name}.js`, format: 'umd', name: opt.name, exports:opt.exports || 'named', sourcemap },
       plugins: plugins_web_min })
 }
 

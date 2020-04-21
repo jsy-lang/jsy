@@ -359,6 +359,7 @@ const transpile_visitor = @{}
   v$jsx_tag_part: direct_src
   v$jsx_tag_close: direct_src
   v$jsx_attr_name: direct_src
+  v$jsx_attr_name_only: direct_src
   v$jsx_attr_str1: direct_src
   v$jsx_attr_str2: direct_src
   v$jsx_content: direct_src
