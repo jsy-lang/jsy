@@ -21,16 +21,24 @@ const plugins_web_min = [
 ]
 
 
-add_jsy_core('index', {name: 'jsy_transpile', exports:'default'})
-add_jsy_core('with_srcmap', {name: 'jsy_transpile'})
+const fast_build = 'fast' === process.env.JSY_BUILD
+if (!fast_build) {
+  add_jsy_core('index', {name: 'jsy_transpile', exports:'default'})
+
+  add_jsy_core('with_srcmap', {name: 'jsy_transpile', exports:'default'})
+}
+
 add_jsy_core('scanner/index')
 add_jsy_core('all')
 
 
-add_jsy_web('jsy-script')
+if (!fast_build) {
+  add_jsy_web('jsy-script')
 
 
-add_jsy_node('rollup', ['esm'], {external: ['path', 'util']})
+  add_jsy_node('rollup', ['esm'], {external: ['path', 'util']})
+}
+
 add_jsy_node('cli_transpile', ['cjs'], {external: ['path', 'util', 'fs']})
 
 
@@ -46,29 +54,39 @@ function add_jsy_core(src_name, opt={}) {
     ],
     plugins })
 
-  if (opt.name && plugins_web_min)
+  if (opt.name)
     configs.push({
       input: `code/${src_name}.jsy`,
       output: { file: `umd/${src_name}.js`, format: 'umd', name: opt.name, exports:opt.exports || 'named', sourcemap },
+      plugins })
+
+  if (opt.name && plugins_web_min)
+    configs.push({
+      input: `code/${src_name}.jsy`,
+      output: { file: `umd/${src_name}.min.js`, format: 'umd', name: opt.name, exports:opt.exports || 'named', sourcemap },
       plugins: plugins_web_min })
 }
 
-function add_jsy_web(src_name, name=src_name) {
+function add_jsy_web(src_name, opt={}) {
   configs.push({
     input: `code/${src_name}.jsy`,
     output: [
       { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
-      { file: `umd/${src_name}.js`, format: 'umd', name, sourcemap },
+      { file: `umd/${src_name}.js`, format: 'umd', name: opt.name || src_name, sourcemap },
       { file: `iife/${src_name}.js`, format: 'iife', sourcemap },
     ],
     plugins })
 
+  add_jsy_web_min(src_name, opt)
+}
+
+function add_jsy_web_min(src_name, opt={}) {
   if (plugins_web_min)
     configs.push({
       input: `code/${src_name}.jsy`,
       output: [
         { file: `esm/${src_name}.min.mjs`, format: 'es', sourcemap },
-        { file: `umd/${src_name}.min.js`, format: 'umd', name, sourcemap },
+        { file: `umd/${src_name}.min.js`, format: 'umd', name: opt.name || src_name, sourcemap },
         { file: `iife/${src_name}.min.js`, format: 'iife', sourcemap },
       ],
       plugins: plugins_web_min })
