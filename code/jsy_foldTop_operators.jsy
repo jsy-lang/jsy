@@ -1,3 +1,5 @@
+import {regexp_from_jsy_op} from './jsy_regexp_utils.jsy'
+
 // Allow use of ';' prefix to JSY operators to foldTop and perform operation
 
 export const at_foldTop = @[]
@@ -7,35 +9,57 @@ export const at_foldTop = @[]
     pre: ' ', post: null, foldTop: true
     opResolve: p => @: pre: ' '+p.op_args[0], post: null, foldTop: true
 
-export function at_prefixFoldTop(at_op) ::
+
+export const op_prefix_list = @[]
+  @{} prefix: ';', rx_prefix: /;/
+      opPrefixResolve(p, at_op) ::
+        const at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
+        return @{} foldTop: true, ... at_res
+
+  @{} prefix: '?', rx_prefix: /\?/
+      opPrefixResolve(p, at_op) ::
+        const at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
+        const pre = '?.' + (at_res.pre || '')
+        return @{} foldTop: true, ... at_res, pre
+
+  @{} prefix: '?.', rx_prefix: /\?\./
+      opPrefixResolve(p, at_op) ::
+        const at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
+        const pre = '?.' + (at_res.pre || '')
+        return @{} foldTop: true, ... at_res, pre
+
+
+export function at_prefixFoldTop(jsy_prefix_op, at_op) ::
   let {jsy_op0, jsy_op} = at_op
   if ! /^[@?]/.test @ jsy_op0 || jsy_op ::
     return
 
   if undefined === jsy_op0 ::
-    jsy_op = ';' + jsy_op
-    return @{} ...at_op,
-      jsy_op, foldTop: true
+    jsy_op0 = jsy_op
+    jsy_op = new RegExp @ regexp_from_jsy_op(jsy_op, false)
 
+  else if 'string' === typeof jsy_op ::
+    jsy_op = new RegExp @ regexp_from_jsy_op(jsy_op, false)
 
-  if 'function' !== typeof jsy_op.exec ::
+  else if 'function' !== typeof jsy_op.exec ::
     throw new Error @ 'Unexpected jsy_op type'
 
-  jsy_op0 = ';' + jsy_op0
-  jsy_op = new RegExp @ `;${jsy_op.source}`, jsy_op.flags
+  jsy_op0 = jsy_prefix_op.prefix + jsy_op0
+  jsy_op = new RegExp @ `${jsy_prefix_op.rx_prefix.source}${jsy_op.source}`, jsy_op.flags
 
-  if 'function' === typeof at_op.opResolve ::
-    return @{} ...at_op,
-      jsy_op0, jsy_op, foldTop: true
-      opResolve: p => @: ... at_op.opResolve(p), foldTop: true
+  return @{} ...at_op,
+    jsy_op0, jsy_op, foldTop: true
+    opResolve: p => jsy_prefix_op.opPrefixResolve @ p, at_op
 
 
-export function apply_prefixFoldTop(... args) ::
+export function apply_prefixFoldTop(jsy_prefix_op_list, ... args) ::
   const res = []
-  for const at_op_list of args ::
-    for const at_op of at_op_list ::
-      const ea = at_prefixFoldTop @ at_op
-      if undefined !== ea ::
-        res.push @ ea
+  for const jsy_prefix_op of jsy_prefix_op_list ::
+    for const at_op_list of args ::
+      for const at_op of at_op_list ::
+        const ea = at_prefixFoldTop @
+          jsy_prefix_op, at_op
+        if undefined !== ea ::
+          res.push @ ea
   return res
 

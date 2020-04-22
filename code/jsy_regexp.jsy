@@ -1,3 +1,4 @@
+import {regexp_from_jsy_op} from './jsy_regexp_utils.jsy'
 import {at_offside, at_unknown_ops, keywords_locator_parts} from './jsy_operators.jsy'
 
 const regexp_keyword = sz => ::
@@ -13,22 +14,8 @@ export const rx_keyword_ops = new RegExp @
     + re_keyword_trailer
   , 'g' // global regexp for lastIndex support
 
-
-const rx_escape_offside_ops = /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
-const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
-const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
-
-const regexp_from_offside_op = offside_op => ::
-  let op = offside_op.jsy_op
-  if 'string' === typeof op ::
-    // escape Offside operator chars to RegExp
-    op = op.replace @ rx_escape_offside_ops, '\\$&'
-    // surrounded by newlines or spacees
-    op = re_space_prefix + op + re_space_suffix
-    return `(?:${op})` // using a non-matching group
-
-  else if op instanceof RegExp ::
-    return op.source
+const regexp_from_offside_op = offside_op =>
+  regexp_from_jsy_op @ offside_op.jsy_op, true
 
 export const rx_offside_ops = new RegExp @
   at_offside

@@ -1,0 +1,21 @@
+
+const deprecated_suffix_offside_fold = @{}
+  warn({op}) :: warn_deprecated @ 'suffix offside fold experiment in v0.6.0.  ', {op}
+
+export const at_experimental_inner_offside_folded = @[]
+  /* experimental ideas; may be removed at any time */
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@@', pre: '(', post: ')', implicitCommas: true, isFoldable: true, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@;', pre: ' ', post: null, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@,', pre: ', ', post: null, foldTop: true
+  @{} ... deprecated_suffix_offside_fold, jsy_op: '@.', pre: '.', post: null, foldTop: true
+
+
+const deprecated_functional_composition_experiment = @{}
+  warn({op}) :: warn_deprecated @ 'functional composition experiment in v0.6.0.  ', {op}
+
+export const at_experimental = @[]
+  /* experimental ideas; may be removed at any time */
+  @{} ... deprecated_functional_composition_experiment, jsy_op: '@|>', pre: '([', post: '].reduce((v,f)=>f(v)))', implicitCommas: true
+  @{} ... deprecated_functional_composition_experiment, jsy_op: '@|>>', pre: '([', post: '].reduce(async (v,f)=>f(v)))', implicitCommas: true

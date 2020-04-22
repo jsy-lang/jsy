@@ -15,7 +15,7 @@ export async function main(filename) ::
     if ! jsy_src ::
       throw new Error('jsy-transpile expected a filename argument or stdin input')
 
-    const src_map = filename && tiny_sourcemap()
+    const src_map = !process.env.JSY_NOSRCMAP && filename && tiny_sourcemap()
     //src_map.setSourceContent(filename, jsy_src)
 
     const src = jsy_transpile @ jsy_src, @{}

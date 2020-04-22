@@ -1,0 +1,17 @@
+
+const rx_escape_offside_ops = /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
+const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
+const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
+
+export const regexp_from_jsy_op = (jsy_op, with_spacing) => ::
+  if 'string' === typeof jsy_op ::
+    // escape Offside operator chars to RegExp
+    jsy_op = jsy_op.replace @ rx_escape_offside_ops, '\\$&'
+    // surrounded by newlines or spacees
+    if with_spacing ::
+      jsy_op = re_space_prefix + jsy_op + re_space_suffix
+    return `(?:${jsy_op})` // using a non-matching group
+
+  else if jsy_op instanceof RegExp ::
+    return jsy_op.source
+
