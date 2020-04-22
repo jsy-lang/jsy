@@ -1,4 +1,5 @@
 import rpi_resolve from '@rollup/plugin-node-resolve'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from './esm/rollup.mjs'
 
 const configs = []
@@ -8,6 +9,7 @@ const sourcemap = true
 const plugins = [
   rpi_resolve(),
   rpi_jsy(),
+  rpi_dgnotify(),
 ]
 
 configs.push(

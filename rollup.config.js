@@ -1,4 +1,6 @@
 import rpi_resolve from '@rollup/plugin-node-resolve'
+import rpi_commonjs from '@rollup/plugin-commonjs'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from './stable/rollup-jsy-bootstrap.mjs'
 import {terser as rpi_terser} from 'rollup-plugin-terser'
 
@@ -10,6 +12,7 @@ const sourcemap = true
 const plugins = [
   rpi_resolve(),
   rpi_jsy(),
+  rpi_dgnotify(),
 ]
 
 const plugins_web_min = [
@@ -83,5 +86,5 @@ function add_jsy_node(src_name, output_formats, kw={}) {
         exports: 'named' ,
         sourcemap,
       })),
-    plugins, ...kw})
+    plugins: [...plugins, rpi_commonjs()], ...kw})
 }
