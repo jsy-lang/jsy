@@ -1,0 +1,59 @@
+import {regexp_from_jsy_op} from './jsy_regexp_utils.jsy'
+
+
+export const op_prefix_nullish = @{}
+  prefix: '?', rx_prefix: /\?(\.?)/
+  opPrefixResolve(p, at_op) ::
+    const at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
+    const pre = '?.' + (at_res.pre || '')
+    return @{} ... at_res, pre
+
+
+// Allow use of ';' prefix to JSY operators to foldTop and perform operation
+export const at_inner_semicolon = @[]
+  @{} jsy_op: ';::', pre: ' {', post: '}', foldTop: true
+
+  @{} jsy_op0: ';', jsy_op: @ /;([-+*\/%^<>&|!?=,.:]+)/
+    pre: ' ', post: null, foldTop: true
+    opResolve: p => @: pre: ' '+p.op_args[0], post: null, foldTop: true
+
+export const op_prefix_semicolon = @{}
+  prefix: ';', rx_prefix: /;/
+  opPrefixResolve(p, at_op) ::
+    const at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
+    return @{} foldTop: true, ... at_res
+
+
+export function at_op_for_prefix(jsy_prefix_op, at_op) ::
+  let {jsy_op0, jsy_op} = at_op
+  if ! /^[@?]/.test @ jsy_op0 || jsy_op ::
+    return
+
+  if undefined === jsy_op0 ::
+    jsy_op0 = jsy_op
+    jsy_op = new RegExp @ regexp_from_jsy_op(jsy_op, false)
+
+  else if 'string' === typeof jsy_op ::
+    jsy_op = new RegExp @ regexp_from_jsy_op(jsy_op, false)
+
+  else if 'function' !== typeof jsy_op.exec ::
+    throw new Error @ 'Unexpected jsy_op type'
+
+  jsy_op0 = jsy_prefix_op.prefix + jsy_op0
+  jsy_op = new RegExp @ `${jsy_prefix_op.rx_prefix.source}${jsy_op.source}`, jsy_op.flags
+
+  return @{} ...at_op,
+    jsy_op0, jsy_op, foldTop: true
+    opResolve: p => jsy_prefix_op.opPrefixResolve @ p, at_op
+
+
+export function apply_prefix_op({jsy_prefix_op, op_collections}) ::
+  const res = []
+  for const at_op_list of op_collections ::
+    for const at_op of at_op_list ::
+      const ea = at_op_for_prefix @
+        jsy_prefix_op, at_op
+      if undefined !== ea ::
+        res.push @ ea
+  return res
+

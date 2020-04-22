@@ -4,7 +4,6 @@ const lambda_block_tbl = @{}
   '': a => @: pre: `((${a}) => {`, post: '})'
   '>': a => @: pre: `(async (${a}) => {`, post: '})'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).bind(this))'
-  '*>': a => @: pre: `((async function * (${a}) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * (${a}) {`, post: '}).bind(this))'
 
 const lambda_arrow_tbl = @{}
@@ -17,28 +16,24 @@ const lambda_kw_block_tbl = @{}
   '': a => @: pre: `(({${a}}) => {`, post: '})'
   '>': a => @: pre: `(async ({${a}}) => {`, post: '})'
   '>*': a => @: pre: `((async function * ({${a}}) {`, post: '}).bind(this))'
-  '*>': a => @: pre: `((async function * ({${a}}) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * ({${a}}) {`, post: '}).bind(this))'
 
 const lambda_kw_arrow_tbl = @{}
   '': a => @: pre: `(({${a}}) =>`, post: ')', implicitCommas: true
   '>': a => @: pre: `(async ({${a}}) =>`, post: ')', implicitCommas: true
   '>*': a => @: pre: `((async function * ({${a}}) {`, post: '}).bind(this))'
-  '*>': a => @: pre: `((async function * ({${a}}) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * ({${a}}) {`, post: '}).bind(this))'
 
 const lambda_pos_block_tbl = @{}
   '': a => @: pre: `(([${a}]) => {`, post: '})'
   '>': a => @: pre: `(async ([${a}]) => {`, post: '})'
   '>*': a => @: pre: `((async function * ([${a}]) {`, post: '}).bind(this))'
-  '*>': a => @: pre: `((async function * ([${a}]) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * ([${a}]) {`, post: '}).bind(this))'
 
 const lambda_pos_arrow_tbl = @{}
   '': a => @: pre: `(([${a}]) =>`, post: ')', implicitCommas: true
   '>': a => @: pre: `(async ([${a}]) =>`, post: ')', implicitCommas: true
   '>*': a => @: pre: `((async function * ([${a}]) {`, post: '}).bind(this))'
-  '*>': a => @: pre: `((async function * ([${a}]) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * ([${a}]) {`, post: '}).bind(this))'
 
 
@@ -46,7 +41,6 @@ const iife_expr_tbl = @{}
   '': a => @: pre: `(((${a}) => {`, post: '})())'
   '>': a => @: pre: `((async (${a}) => {`, post: '})())'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).call(this))'
-  '*>': a => @: pre: `((async function * (${a}) {`, post: '}).call(this))'
   '*': a => @: pre: `((function * (${a}) {`, post: '}).call(this))'
 
 const iife_arrow_tbl = @{}
@@ -107,10 +101,10 @@ export const at_lambda_iife_offside = @[]
   @{} jsy_op: '::!', pre: '{(()=>{', post: '})()}', is_kw_close: true
   @{} jsy_op: '::!>', pre: '{(async ()=>{', post: '})()}', is_kw_close: true
 
-  @{} jsy_op0: '@*>', jsy_op: /@\*>/, pre: '(async function *(){', post: '})()'
+  @{} jsy_op0: '@*>', jsy_op: /@\*>/, pre: '((async function *(){', post: '})())'
   @{} jsy_op0: '@*[]', jsy_op: /@\*\[\]/, pre: '[... (function *(){', post: '})()]'
   @{} jsy_op0: '@*#', jsy_op: /@\*#/, pre: '([... (function *(){', post: '})()])'
-  @{} jsy_op0: '@*', jsy_op: /@\*/, pre: '(function *(){', post: '})()'
+  @{} jsy_op0: '@*', jsy_op: /@\*/, pre: '((function *(){', post: '})())'
 
   @{} jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
       pre: '((()=>', post: ')())',

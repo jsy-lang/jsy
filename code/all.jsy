@@ -1,4 +1,4 @@
-export * from './jsy_foldTop_operators.jsy'
+export * from './jsy_prefix_operators.jsy'
 export * from './jsy_lambda_operators.jsy'
 export * from './jsy_operators.jsy'
 
