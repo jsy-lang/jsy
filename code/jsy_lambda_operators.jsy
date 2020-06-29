@@ -36,6 +36,13 @@ const lambda_pos_arrow_tbl = @{}
   '>*': a => @: pre: `((async function * ([${a}]) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * ([${a}]) {`, post: '}).bind(this))'
 
+/*
+const lambda_gen_block_tbl = @{}
+  '': a => @: pre: `(function *(__iter__) { for (let ${a} of __iter__) {`, post: '}})'
+  '*': a => @: pre: `(function *(__iter__) { for (let ${a} of __iter__) {`, post: '}})'
+  '>': a => @: pre: `(async function *(__iter__) { for await (let ${a} of __iter__) {`, post: '}})'
+  '>*': a => @: pre: `(async function *(__iter__) { for await (let ${a} of __iter__) {`, post: '}})'
+*/
 
 const iife_expr_tbl = @{}
   '': a => @: pre: `(((${a}) => {`, post: '})())'
@@ -92,6 +99,12 @@ export const at_lambda_offside = @[]
       pre: '(()=>{', post: '})',
       opResolve: bindOpResolve @ lambda_pos_block_tbl, true
 
+  /*
+  @{} jsy_op0: '@\\*::', jsy_op: /@\\\*(.*?)::(>?\*?)/,
+      pre: '(function *(__iter__){ for(let (...) of __iter__){', post: '}})',
+      opResolve: bindOpResolve @ lambda_gen_block_tbl, true
+  */
+
   @{} jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
       pre: '(()=>{', post: '})',
       opResolve: bindOpResolve @ lambda_block_tbl, true
@@ -101,10 +114,11 @@ export const at_lambda_iife_offside = @[]
   @{} jsy_op: '::!', pre: '{(()=>{', post: '})()}', is_kw_close: true
   @{} jsy_op: '::!>', pre: '{(async ()=>{', post: '})()}', is_kw_close: true
 
-  @{} jsy_op0: '@*>', jsy_op: /@\*>/, pre: '((async function *(){', post: '})())'
-  @{} jsy_op0: '@*[]', jsy_op: /@\*\[\]/, pre: '[... (function *(){', post: '})()]'
-  @{} jsy_op0: '@*#', jsy_op: /@\*#/, pre: '([... (function *(){', post: '})()])'
-  @{} jsy_op0: '@*', jsy_op: /@\*/, pre: '((function *(){', post: '})())'
+  @{} jsy_op0: '@!*>', jsy_op: /@!\*>/, pre: '((async function *(){', post: '}).call(this))'
+  @{} jsy_op0: '@!*[]', jsy_op: /@!\*\[\]/, pre: '[... (function *(){', post: '}).call(this)]'
+  @{} jsy_op0: '@!*#', jsy_op: /@!\*#/, pre: '([... (function *(){', post: '}).call(this)])'
+  @{} jsy_op0: '@!*', jsy_op: /@!\*/, pre: '((function *(){', post: '}).call(this))'
+
 
   @{} jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
       pre: '((()=>', post: ')())',

@@ -61,6 +61,7 @@
     "clean": "rm -rf cjs/ umd/ esm/ iife/",
     "build": "rollup --config",
     "build:stable": "rollup --config rollup.stable.js",
+    "watch:fast": "JSY_BUILD=fast npm -s run build -- --watch",
     "watch": "npm -s run build -- --watch",
     "pretest": "npm -s run build",
     "test": "cd test; npm -s run test",
