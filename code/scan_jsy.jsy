@@ -2,10 +2,15 @@ import { rx_offside_ops, rx_keyword_ops, rx_unknown_ops } from './jsy_regexp.jsy
 import inject_dedent from './scanner/inject_dedent.jsy'
 import scan_jsx_javascript from './scanner/scan_jsx_javascript.jsy'
 
+//import {dbg_dump_ast} from './_ast_debug.jsy'
+
 export default scan_jsy
 export function scan_jsy(source, feedback) ::
   const jsy_ast = scan_jsx_javascript(source, feedback)
+  //dbg_dump_ast('out.json5', jsy_ast)
+
   inject_dedent @ jsy_ast, @[] 'comment_eol'
+  //dbg_dump_ast('out-post.json5', jsy_ast)
 
   for const ln of jsy_ast ::
     if ln.is_blank :: continue

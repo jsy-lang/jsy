@@ -1,0 +1,23 @@
+
+export function ast_to_json5(ast) ::
+  const out = []
+  for let {type, loc, indent, content} of ast ::
+    if loc :: loc = loc.start.toString()
+    if ! content ::
+      out.push @ `  ["${type} at ${loc}"],`
+      continue
+
+    out.push @ `  ["${type} at ${loc} with '${indent.indent}'",`
+
+    for let {type:ct, content:cc} of content ::
+      out.push @ `    ${JSON.stringify([ct, cc])},`
+
+    out.push @ `  ],\n`
+
+  return `[\n${out.join('\n')}\n]\n`
+
+export function dbg_dump_ast(fname, ast) ::
+  return require('fs').promises.writeFile @
+    fname, ast_to_json5(ast)
+    
+
