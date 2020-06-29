@@ -315,7 +315,7 @@ const transpile_visitor = @{}
     else if 'string' === typeof ans ::
       return this.emit @ ans, p.loc.start
     else if 'boolean' === typeof ans || 'function' === typeof ans ::
-      this.push_xform(ln, xform_cur).update(ans)
+      add_xform(ans)
 
     return this.emit_raw('')
 

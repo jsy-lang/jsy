@@ -113,7 +113,7 @@ export const preprocessor_stack_ops = @{}
   '!': Object.assign @ not_stkop, {order: 0}
   '&&': Object.assign @ and_stkop, {order: 10}
   '||': Object.assign @ or_stkop, {order: 20}
-  'NOT': and_stkop
+  'NOT': not_stkop
   'AND': and_stkop
   'OR': or_stkop
 
