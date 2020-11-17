@@ -64,6 +64,22 @@ describe @ 'JSY Scanner (template strings)', @=> ::
           'offside_dedent'
 
 
+  it @ 'regexp literal vs template internal', @=> ::
+    const offside_ast = scan_jsy_lines @#
+      "`$${a.b / 100} / ${c.d}`"
+
+    test_ast_tokens_content @ offside_ast,
+      @[] 'str_template "`$${"'
+          'template_param ""'
+          'src "a.b / 100"'
+          'template_param_end "}"'
+          'str_template " / ${"'
+          'template_param ""'
+          'src "c.d"'
+          'template_param_end "}"'
+          'str_template "`"'
+          'offside_dedent'
+
   it @ 'nested template strings', @=> ::
     const offside_ast = scan_jsy_lines @#
       "const classes = `header ${ isLargeScreen() ? '' :"

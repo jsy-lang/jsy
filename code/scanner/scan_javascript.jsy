@@ -34,15 +34,16 @@ export const scanner_regexp =
 
       rx_open: new RegExp @
         /(\/)(?![\/\*])/ .source + // a RegExp start but not a comment
-        /(?:\\.|[^\\\/\[]|\[(?:\\.|[^\]])*\])+/ .source +
-        /(?=\/)/ .source
-      rx_close: /(\/[a-z]*)/
+        /(?:\\.|[^\\\/\[]|\[(?:\\.|[^\]])*\])+/ .source
 
+      rx_close: /(\/[a-z]*)\s*(?=[;.,)\]}]|$)/  // inspired by vim's syntax highlighting end
+
+      //multiline: false // spec https://tc39.es/ecma262/#sec-literals-regular-expression-literals
 
 
 export const scanner_strTemplate =
   new MultiLineScanner @:
-      description: 'Template string literal'
+      description: 'Template quote string literal'
       example: '`template string`'
       op: 'str_template'
       kind: '`'
