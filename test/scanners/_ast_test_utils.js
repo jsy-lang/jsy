@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { scan_jsy, transpile_jsy } from 'jsy-transpile/esm/all'
+import { scan_jsy, transpile_jsy } from 'jsy-transpile/esm/all.js'
 
 export function scan_jsy_lines(jsy_lines) ::
   return scan_jsy @ jsy_lines.join('\n')

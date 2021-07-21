@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { transpile_jsy } from 'jsy-transpile/esm/all'
+import { transpile_jsy } from 'jsy-transpile/esm/all.js'
 import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content, jsy_scan_throws } from './_ast_test_utils'
 
 

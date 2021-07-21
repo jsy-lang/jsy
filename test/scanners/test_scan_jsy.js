@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { transpile_jsy, scan_jsy } from 'jsy-transpile/esm/all'
+import { transpile_jsy, scan_jsy } from 'jsy-transpile/esm/all.js'
 import { scan_jsy_lines, jsy_scan_throws, test_ast_tokens_content } from './_ast_test_utils'
 const { SourceMapGenerator } = require('source-map')
 

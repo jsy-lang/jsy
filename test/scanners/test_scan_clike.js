@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { scan_clike } from 'jsy-transpile/esm/scanner'
+import { scan_clike } from 'jsy-transpile/esm/scanner/index.js'
 import { test_ast_tokens, test_ast_tokens_content } from './_ast_test_utils'
 
 describe @ 'Scanners', @=> ::
