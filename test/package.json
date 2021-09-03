@@ -4,12 +4,12 @@
     "jsy-transpile": "file:.."
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^19.0.1",
-    "@rollup/plugin-node-resolve": "^13.0.2",
+    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.4",
     "acorn": "^8.4.1",
     "chai": "^4.3.4",
-    "mocha": "^9.0.2",
-    "rollup": "^2.53.3"
+    "mocha": "^9.1.1",
+    "rollup": "^2.56.3"
   },
   "scripts": {
     "prebuild": "test -d ./node_modules || npm -s ci",

@@ -46,16 +46,16 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^19.0.1",
-    "@rollup/plugin-node-resolve": "^13.0.2",
+    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.4",
     "@rollup/pluginutils": "^4.1.1",
     "jsy-transpile": "file:.",
     "micromatch": "^4.0.4",
-    "rollup": "^2.53.3",
+    "rollup": "^2.56.3",
     "rollup-plugin-dgnotify": "^0.1.7",
     "rollup-plugin-terser": "^7.0.2",
     "source-map": "^0.7.3",
-    "tiny-source-map": "^0.0.1"
+    "tiny-source-map": "^0.8.0"
   },
   "scripts": {
     "clean": "rm -rf cjs/ umd/ esm/ iife/",
