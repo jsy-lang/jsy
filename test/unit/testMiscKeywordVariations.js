@@ -7,9 +7,66 @@ describe @ 'Misc Keyword Statements',
 
 
 function * iterSyntaxVariations() ::
+  yield * iterObjectWithKeywords()
   yield * iterPromiseCatch()
   yield * iterHashCatchFn()
   yield * iterTernaryExpressions()
+
+
+function * iterObjectWithKeywords() ::
+  yield @{} expectValid: true,
+      title: 'object literal with keyword keys'
+      source: @[] 'const ans = @{}'
+                  '  if: body,'
+                  '  while: body,'
+                  '  for: body,'
+                  '  switch: body,'
+                  '  catch: body,'
+                  '  function: body,'
+                  '  class: body,'
+                  '  await: body,'
+                  '  async: body,'
+                  '  with: body,'
+      tokens: @[] 
+        'const' , 'name' , '=' , '{',
+          'if' , ':' , 'name' , ',',
+          'while' , ':' , 'name' , ',',
+          'for' , ':' , 'name' , ',',
+          'switch' , ':' , 'name' , ',',
+          'catch' , ':' , 'name' , ',' ,
+          'function' , ':' , 'name' , ',',
+          'class' , ':' , 'name' , ',',
+          'name' , ':' , 'name' , ',',
+          'name' , ':' , 'name' , ',',
+          'with' , ':' , 'name' , ',',
+        '}'
+
+  yield @{} expectValid: true,
+      title: 'object literal with keyword keys'
+      source: @[] 'const ans = @:'
+                  '  if: body,'
+                  '  while: body,'
+                  '  for: body,'
+                  '  switch: body,'
+                  '  catch: body,'
+                  '  function: body,'
+                  '  class: body,'
+                  '  await: body,'
+                  '  async: body,'
+                  '  with: body,'
+      tokens: @[] 
+        'const' , 'name' , '=' , '(', '{',
+          'if' , ':' , 'name' , ',',
+          'while' , ':' , 'name' , ',',
+          'for' , ':' , 'name' , ',',
+          'switch' , ':' , 'name' , ',',
+          'catch' , ':' , 'name' , ',' ,
+          'function' , ':' , 'name' , ',',
+          'class' , ':' , 'name' , ',',
+          'name' , ':' , 'name' , ',',
+          'name' , ':' , 'name' , ',',
+          'with' , ':' , 'name' , ',',
+        '}', ')'
 
 
 function * iterPromiseCatch() ::

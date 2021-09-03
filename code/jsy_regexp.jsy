@@ -6,7 +6,7 @@ const regexp_keyword = sz => ::
   return `(?:${sz})` // using a non-matching group
 
 const re_keyword_space_prefix = /^(?:[ \t]*)/.source ; // start of line and indent
-const re_keyword_trailer = /(?:[ \t]*(?=\W|$))/.source ;
+const re_keyword_trailer = /(?:[ \t]*(?=[^\w,:;=]|$))/.source ;
 
 export const rx_keyword_ops = new RegExp @
   re_keyword_space_prefix
