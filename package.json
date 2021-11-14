@@ -38,7 +38,7 @@
   "module": "esm/index.mjs",
   "browser": "umd/jsy-transpile.js",
   "exports": {
-    "./": "./",
+    "./*": "./*",
     ".": {
       "import": "./esm/index.mjs",
       "require": "./cjs/index.cjs"
