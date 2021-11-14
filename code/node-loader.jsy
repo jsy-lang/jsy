@@ -1,0 +1,25 @@
+import { pathToFileURL } from 'node:url'
+
+import jsy_transpile_srcmap from './with_srcmap.jsy'
+export {jsy_transpile_srcmap}
+
+const _is_jsy = /\.jsy$/
+const _cwd_fileURL = pathToFileURL(`./`).href
+
+export async function resolve(specifier, context, defaultResolve) ::
+  if ! _is_jsy.test(specifier) ::
+    return defaultResolve(specifier, context, defaultResolve)
+
+  return @{}
+    url: new URL(specifier, context.parentURL || _cwd_fileURL).href
+
+
+export async function load(url, context, defaultLoad) ::
+  if ! _is_jsy.test(url) ::
+    return defaultLoad(url, context, defaultLoad)
+
+  let format = 'module'
+  let raw = await defaultLoad(url, { format })
+  let source = jsy_transpile_srcmap(`${raw.source}`, url)
+  return @{} format, source
+

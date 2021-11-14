@@ -37,6 +37,7 @@ if (!fast_build) {
 
 
   add_jsy_node('rollup', ['esm'], {external: ['path', 'util']})
+  add_jsy_node('node-loader', ['esm'], {external: ['node:url']})
 }
 
 add_jsy_node('cli_transpile', ['cjs'], {external: ['path', 'util', 'fs']})

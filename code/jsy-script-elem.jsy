@@ -27,8 +27,8 @@ export class JSYScript extends HTMLElement ::
     return this.as_jsy_script @
       jsy_src, url_src || null
 
-  as_jsy_script(jsy_src, source) ::
-    const js_src = jsy_transpile_srcmap(jsy_src, source)
+  as_jsy_script(jsy_src, url_src) ::
+    const js_src = jsy_transpile_srcmap(jsy_src, url_src)
     if js_src ::
       this.replace_script(js_src)
 
