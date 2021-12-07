@@ -1,4 +1,5 @@
 import { at_lambda_offside_all } from './jsy_lambda_operators.jsy'
+import { at_func_offside_all } from './jsy_func_operators.jsy'
 import { op_prefix_nullish, apply_prefix_op } from './jsy_prefix_operators.jsy'
 
 // Order matters here -- list more specific matchers higher (first) in the order
@@ -31,10 +32,12 @@ export const at_unknown_ops = @[]
 export const at_inner_prefix_nullish = apply_prefix_op @:
   jsy_prefix_op: op_prefix_nullish
   op_collections: @[]
+    at_func_offside_all
     at_lambda_offside_all
     at_inner_offside_basic
 
 export const at_inner_offside = [].concat @
+  at_func_offside_all
   at_lambda_offside_all
   at_inner_offside_basic
 
