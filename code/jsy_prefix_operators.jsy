@@ -9,21 +9,6 @@ export const op_prefix_nullish = @{}
     return @{} ... at_res, pre
 
 
-// Allow use of ';' prefix to JSY operators to foldTop and perform operation
-export const at_inner_semicolon = @[]
-  @{} jsy_op: ';::', pre: ' {', post: '}', foldTop: true
-
-  @{} jsy_op0: ';', jsy_op: @ /;([-+*\/%^<>&|!?=,.:]+)/
-    pre: ' ', post: null, foldTop: true
-    opResolve: p => @: pre: ' '+p.op_args[0], post: null, foldTop: true
-
-export const op_prefix_semicolon = @{}
-  prefix: ';', rx_prefix: /;/
-  opPrefixResolve(p, at_op) ::
-    const at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
-    return @{} foldTop: true, ... at_res
-
-
 export function at_op_for_prefix(jsy_prefix_op, at_op) ::
   let {jsy_op0, jsy_op} = at_op
   if ! /^[@?]/.test @ jsy_op0 || jsy_op ::

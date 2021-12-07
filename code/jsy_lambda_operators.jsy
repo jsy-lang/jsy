@@ -12,38 +12,6 @@ const lambda_arrow_tbl = @{}
   '>': a => @: pre: `(async (${a}) =>`, post: ')', implicitCommas: true
 
 
-const lambda_kw_block_tbl = @{}
-  '': a => @: pre: `(({${a}}) => {`, post: '})'
-  '>': a => @: pre: `(async ({${a}}) => {`, post: '})'
-  '>*': a => @: pre: `((async function * ({${a}}) {`, post: '}).bind(this))'
-  '*': a => @: pre: `((function * ({${a}}) {`, post: '}).bind(this))'
-
-const lambda_kw_arrow_tbl = @{}
-  '': a => @: pre: `(({${a}}) =>`, post: ')', implicitCommas: true
-  '>': a => @: pre: `(async ({${a}}) =>`, post: ')', implicitCommas: true
-  '>*': a => @: pre: `((async function * ({${a}}) {`, post: '}).bind(this))'
-  '*': a => @: pre: `((function * ({${a}}) {`, post: '}).bind(this))'
-
-const lambda_pos_block_tbl = @{}
-  '': a => @: pre: `(([${a}]) => {`, post: '})'
-  '>': a => @: pre: `(async ([${a}]) => {`, post: '})'
-  '>*': a => @: pre: `((async function * ([${a}]) {`, post: '}).bind(this))'
-  '*': a => @: pre: `((function * ([${a}]) {`, post: '}).bind(this))'
-
-const lambda_pos_arrow_tbl = @{}
-  '': a => @: pre: `(([${a}]) =>`, post: ')', implicitCommas: true
-  '>': a => @: pre: `(async ([${a}]) =>`, post: ')', implicitCommas: true
-  '>*': a => @: pre: `((async function * ([${a}]) {`, post: '}).bind(this))'
-  '*': a => @: pre: `((function * ([${a}]) {`, post: '}).bind(this))'
-
-/*
-const lambda_gen_block_tbl = @{}
-  '': a => @: pre: `(function *(__iter__) { for (let ${a} of __iter__) {`, post: '}})'
-  '*': a => @: pre: `(function *(__iter__) { for (let ${a} of __iter__) {`, post: '}})'
-  '>': a => @: pre: `(async function *(__iter__) { for await (let ${a} of __iter__) {`, post: '}})'
-  '>*': a => @: pre: `(async function *(__iter__) { for await (let ${a} of __iter__) {`, post: '}})'
-*/
-
 const iife_expr_tbl = @{}
   '': a => @: pre: `(((${a}) => {`, post: '})())'
   '>': a => @: pre: `((async (${a}) => {`, post: '})())'
@@ -75,14 +43,6 @@ export const at_lambda_offside = @[]
       pre: '(()=>', post: ')',
       opResolve: bindOpResolve @ lambda_arrow_tbl
 
-  @{} jsy_op0: '@\\:=>', jsy_op: /@\\:(.+?)=>(>?\*?)/,
-      pre: '(()=>', post: ')', implicitCommas: true,
-      opResolve: bindOpResolve @ lambda_kw_arrow_tbl, true
-
-  @{} jsy_op0: '@\\#=>', jsy_op: /@\\#(.+?)=>(>?\*?)/,
-      pre: '(()=>', post: ')', implicitCommas: true,
-      opResolve: bindOpResolve @ lambda_pos_arrow_tbl, true
-
   @{} jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
       pre: '(()=>', post: ')', implicitCommas: true,
       opResolve: bindOpResolve @ lambda_arrow_tbl, true
@@ -90,20 +50,6 @@ export const at_lambda_offside = @[]
   @{} jsy_op0: '@::', jsy_op: /@::(>?\*?)/,
       pre: '(()=>{', post: '})',
       opResolve: bindOpResolve @ lambda_block_tbl
-
-  @{} jsy_op0: '@\\:::', jsy_op: /@\\:(.+?)::(>?\*?)/,
-      pre: '(()=>{', post: '})',
-      opResolve: bindOpResolve @ lambda_kw_block_tbl, true
-
-  @{} jsy_op0: '@\\#::', jsy_op: /@\\#(.+?)::(>?\*?)/,
-      pre: '(()=>{', post: '})',
-      opResolve: bindOpResolve @ lambda_pos_block_tbl, true
-
-  /*
-  @{} jsy_op0: '@\\*::', jsy_op: /@\\\*(.*?)::(>?\*?)/,
-      pre: '(function *(__iter__){ for(let (...) of __iter__){', post: '}})',
-      opResolve: bindOpResolve @ lambda_gen_block_tbl, true
-  */
 
   @{} jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
       pre: '(()=>{', post: '})',

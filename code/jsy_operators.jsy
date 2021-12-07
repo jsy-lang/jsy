@@ -1,5 +1,5 @@
 import { at_lambda_offside_all } from './jsy_lambda_operators.jsy'
-import { op_prefix_nullish, at_inner_semicolon, op_prefix_semicolon, apply_prefix_op } from './jsy_prefix_operators.jsy'
+import { op_prefix_nullish, apply_prefix_op } from './jsy_prefix_operators.jsy'
 
 // Order matters here -- list more specific matchers higher (first) in the order
 export const at_outer_offside = @[]
@@ -34,21 +34,11 @@ export const at_inner_prefix_nullish = apply_prefix_op @:
     at_lambda_offside_all
     at_inner_offside_basic
 
-export const at_inner_prefix_semicolon = apply_prefix_op @:
-  jsy_prefix_op: op_prefix_semicolon,
-  op_collections: @[]
-    at_lambda_offside_all
-    at_inner_offside_basic
-    at_inner_prefix_nullish
-
 export const at_inner_offside = [].concat @
   at_lambda_offside_all
   at_inner_offside_basic
 
   at_inner_prefix_nullish
-  at_inner_prefix_semicolon
-
-  at_inner_semicolon
 
 
 export const at_offside = [].concat @
