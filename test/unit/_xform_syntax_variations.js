@@ -180,6 +180,8 @@ export const asyncFunctionTransforms = @{}
 export const standardTransforms = Object.assign @ {},
   blockTransforms, functionTransforms, asyncFunctionTransforms
 
+export const moduleTopTransforms = Object.assign @ {},
+
 export const tkns = @{}
   cmp: '</>/<=/>='
 

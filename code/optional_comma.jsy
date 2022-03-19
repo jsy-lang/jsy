@@ -14,6 +14,7 @@ const rx_rescue_comma_head = @!
   return new RegExp @ '^\\s*' + join_rx(opts)
 
 const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
+const rx_dict_as_name = /\s+as\s+\w+/g
 
 export default checkOptionalComma
 export function checkOptionalComma(op, pre_body, post_body) ::
@@ -25,6 +26,10 @@ export function checkOptionalComma(op, pre_body, post_body) ::
   if rx_disrupt_comma_head.test(post_start) ::
     if ! rx_rescue_comma_head.test(post_start) ::
       return false
+
+  if op.pre.includes('{') ::
+    pre_body = pre_body.replace(rx_dict_as_name, '')
+    post_body = post_body.replace(rx_dict_as_name, '')
 
   if checkSyntax @ `${op.pre} ${pre_body} , post_body ${op.post}` ::
     return true

@@ -8,7 +8,8 @@ export function jsy_as_ast(jsy_code) ::
 
   const js_vanilla = jsy_transpile(jsy_code)
   try ::
-    const ast = acorn.parse(js_vanilla, {ecmaVersion: 9})
+    const ast = acorn.parse @ js_vanilla,
+      @{} ecmaVersion: 11, sourceType:'module'
     return @{} ast, code: js_vanilla
   catch err ::
     console.error()
