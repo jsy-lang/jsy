@@ -12,7 +12,7 @@ export async function resolve(specifier, context, nextResolve) ::
 
 
 export async function load(url, context, nextLoad) ::
-  if ! _is_jsy.test(url) ::
+  if ! _is_jsy.test @ new URL(url).pathname ::
     return nextLoad(url, context, nextLoad)
 
   let format = 'module' // use module format to load raw source
