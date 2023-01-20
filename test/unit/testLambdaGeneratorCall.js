@@ -17,6 +17,11 @@ function * iterLambdaGeneratorCalls() ::
 
 function * iterLambdaGeneratorSimpleCalls() ::
   yield @{}
+    title: 'call lambda generator with no arguments (post)'
+    source: @[] 'fn_target @=>* expr'
+    tokens: @[] 'name', '(', '(', 'function', '*', '(', ')', '{', 'name', '}', ')', ... v_bind_this, ')'
+
+  yield @{}
     title: 'call lambda generator with two arguments (post)'
     source: @[] 'fn_target @\\ a, b =>* expr'
     tokens: @[] 'name', '(', '(', 'function', '*', '(', 'name', ',', 'name', ')', '{', 'name', '}', ')', ... v_bind_this, ')'
@@ -41,6 +46,13 @@ function * iterLambdaGeneratorSimpleCalls() ::
 
 
 function * iterBlockLambdaGeneratorSimpleCalls() ::
+  yield @{}
+    title: 'call lambda generator with no arguments'
+    source: @[]
+      'fn_target @::*'
+      '  block'
+    tokens: @[] 'name', '(', '(', 'function', '*', '(', ')', '{', 'name', '}', ')', ...v_bind_this, ')'
+
   yield @{}
     title: 'call lambda generator with two arguments'
     source: @[]
@@ -75,6 +87,13 @@ function * iterLambdaGeneratorNestedCalls() ::
   yield @{}
     title: 'call lambda generator with two arguments, two lines'
     source: @[]
+      'outer @ fn_target @=>*'
+      '  expr'
+    tokens: @[] 'name', '(', 'name', '(', '(', 'function', '*', '(', ')', '{', 'name', '}', ')', ...v_bind_this, ')', ')'
+
+  yield @{}
+    title: 'call lambda generator with two arguments, two lines'
+    source: @[]
       'outer @ fn_target @\\ a, b =>*'
       '  expr'
     tokens: @[] 'name', '(', 'name', '(', '(', 'function', '*', '(', 'name', ',', 'name', ')', '{', 'name', '}', ')', ...v_bind_this, ')', ')'
@@ -101,6 +120,14 @@ function * iterLambdaGeneratorNestedCalls() ::
     tokens: @[] 'name', '(', 'name', '(', '(', 'function', '*', '(', 'name', ',', '{', 'name', '}', ')', '{', 'name', '}', ')', ...v_bind_this, ')', ')'
 
 function * iterBlockLambdaGeneratorNestedCalls() ::
+  yield @{}
+    title: 'call lambda generator with no arguments, two lines'
+    source: @[]
+      'outer @ fn_target @::*'
+      '  stmt_a'
+      '  stmt_b'
+    tokens: @[] 'name', '(', 'name', '(', '(', 'function', '*', '(', ')', '{', 'name', 'name', '}', ')', ...v_bind_this, ')', ')'
+
   yield @{}
     title: 'call lambda generator with two arguments, two lines'
     source: @[]

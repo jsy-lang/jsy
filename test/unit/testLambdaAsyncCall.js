@@ -15,6 +15,11 @@ function * iterLambdaAsyncCalls() ::
 
 function * iterLambdaAsyncSimpleCalls() ::
   yield @{}
+    title: 'call async lambda with no arguments (post)'
+    source: @[] 'fn_target @=>> expr'
+    tokens: @[] 'name', '(', 'name', '(', ')', '=>', 'name', ')'
+
+  yield @{}
     title: 'call async lambda with two arguments (post)'
     source: @[] 'fn_target @\\ a, b =>> expr'
     tokens: @[] 'name', '(', 'name', '(', 'name', ',', 'name', ')', '=>', 'name', ')'
@@ -36,6 +41,13 @@ function * iterLambdaAsyncSimpleCalls() ::
 
 
 function * iterBlockLambdaAsyncSimpleCalls() ::
+  yield @{}
+    title: 'call async lambda with no arguments'
+    source: @[]
+      'fn_target @::>'
+      '  block'
+    tokens: @[] 'name', '(', 'name', '(', ')', '=>', '{', 'name', '}', ')'
+
   yield @{}
     title: 'call async lambda with two arguments'
     source: @[]
@@ -68,6 +80,13 @@ function * iterBlockLambdaAsyncSimpleCalls() ::
 
 function * iterLambdaAsyncNestedCalls() ::
   yield @{}
+    title: 'call async lambda with no arguments, two lines'
+    source: @[]
+      'outer @ fn_target @=>>'
+      '  expr'
+    tokens: @[] 'name', '(', 'name', '(', 'name', '(', ')', '=>', 'name', ')', ')'
+
+  yield @{}
     title: 'call async lambda with two arguments, two lines'
     source: @[]
       'outer @ fn_target @\\ a, b =>>'
@@ -96,6 +115,14 @@ function * iterLambdaAsyncNestedCalls() ::
     tokens: @[] 'name', '(', 'name', '(', 'name', '(', 'name', ',', '{', 'name', '}', ')', '=>', 'name', ')', ')'
 
 function * iterBlockLambdaAsyncNestedCalls() ::
+  yield @{}
+    title: 'call async lambda with no arguments, two lines'
+    source: @[]
+      'outer @ fn_target @::>'
+      '  stmt_a'
+      '  stmt_b'
+    tokens: @[] 'name', '(', 'name', '(', 'name', '(', ')', '=>', '{', 'name', 'name', '}', ')', ')'
+
   yield @{}
     title: 'call async lambda with two arguments, two lines'
     source: @[]

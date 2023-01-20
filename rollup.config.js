@@ -22,9 +22,8 @@ const plugins_web_min = [
 
 
 const fast_build = 'fast' === process.env.JSY_BUILD
+add_jsy_core('index', {name: 'jsy_transpile', exports:'default'})
 if (!fast_build) {
-  add_jsy_core('index', {name: 'jsy_transpile', exports:'default'})
-
   add_jsy_core('with_srcmap', {name: 'jsy_transpile', exports:'default'})
 }
 

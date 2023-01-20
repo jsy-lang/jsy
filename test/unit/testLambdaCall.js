@@ -15,6 +15,11 @@ function * iterLambdaCalls() ::
 
 function * iterLambdaSimpleCalls() ::
   yield @{}
+    title: 'call lambda with no arguments'
+    source: @[] 'fn_target @=> expr'
+    tokens: @[] 'name', '(', '(', ')', '=>', 'name', ')'
+
+  yield @{}
     title: 'call lambda with two arguments'
     source: @[] 'fn_target @\\ a, b => expr'
     tokens: @[] 'name', '(', '(', 'name', ',', 'name', ')', '=>', 'name', ')'
@@ -37,6 +42,11 @@ function * iterLambdaSimpleCalls() ::
 
 
 function * iterBlockLambdaSimpleCalls() ::
+  yield @{}
+    title: 'call lambda with no arguments'
+    source: @[] 'fn_target @:: expr'
+    tokens: @[] 'name', '(', '(', ')', '=>', '{', 'name', '}', ')'
+
   yield @{}
     title: 'call lambda with two arguments'
     source: @[]
@@ -69,6 +79,13 @@ function * iterBlockLambdaSimpleCalls() ::
 
 function * iterLambdaNestedCalls() ::
   yield @{}
+    title: 'call lambda with no arguments, two lines'
+    source: @[]
+      'outer @ fn_target @=>'
+      '  expr'
+    tokens: @[] 'name', '(', 'name', '(', '(', ')', '=>', 'name', ')', ')'
+
+  yield @{}
     title: 'call lambda with two arguments, two lines'
     source: @[]
       'outer @ fn_target @\\ a, b =>'
@@ -97,6 +114,14 @@ function * iterLambdaNestedCalls() ::
     tokens: @[] 'name', '(', 'name', '(', '(', 'name', ',', '{', 'name', '}', ')', '=>', 'name', ')', ')'
 
 function * iterBlockLambdaNestedCalls() ::
+  yield @{}
+    title: 'call lambda with no arguments, two lines'
+    source: @[]
+      'outer @ fn_target @::'
+      '  stmt_a'
+      '  stmt_b'
+    tokens: @[] 'name', '(', 'name', '(', '(', ')', '=>', '{', 'name', 'name', '}', ')', ')'
+
   yield @{}
     title: 'call lambda with two arguments, two lines'
     source: @[]
