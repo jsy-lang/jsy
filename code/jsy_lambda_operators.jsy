@@ -1,24 +1,24 @@
 
 
-const lambda_block_tbl = @{}
+const lambda_block_tbl = /* #__PURE__ */ @{}
   '': a => @: pre: `((${a}) => {`, post: '})'
   '>': a => @: pre: `(async (${a}) => {`, post: '})'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * (${a}) {`, post: '}).bind(this))'
 
-const lambda_arrow_tbl = @{}
+const lambda_arrow_tbl = /* #__PURE__ */ @{}
   __proto__: lambda_block_tbl
   '': a => @: pre: `((${a}) =>`, post: ')', implicitCommas: true
   '>': a => @: pre: `(async (${a}) =>`, post: ')', implicitCommas: true
 
 
-const iife_expr_tbl = @{}
+const iife_expr_tbl = /* #__PURE__ */ @{}
   '': a => @: pre: `(((${a}) => {`, post: '})())'
   '>': a => @: pre: `((async (${a}) => {`, post: '})())'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).call(this))'
   '*': a => @: pre: `((function * (${a}) {`, post: '}).call(this))'
 
-const iife_arrow_tbl = @{}
+const iife_arrow_tbl = /* #__PURE__ */ @{}
   __proto__: iife_expr_tbl
   '': a => @: pre: `(((${a}) =>`, post: ')())', implicitCommas: true
   '>': a => @: pre: `((async (${a}) =>`, post: ')())', implicitCommas: true
@@ -26,11 +26,11 @@ const iife_arrow_tbl = @{}
 
 const bindLambdaOpResolve = (table, withArgs) =>
   function opResolve(p) ::
-    const [_, m1, m2] = p.content.match(this.jsy_op)
-    const args = withArgs ? m1 || '' : ''
-    const suffix = (withArgs ? m2 : m1) || ''
+    let [_, m1, m2] = p.content.match(this.jsy_op)
+    let args = withArgs ? m1 || '' : ''
+    let suffix = (withArgs ? m2 : m1) || ''
 
-    const entry = table[suffix]
+    let entry = table[suffix]
     if undefined === entry ::
       throw new SyntaxError @ `JSY lambda expression unrecognized specifier ("${suffix}")`
 
@@ -38,7 +38,7 @@ const bindLambdaOpResolve = (table, withArgs) =>
 
 
 
-export const at_lambda_offside = @[]
+export const at_lambda_offside = /* #__PURE__ */ @[]
   @{} jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
       pre: '(()=>', post: ')',
       opResolve: bindLambdaOpResolve @ lambda_arrow_tbl
@@ -56,7 +56,7 @@ export const at_lambda_offside = @[]
       opResolve: bindLambdaOpResolve @ lambda_block_tbl, true
 
 
-export const at_lambda_iife_offside = @[]
+export const at_lambda_iife_offside = /* #__PURE__ */ @[]
   @{} jsy_op: '::!', pre: '{(()=>{', post: '})()}', is_kw_close: true
   @{} jsy_op: '::!>', pre: '{(async ()=>{', post: '})()}', is_kw_close: true
 
@@ -83,7 +83,7 @@ export const at_lambda_iife_offside = @[]
       opResolve: bindLambdaOpResolve @ iife_expr_tbl
 
 
-export const at_lambda_offside_all = [].concat @
+export const at_lambda_offside_all = /* #__PURE__ */ [].concat @
   at_lambda_offside
   at_lambda_iife_offside
 

@@ -1,11 +1,11 @@
 import {regexp_from_jsy_op} from './jsy_regexp_utils.jsy'
 
 
-export const op_prefix_nullish = @{}
+export const op_prefix_nullish = /* #__PURE__ */ @{}
   prefix: '?', rx_prefix: /\?(\.?)/
   opPrefixResolve(p, at_op) ::
-    const at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
-    const pre = '?.' + (at_res.pre || '')
+    let at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
+    let pre = '?.' + (at_res.pre || '')
     return @{} ... at_res, pre
 
 
@@ -33,10 +33,10 @@ export function at_op_for_prefix(jsy_prefix_op, at_op) ::
 
 
 export function apply_prefix_op({jsy_prefix_op, op_collections}) ::
-  const res = []
-  for const at_op_list of op_collections ::
-    for const at_op of at_op_list ::
-      const ea = at_op_for_prefix @
+  let res = []
+  for let at_op_list of op_collections ::
+    for let at_op of at_op_list ::
+      let ea = at_op_for_prefix @
         jsy_prefix_op, at_op
       if undefined !== ea ::
         res.push @ ea

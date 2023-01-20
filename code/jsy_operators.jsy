@@ -3,13 +3,13 @@ import { at_func_offside_all } from './jsy_func_operators.jsy'
 import { op_prefix_nullish, apply_prefix_op } from './jsy_prefix_operators.jsy'
 
 // Order matters here -- list more specific matchers higher (first) in the order
-export const at_outer_offside = @[]
+export const at_outer_offside = /* #__PURE__ */ @[]
   @{} jsy_op: '::()', pre: '(', post: ')', nestBreak: true
   @{} jsy_op: '::{}', pre: '{', post: '}', nestBreak: true
   @{} jsy_op: '::[]', pre: '[', post: ']', nestBreak: true
   @{} jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true
 
-export const at_inner_offside_basic = @[]
+export const at_inner_offside_basic = /* #__PURE__ */ @[]
   @{} jsy_op: '@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true
   @{} jsy_op: '@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true
   @{} jsy_op: '@()', pre: '(', post: ')', implicitCommas: true, isFoldable: true
@@ -19,24 +19,24 @@ export const at_inner_offside_basic = @[]
 
 
 
-export const at_experimental = @[]
+export const at_experimental = /* #__PURE__ */ @[]
   /* experimental ideas; may be removed at any time */
 
 
-export const at_unknown_ops = @[]
+export const at_unknown_ops = /* #__PURE__ */ @[]
   @{} jsy_op0: '?@', jsy_op: /\?@[^\w\s]+/,
   @{} jsy_op0: '::', jsy_op: /::[^\w\s]+/,
   @{} jsy_op0: '@', jsy_op: /@[^\w\s]+/,
 
 
-export const at_inner_prefix_nullish = apply_prefix_op @:
+export const at_inner_prefix_nullish = /* #__PURE__ */ apply_prefix_op @:
   jsy_prefix_op: op_prefix_nullish
   op_collections: @[]
     at_func_offside_all
     at_lambda_offside_all
     at_inner_offside_basic
 
-export const at_inner_offside = [].concat @
+export const at_inner_offside = /* #__PURE__ */ [].concat @
   at_func_offside_all
   at_lambda_offside_all
   at_inner_offside_basic
@@ -44,13 +44,13 @@ export const at_inner_offside = [].concat @
   at_inner_prefix_nullish
 
 
-export const at_offside = [].concat @
+export const at_offside = /* #__PURE__ */ [].concat @
   at_outer_offside
   at_inner_offside
   at_experimental
 
 
-export const at_offside_map = at_offside.reduce @
+export const at_offside_map = /* #__PURE__ */ at_offside.reduce @
   (m, ea) => ::
     if ea.jsy_op0 ::
       m[ea.jsy_op0] = ea
@@ -64,27 +64,16 @@ export const at_offside_map = at_offside.reduce @
 function kwExpandOp(p) ::
   return @{} __proto__: this, pre: p.kw + this.pre
 
-export const extra_jsy_ops = @{}
+export const extra_jsy_ops = /* #__PURE__ */ @{}
   kw_normal: @{} jsy_op: 'kw', pre: ' (', post: ')', kwExpandOp, in_nested_block: true
   kw_explicit: @{} jsy_op: 'kw', pre: '', post: '', kwExpandOp, in_nested_block: true
   tmpl_param: @{} jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true
   jsx_param: @{} jsy_op: 'jsx_param', pre: '', post: '', in_nested_block: true
 
-export const keywords_with_args = @[] 'if', 'while', 'for await', 'for', 'switch'
-export const keywords_zero_args = @[] 'catch'
+export const keywords_with_args = /* #__PURE__ */ @[] 'if', 'while', 'for await', 'for', 'switch'
+export const keywords_zero_args = /* #__PURE__ */ @[] 'catch'
 
-export const keywords_locator_parts = [].concat @
+export const keywords_locator_parts = /* #__PURE__ */ [].concat @
   keywords_with_args.map @ e => `else ${e}`
   keywords_with_args
   keywords_zero_args
-
-
-
-const dep_warn_style = @ 'undefined' === typeof HTMLElement
-  ? @[] '%s', '\x1b[33m', '\x1b[0m'
-  : @[] '%c', 'color: red', ''
-
-function warn_deprecated(msg, ...args) ::
-  const [c, s, e] = dep_warn_style
-  console.warn(`${c}DEPRECATED: ${msg}${c}`, s, ...args, e)
-
