@@ -1,7 +1,7 @@
-const rx_all_space = /^[ \t]*$/ ;
+const rx_all_space = /* #__PURE__ */ /^[ \t]*$/ ;
 
 function noop() :: return
-const xform_proto = @{}
+const xform_proto = /* #__PURE__ */ @{}
   __proto__: null
 
   update(arg) ::
@@ -12,7 +12,7 @@ const xform_proto = @{}
       this.process = noop
     else if 'object' === typeof arg ::
       Object.assign(this, arg)
-      const process = this.process
+      let process = this.process
       if 'function' !== typeof process  && 'object' !== typeof process ::
         return this.update(process)
     else ::
@@ -23,14 +23,14 @@ const xform_proto = @{}
   dedent() ::
     const len_trim = this.ln.len_indent - this.ln.len_inner
     return this.update @ src_parts => ::
-      const indent = src_parts[0]
+      let indent = src_parts[0]
       if rx_all_space.test(indent) ::
         src_parts[0] = indent.slice(0, len_trim)
       return src_parts
 
 
 export function createTransform(ln, xform_cur) ::
-  const xform_obj = Object.create @ xform_proto, @{}
+  let xform_obj = Object.create @ xform_proto, @{}
     next: @{} value: xform_cur
     depth: @{} value: ln.len_inner
     ln: @{} value: ln
@@ -40,7 +40,7 @@ export function createTransform(ln, xform_cur) ::
 
 
 export function applyPreprocessor(feedback) ::
-  const {preprocess, preprocessor, defines} = feedback || {}
+  let {preprocess, preprocessor, defines} = feedback || {}
   if preprocess :: return preprocess
   if preprocessor :: return feedback.preprocessor()
   if defines :: return basicPreprocessor(defines)
@@ -76,15 +76,15 @@ export function basicPreprocessor(answerFor) ::
   const stack = []
   let allow = true, state = {}
   return (p, add_xform) => ::
-    const m = rx.exec(p.content)
-    const dispatch = m && directives[m[1]]
+    let m = rx.exec(p.content)
+    let dispatch = m && directives[m[1]]
     if ! dispatch :: throw syntaxError(p)
 
     if ! allow ::
       state = null
       return false
 
-    const ans = dispatch @ p, m[2].trim(), state
+    let ans = dispatch @ p, m[2].trim(), state
     allow = !! ans
 
     stack.push(state); state = {}
@@ -100,13 +100,13 @@ export function basicPreprocessor(answerFor) ::
 
 
 function not_stkop(args) ::
-  const a=args.pop()
+  let a=args.pop()
   return !a
 function and_stkop(args) ::
-  const a=args.pop(), b=args.pop()
+  let a=args.pop(), b=args.pop()
   return a && b
 function or_stkop(args) ::
-  const a=args.pop(), b=args.pop()
+  let a=args.pop(), b=args.pop()
   return a || b
 export const preprocessor_stack_ops = @{}
   'false': false, 'true': true, 'FALSE': false, 'TRUE': true
@@ -119,16 +119,16 @@ export const preprocessor_stack_ops = @{}
 
 export function bindAnswerFor(defines, preproc_ops=preprocessor_stack_ops) ::
   return function answerFor(expr_src) ::
-    const pp_expr = expr_src.split(/\s+/)
+    let pp_expr = expr_src.split(/\s+/)
       .map @ key => defines[key] || preproc_ops[key]
 
     return eval_shuntingYard(pp_expr, expr_src)
 
 export function eval_shuntingYard(expr, expr_src) ::
   // see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
-  const args=[], ops=[]
+  let args=[], ops=[]
 
-  for const ea of expr ::
+  for let ea of expr ::
     if 'function' === typeof ea ::
       // eval all lesser order operations
       while 0!==ops.length && (0 | ops[0].order) <= (0 | ea.order) ::

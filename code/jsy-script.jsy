@@ -1,6 +1,3 @@
 'use strict';
-import {JSYScript, jsy_transpile_srcmap} from './jsy-script-elem.jsy'
-
-window.customElements.define @ 'jsy-script', JSYScript
-window.jsy_transpile = jsy_transpile_srcmap
-
+import JSYScript from './jsy-script-elem.jsy'
+JSYScript.register(window)

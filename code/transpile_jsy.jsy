@@ -3,14 +3,9 @@ import { createTransform, applyPreprocessor } from './preprocess_jsy.jsy'
 import checkOptionalComma from './optional_comma.jsy'
 import scan_jsy from './scan_jsy.jsy'
 
-const rx_leading_space = /^[ \t]+/ ;
+const rx_leading_space = /* #__PURE__ */ /^[ \t]+/ ;
 
-transpile_jsy.transpile_jsy = transpile_jsy
-transpile_jsy.jsy_transpile = transpile_jsy
-
-export default transpile_jsy
-export const jsy_transpile = transpile_jsy
-export function transpile_jsy(jsy_ast, feedback) ::
+export function jsy_transpile(jsy_ast, feedback) ::
   if ! feedback :: feedback = {}
   if 'string' === typeof jsy_ast ::
     jsy_ast = scan_jsy(jsy_ast, feedback)
@@ -57,7 +52,7 @@ export function transpile_jsy(jsy_ast, feedback) ::
   visitor.finish()
 
   if feedback.inlineSourceMap ::
-    const srcmap = feedback.inlineSourceMap()
+    let srcmap = feedback.inlineSourceMap()
     if srcmap ::
       lines.push @ '', sourcemap_comment @ srcmap
 
@@ -65,9 +60,9 @@ export function transpile_jsy(jsy_ast, feedback) ::
 
     
 
-const root_head = Object.freeze @: __proto__: null
+const root_head = /* #__PURE__ */ Object.freeze @: __proto__: null
 
-const transpile_visitor = @{}
+const transpile_visitor = /* #__PURE__ */ @{}
   __proto__: null
   start() ::
     this.lineno = 0
@@ -374,7 +369,7 @@ function raw_src(p) :: this.emit_raw @ p.content
 function direct_src(p) :: this.emit @ p.content, p.loc.start
 
 function validate_jsy_op_item(jsy_op_item) ::
-  const {pre, post} = jsy_op_item
+  let {pre, post} = jsy_op_item
 
   if null !== pre && 'string' !== typeof pre ::
     throw new Error @ 'Invalid resolved jsy_op_item.pre result'
@@ -387,10 +382,15 @@ export function sourcemap_comment(srcmap_json) ::
   if 'string' !== typeof srcmap_json ::
     srcmap_json = JSON.stringify(srcmap_json)
 
-  const b64 = 'undefined' !== typeof Buffer
+  let b64 = 'undefined' !== typeof Buffer
     ? Buffer.from(srcmap_json).toString('base64')
-    : window.btoa @ unescape @ encodeURIComponent @ srcmap_json
+    : globalThis.btoa @ unescape @ encodeURIComponent @ srcmap_json
 
   // break up the source mapping url trigger string to prevent false positives on the following line
   return `//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}`
+
+
+export @{}
+  jsy_transpile as default,
+  jsy_transpile as transpile_jsy
 

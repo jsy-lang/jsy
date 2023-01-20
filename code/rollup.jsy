@@ -1,39 +1,28 @@
-import {createFilter} from '@rollup/pluginutils'
-import tiny_sourcemap from 'tiny-source-map'
-import {jsy_transpile} from './transpile_jsy.jsy'
-
-const default_jsy_config = @{}
-  include: ['**/*.jsy']
-  exclude: ['**/*.mjs', '**/*.cjs', 'node_modules/**']
-
-  create_sourcemap: tiny_sourcemap
-  jsy_transpile
+import { createFilter } from '@rollup/pluginutils'
+import jsy_transpile_srcmap from './with_srcmap.jsy'
 
 export default function jsy_rollup_plugin(config) ::
-  config = @{} ... default_jsy_config, ... (config || {})
+  config = @{}
+    include: ['**/*.jsy']
+    exclude: ['**/*.mjs', '**/*.cjs', 'node_modules/**']
+    ... config
 
   const filter = createFilter @ config.include, config.exclude
   const sourcemap = false !== config.sourcemap && false !== config.sourceMap
   const { preprocess, preprocessor, defines } = config
 
   return @{}
-    name: 'jsy',
+    name: 'jsy'
     transform(code, id) ::
       if ! filter(id) :: return
 
-      const src_map = sourcemap ? config.create_sourcemap() : null
-      if null !== src_map ::
-        src_map.setSourceContent @ id, code
-
       try ::
-        const res = config.jsy_transpile @ code, @{}
+        let jsy = jsy_transpile_srcmap @ code, id, @{}
+          ... config.jsy,
           preprocess, preprocessor, defines,
-          addSourceMapping(arg) ::
-            if null === src_map :: return
-            arg.source = id
-            src_map.addMapping(arg)
+          sourcemap, 
 
-        return @{} code: res, map: src_map.toJSON()
+        return @{} code: jsy.code, map: jsy.srcmap.toJSON()
 
       catch (err) ::
         if undefined !== err.src_loc ::

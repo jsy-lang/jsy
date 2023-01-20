@@ -1,7 +1,7 @@
 
-const rx_escape_offside_ops = /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
-const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
-const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
+const rx_escape_offside_ops = /* #__PURE__ */ /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
+const re_space_prefix = /* #__PURE__ */ /(?:^|[ \t]+)/.source ; // spaces or start of line
+const re_space_suffix = /* #__PURE__ */ /(?=$|[ \t]+)/.source ; // spaces or end of line
 
 export const regexp_from_jsy_op = (jsy_op, with_spacing) => ::
   if 'string' === typeof jsy_op ::

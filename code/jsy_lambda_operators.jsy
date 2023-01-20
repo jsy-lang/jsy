@@ -1,27 +1,32 @@
 
 
+// @::   @::>   @::>*   @::*
 const lambda_block_tbl = /* #__PURE__ */ @{}
   '': a => @: pre: `((${a}) => {`, post: '})'
   '>': a => @: pre: `(async (${a}) => {`, post: '})'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * (${a}) {`, post: '}).bind(this))'
 
+// @=>   @=>>
 const lambda_arrow_tbl = /* #__PURE__ */ @{}
   __proto__: lambda_block_tbl
-  '': a => @: pre: `((${a}) =>`, post: ')', implicitCommas: true
-  '>': a => @: pre: `(async (${a}) =>`, post: ')', implicitCommas: true
+  '': a => @: pre: `((${a}) =>`, post: ')'
+  '>': a => @: pre: `(async (${a}) =>`, post: ')'
 
 
+// @!::   @!::>   @!::>*   @!::*
 const iife_expr_tbl = /* #__PURE__ */ @{}
   '': a => @: pre: `(((${a}) => {`, post: '})())'
   '>': a => @: pre: `((async (${a}) => {`, post: '})())'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).call(this))'
   '*': a => @: pre: `((function * (${a}) {`, post: '}).call(this))'
 
+
+// @!=>   @!=>>
 const iife_arrow_tbl = /* #__PURE__ */ @{}
   __proto__: iife_expr_tbl
-  '': a => @: pre: `(((${a}) =>`, post: ')())', implicitCommas: true
-  '>': a => @: pre: `((async (${a}) =>`, post: ')())', implicitCommas: true
+  '': a => @: pre: `(((${a}) =>`, post: ')())'
+  '>': a => @: pre: `((async (${a}) =>`, post: ')())'
 
 
 const bindLambdaOpResolve = (table, withArgs) =>
@@ -44,7 +49,7 @@ export const at_lambda_offside = /* #__PURE__ */ @[]
       opResolve: bindLambdaOpResolve @ lambda_arrow_tbl
 
   @{} jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
-      pre: '(()=>', post: ')', implicitCommas: true,
+      pre: '(()=>', post: ')'
       opResolve: bindLambdaOpResolve @ lambda_arrow_tbl, true
 
   @{} jsy_op0: '@::', jsy_op: /@::(>?\*?)/,

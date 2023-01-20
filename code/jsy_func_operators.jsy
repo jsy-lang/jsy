@@ -1,4 +1,6 @@
 
+// Like lambdas without closing over `this`
+// @~::   @~::>   @~::>*   @~::*
 const func_block_tbl = /* #__PURE__ */ @{}
   '': a => @: pre: `(function (${a}) {`, post: '})'
   '>': a => @: pre: `(async function(${a}) {`, post: '})'
@@ -23,8 +25,4 @@ export const at_func_offside = /* #__PURE__ */ @[]
   @{} jsy_op0: '@~::', jsy_op: /@~(.*?)::(>?\*?)/,
       pre: '(function () {', post: '})',
       opResolve: bindFuncOpResolve @ func_block_tbl, true
-
-
-export const at_func_offside_all = /* #__PURE__ */ [].concat @
-  at_func_offside
 

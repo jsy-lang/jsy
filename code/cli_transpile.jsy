@@ -1,56 +1,36 @@
-import {readFile} from 'fs'
-import {promisify} from 'util'
-const fsp_readFile = promisify @ readFile
-import tiny_sourcemap from 'tiny-source-map'
-import {jsy_transpile} from './transpile_jsy.jsy'
+import { readFile } from 'node:fs/promises'
+import jsy_transpile_srcmap from './with_srcmap.jsy'
 
-try { require('source-map-support/register') } catch (err) {}
 
-export async function main(filename) ::
+export async function jsy_transpile_main(filename, opt={}) ::
   try ::
-    const jsy_src = filename && '-' !== filename
-      ? await fsp_readFile(filename, 'utf-8')
-      : await read_stdin()
+    let [jsy_src, source_ref] =
+      filename && '-' !== filename
+        ? [await readFile(filename, 'utf-8'), filename]
+        : [await _read_stdin(), '<stdin>']
 
     if ! jsy_src ::
       throw new Error('jsy-transpile expected a filename argument or stdin input')
 
-    const src_map = !process.env.JSY_NOSRCMAP && filename && tiny_sourcemap()
-    //src_map.setSourceContent(filename, jsy_src)
+    if process.env.JSY_NOSRCMAP ::
+      opt.create_sourcemap = () => null
 
-    const src = jsy_transpile @ jsy_src, @{}
-      defines: @{}
-        PLAT_CLI: true
-
-      addSourceMapping(arg) ::
-        if !src_map :: return
-        arg.source = filename
-        src_map.addMapping(arg)
-
-      inlineSourceMap() ::
-        if !src_map :: return
-        return src_map.toString()
-
-    process.stdout.write(src)
+    let jsy = jsy_transpile_srcmap(jsy_src, source_ref, opt)
+    process.stdout.write(jsy.code)
   catch (err) ::
     console.error(err)
     process.exit(1)
     return
 
-const read_stdin = stdin => new Promise @\ resolve ::
-  // from MIT © Sindre Sorhus, https://github.com/sindresorhus/get-stdin/blob/83c5c9f9059f0a66a6c9acef03c19546e2cb175b/index.js
-  if (null == stdin)
-    stdin = process.stdin
 
-  if stdin.isTTY ::
-    return resolve(null)
-
+async function _read_stdin(stdin=process.stdin) ::
   stdin.setEncoding('utf8')
+  let contents = ''
+  for await let chunk of stdin ::
+    contents += chunk
+  return contents
 
-  let ret = ''
-  stdin.on @ 'end', () => resolve(ret)
-  stdin.on @ 'readable', @::
-    let chunk
-    while chunk = stdin.read() ::
-      ret += chunk
 
+export @{}
+  jsy_transpile_main as default,
+  jsy_transpile_main as main,

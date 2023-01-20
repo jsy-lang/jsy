@@ -1,28 +1,25 @@
-const rx_punct = /[,.;:?]/
-const rx_binary_ops = /\&\&|\|\|/
+const rx_punct = /* #__PURE__ */ /[,.;:?]/
+const rx_binary_ops = /* #__PURE__ */ /\&\&|\|\|/
 
-const rx_disrupt_comma_tail = @!
-  const opts = @[] rx_punct, /=>/, /[+-]/, rx_binary_ops
-  return new RegExp @ join_rx(opts) + '\\s*$'
+const rx_disrupt_comma_tail = /* #__PURE__ */
+  _regexp_join('', [ rx_punct, /=>/, /[+-]/, rx_binary_ops ], '\\s*$')
 
-const rx_disrupt_comma_head = @!
-  const opts = @[] rx_punct, rx_binary_ops
-  return new RegExp @ '^\\s*' + join_rx(opts)
+const rx_disrupt_comma_head = /* #__PURE__ */
+  _regexp_join('^\\s*', [ rx_punct, rx_binary_ops ], '')
 
-const rx_rescue_comma_head = @!
-  const opts = @[] /\.\.\./
-  return new RegExp @ '^\\s*' + join_rx(opts)
+const rx_rescue_comma_head = /* #__PURE__ */
+  _regexp_join('^\\s*', [ /\.\.\./ ], '')
 
-const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
-const rx_dict_as_name = /\s+as\s+\w+/g
+const rx_last_bits = /* #__PURE__ */ /[()\[\]{}]|<\/?\w*>/ ;
+const rx_dict_as_name = /* #__PURE__ */ /\s+as\s+\w+/g
 
 export default checkOptionalComma
 export function checkOptionalComma(op, pre_body, post_body) ::
-  const pre_end = pre_body.split(rx_last_bits).pop()
+  let pre_end = pre_body.split(rx_last_bits).pop()
   if rx_disrupt_comma_tail.test(pre_end) ::
     return false
 
-  const post_start = post_body.split(rx_last_bits).shift()
+  let post_start = post_body.split(rx_last_bits).shift()
   if rx_disrupt_comma_head.test(post_start) ::
     if ! rx_rescue_comma_head.test(post_start) ::
       return false
@@ -40,28 +37,24 @@ export function checkOptionalComma(op, pre_body, post_body) ::
   return false
 
 
-const checkSyntax = @!
-  const fn_flavors =
-    @[] 'function', 'function*', 'async function', 'async function*'
-    .map @ flavor => ::
-      try :: return Function(`return (${flavor}(){}).constructor`)()
-      catch err :: return null
-    .filter @ e => e
+const fn_flavors = /* #__PURE__ */ @[]
+  (function(){}).constructor
+  (function *(){}).constructor
+  (async function(){}).constructor
+  (async function *(){}).constructor
 
-  return function checkSyntax(expr) ::
-    for const FuncKind of fn_flavors ::
-      try ::
-        new FuncKind @ `return ${expr}`
-        return true
-      catch err ::
+function checkSyntax(expr) ::
+  for let FuncKind of fn_flavors ::
+    try ::
+      new FuncKind @ `return ${expr}`
+      return true
+    catch err ::
 
-    return false
+  return false
 
 
-function join_rx(rx_options, capture) ::
-  const opts = Array.from(rx_options)
-    .map @ rx => rx && rx.source
-    .filter(Boolean).join('|')
-
-  return (capture ? '(' : '(?:') + opts + ')'
+function _regexp_join(pre, rx_options, post) ::
+  rx_options = [... rx_options]
+    .flatMap @ rx => rx ? [rx.source] : []
+  return new RegExp(`${pre}(?:${rx_options.join('|')})${post}`)
 

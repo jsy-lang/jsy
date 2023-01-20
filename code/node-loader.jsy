@@ -1,22 +1,19 @@
-import { pathToFileURL } from 'node:url'
-
 import jsy_transpile_srcmap from './with_srcmap.jsy'
 export {jsy_transpile_srcmap}
-
-const _is_jsy = /\.jsy$/
-const _cwd_fileURL = pathToFileURL(`./`).href
 
 export async function resolve(specifier, context, nextResolve) ::
   // as .jsy are local real files, we don't need a custom resolver
   return nextResolve(specifier, context)
 
+const jsy_options = @{}
+  sourcemap: 'inline'
 
 export async function load(url, context, nextLoad) ::
-  if ! _is_jsy.test @ new URL(url).pathname ::
+  if ! /\.jsy$/.test @ new URL(url).pathname ::
     return nextLoad(url, context, nextLoad)
 
   let format = 'module' // use module format to load raw source
   let raw = await nextLoad(url, { ...context, format })
-  let source = jsy_transpile_srcmap(`${raw.source}`, url)
-  return @{} format, source
+  let jsy = jsy_transpile_srcmap(raw.source, url, jsy_options)
+  return @{} format, source: jsy.code
 

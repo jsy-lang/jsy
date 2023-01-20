@@ -1,24 +1,34 @@
 import tiny_sourcemap from 'tiny-source-map'
-import {jsy_transpile} from './transpile_jsy.jsy'
+import { jsy_transpile } from './transpile_jsy.jsy'
 
-const _jsy_srcmap_ctx = @{}
+const _jsy_srcmap_ctx = /* #__PURE__ */ @{}
   i: 1, ts: Date.now().toString(36)
 
-export default function jsy_transpile_srcmap(jsy_src, source, opt={}) ::
-  if null == source ::
-    source = `<jsy-${_jsy_srcmap_ctx.i++}-${_jsy_srcmap_ctx.ts}>.jsy`
+export function jsy_transpile_srcmap(jsy_src, source_ref, opt={}) ::
+  if null == source_ref ::
+    source_ref = `<jsy-${_jsy_srcmap_ctx.i++}-${_jsy_srcmap_ctx.ts}>.jsy`
 
-  const src_map = tiny_sourcemap()
-  src_map.setSourceContent @ source, jsy_src
+  const srcmap = !opt.sourcemap ? null
+    : opt.create_sourcemap
+      ? opt.create_sourcemap()
+      : tiny_sourcemap()
 
-  return jsy_transpile @ jsy_src, @{}
+  if null !== srcmap ::
+    srcmap.setSourceContent @ source_ref, jsy_src
+
+  let code = jsy_transpile @ jsy_src, @{}
     addSourceMapping(arg) ::
-      if source ::
-        arg.source = source
-      src_map.addMapping(arg)
+      if null == srcmap :: return
+      if source_ref ::
+        arg.source = source_ref
+      srcmap.addMapping(arg)
 
     inlineSourceMap() ::
-      return src_map.toString()
+      if srcmap && 'inline' == opt.sourcemap ::
+        return srcmap.toString()
 
     ... opt
 
+  return {code, srcmap}
+
+export { jsy_transpile_srcmap as default }
