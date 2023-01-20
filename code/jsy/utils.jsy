@@ -3,7 +3,7 @@ const rx_escape_offside_ops = /* #__PURE__ */ /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
 const re_space_prefix = /* #__PURE__ */ /(?:^|[ \t]+)/.source ; // spaces or start of line
 const re_space_suffix = /* #__PURE__ */ /(?=$|[ \t]+)/.source ; // spaces or end of line
 
-export const regexp_from_jsy_op = (jsy_op, with_spacing) => ::
+export function regexp_from_jsy_op(jsy_op, with_spacing) ::
   if 'string' === typeof jsy_op ::
     // escape Offside operator chars to RegExp
     jsy_op = jsy_op.replace @ rx_escape_offside_ops, '\\$&'
@@ -12,6 +12,19 @@ export const regexp_from_jsy_op = (jsy_op, with_spacing) => ::
       jsy_op = re_space_prefix + jsy_op + re_space_suffix
     return `(?:${jsy_op})` // using a non-matching group
 
-  else if jsy_op instanceof RegExp ::
+  if jsy_op instanceof RegExp ::
     return jsy_op.source
+
+
+export function sourcemap_comment(srcmap_json) ::
+  if 'string' !== typeof srcmap_json ::
+    srcmap_json = JSON.stringify(srcmap_json)
+
+  let b64 = 'undefined' !== typeof Buffer
+    ? Buffer.from(srcmap_json).toString('base64')
+    : globalThis.btoa @ unescape @ encodeURIComponent @ srcmap_json
+
+  // break up the source mapping url trigger string to prevent false positives on the following line
+  return `//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}`
+
 

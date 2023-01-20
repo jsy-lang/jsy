@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { transpile_jsy, scan_jsy } from 'jsy-transpile/esm/all.js'
+import { jsy_transpile, scan_jsy } from 'jsy-transpile/esm/all.js'
 import { scan_jsy_lines, jsy_scan_throws, test_ast_tokens_content } from './_ast_test_utils'
 const { SourceMapGenerator } = require('source-map')
 
@@ -52,7 +52,7 @@ describe @ 'JSY Scanner (doc example)', @=> ::
         assert.equal @ part.content, to_source(part)
 
   it @ 'transpiles to valid JavaScript', @=> ::
-    const js_src = transpile_jsy @ offside_ast
+    const js_src = jsy_transpile @ offside_ast
     new Function(`{\n${js_src}\n}`)
 
   it @ 'has source-maps', @=> ::
@@ -61,7 +61,7 @@ describe @ 'JSY Scanner (doc example)', @=> ::
     const source = 'example.jsy'
     sourcemap.setSourceContent @ source, offside_src
 
-    const js_src = transpile_jsy @ offside_ast, @{}
+    const js_src = jsy_transpile @ offside_ast, @{}
       addSourceMapping(arg) ::
         arg.source = source
         sourcemap.addMapping(arg)
@@ -81,7 +81,7 @@ describe @ 'JSY Scanner (misc)', @=> ::
       '  console.log @'
       '    "hello JSY world!"'
 
-    const js_src = transpile_jsy @ scan_jsy_lines(jsy_src)
+    const js_src = jsy_transpile @ scan_jsy_lines(jsy_src)
     assert.deepEqual @ js_src.split('\n'), @[]
       '#!/usr/bin/env jsy-node'
       ''
@@ -124,7 +124,7 @@ describe @ 'JSY Scanner (misc)', @=> ::
       @[] 'src "d, e, f"'
           'offside_dedent'
 
-    const js_src = transpile_jsy @ offside_ast
+    const js_src = jsy_transpile @ offside_ast
     assert.deepEqual @ js_src.split('\n'), @[]
       'const test ={a, b, c:['
       '  d, e, f] }'

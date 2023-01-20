@@ -2,26 +2,16 @@ import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from './esm/rollup.mjs'
 
-const configs = []
-export default configs
+const _cfg_ = {
+  external: id => /^\w*:/.test(id),
+  plugins: [ rpi_resolve(), rpi_jsy(), rpi_dgnotify() ],
+}
 
-const sourcemap = true
-const plugins = [
-  rpi_resolve(),
-  rpi_jsy(),
-  rpi_dgnotify(),
+export default [
+  { ..._cfg_, input: 'code/index.jsy', output:
+    {file: 'stable/jsy-self-bootstrap.mjs', sourcemap: true, format: 'es' }},
+
+  { ..._cfg_, input: 'code/rollup.jsy', output:
+    {file: 'stable/rollup-jsy-bootstrap.mjs', sourcemap: true, format: 'es' }},
 ]
-
-configs.push(
-  { input: 'code/index.jsy',
-    output: [
-      {file: 'stable/jsy-self-bootstrap.mjs', sourcemap, format: 'es' },
-      {file: 'stable/jsy-self-bootstrap.cjs', sourcemap, format: 'cjs' },
-    ],
-    plugins, external: []},
-
-  { input: 'code/rollup.jsy',
-    output: {file: 'stable/rollup-jsy-bootstrap.mjs', sourcemap, format: 'es' },
-    plugins, external: ['path', 'util']},
-)
 

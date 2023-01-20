@@ -1,5 +1,5 @@
+import jsy_transpile_srcmap from 'jsy-transpile'
 import { readFile } from 'node:fs/promises'
-import jsy_transpile_srcmap from './with_srcmap.jsy'
 
 
 export async function jsy_transpile_main(filename, opt={}) ::

@@ -1,108 +1,65 @@
+import {builtinModules} from 'node:module'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_commonjs from '@rollup/plugin-commonjs'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from './stable/rollup-jsy-bootstrap.mjs'
-import {terser as rpi_terser} from 'rollup-plugin-terser'
+import rpi_terser from '@rollup/plugin-terser'
+import rpi_virtual from '@rollup/plugin-virtual'
+import pkg from './package.json' assert {type: 'json'}
 
-const configs = []
-export default configs
-
-const sourcemap = true
-
-const plugins = [
+const _rpis_ = (defines, ...args) => [
+  rpi_virtual({
+    'code/jsy/version.js': `export const version = '${pkg.version}'`,
+  }),
+  rpi_jsy({defines}),
   rpi_resolve(),
-  rpi_jsy(),
-  rpi_dgnotify(),
+  ...args,
+  rpi_dgnotify()]
+
+const _cfg_ = {
+  external: id => /^\w*:/.test(id) || builtinModules.includes(id),
+  plugins: _rpis_({}) }
+
+let is_watch = process.argv.includes('--watch')
+let fast_build = 'fast' === process.env.JSY_BUILD || is_watch
+const _cfg_min_ = fast_build || is_watch || 'undefined'===typeof rpi_terser ? null
+  : { ... _cfg_, plugins: [ ... _cfg_.plugins, rpi_terser() ]}
+
+
+export default [
+  ... add_jsy('index', {ext: '.js'}),
+  ... add_jsy('all', {ext: '.js'}),
+
+  ... fast_build ? [] : [
+    ... add_jsy('scanner/index', {ext: '.js'}),
+    ... add_jsy('cli_transpile'),
+
+    ... add_jsy_web('jsy-script'),
+    ... add_jsy('node-loader'),
+
+    // add rpi_commonjs to support @rollup/pluginutils use of picomatch
+    { ... _cfg_, input: 'code/rollup.jsy',
+      plugins: [ rpi_commonjs(), ..._cfg_.plugins ],
+      output: {file: 'esm/rollup.js', format: 'es', sourcemap: true} },
+  ],
 ]
 
-const plugins_web_min = [
-  ...plugins,
-  rpi_terser(),
-]
 
 
-const fast_build = 'fast' === process.env.JSY_BUILD
-add_jsy_core('index', {name: 'jsy_transpile', exports:'default'})
-if (!fast_build) {
-  add_jsy_core('with_srcmap', {name: 'jsy_transpile', exports:'default'})
+function * add_jsy(src_name, opt={}) {
+  const input = `code/${src_name}${opt.ext || '.jsy'}`
+  yield { ..._cfg_, input, output: [
+    { file: `esm/${src_name}.js`, format: 'es', sourcemap: true }, ]}
 }
 
-add_jsy_core('scanner/index')
-add_jsy_core('all')
+function * add_jsy_web(src_name, opt={}) {
+  const input = `code/${src_name}${opt.ext || '.jsy'}`
+  yield { ..._cfg_, input, output: [
+    { file: `esm/${src_name}.js`, format: 'es', sourcemap: true },
+    { file: `iife/${src_name}.js`, format: 'iife', sourcemap: true }, ]}
 
-
-if (!fast_build) {
-  add_jsy_web('jsy-script')
-
-
-  add_jsy_node('rollup', ['esm'], {external: ['path', 'util']})
-  add_jsy_node('node-loader', ['esm'], {external: ['node:url']})
-}
-
-add_jsy_node('cli_transpile', ['cjs'], {external: ['path', 'util', 'fs']})
-
-
-
-function add_jsy_core(src_name, opt={}) {
-  configs.push({
-    input: `code/${src_name}.jsy`,
-    output: [
-      { file: `cjs/${src_name}.js`, format: 'cjs', exports:opt.exports || 'named', sourcemap },
-      { file: `cjs/${src_name}.cjs`, format: 'cjs', exports:opt.exports || 'named', sourcemap },
-      { file: `esm/${src_name}.js`, format: 'es', sourcemap },
-      { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
-    ],
-    plugins })
-
-  if (opt.name)
-    configs.push({
-      input: `code/${src_name}.jsy`,
-      output: { file: `umd/${src_name}.js`, format: 'umd', name: opt.name, exports:opt.exports || 'named', sourcemap },
-      plugins })
-
-  if (opt.name && plugins_web_min)
-    configs.push({
-      input: `code/${src_name}.jsy`,
-      output: { file: `umd/${src_name}.min.js`, format: 'umd', name: opt.name, exports:opt.exports || 'named', sourcemap },
-      plugins: plugins_web_min })
-}
-
-function add_jsy_web(src_name, opt={}) {
-  configs.push({
-    input: `code/${src_name}.jsy`,
-    output: [
-      { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
-      { file: `umd/${src_name}.js`, format: 'umd', name: opt.name || src_name, sourcemap },
-      { file: `iife/${src_name}.js`, format: 'iife', sourcemap },
-    ],
-    plugins })
-
-  add_jsy_web_min(src_name, opt)
-}
-
-function add_jsy_web_min(src_name, opt={}) {
-  if (plugins_web_min)
-    configs.push({
-      input: `code/${src_name}.jsy`,
-      output: [
-        { file: `esm/${src_name}.min.mjs`, format: 'es', sourcemap },
-        { file: `umd/${src_name}.min.js`, format: 'umd', name: opt.name || src_name, sourcemap },
-        { file: `iife/${src_name}.min.js`, format: 'iife', sourcemap },
-      ],
-      plugins: plugins_web_min })
-}
-
-function add_jsy_node(src_name, output_formats, kw={}) {
-  const fmt_map = {'esm': 'es', 'cjs': 'cjs'}
-  const fmt_ext = {'esm': 'mjs', 'cjs': 'cjs'}
-
-  configs.push({
-    input: `code/${src_name}.jsy`,
-    output: output_formats.map(fmt => (
-      { file: `${fmt}/${src_name}.${fmt_ext[fmt].trim()}`,
-        format: fmt_map[fmt].trim(),
-        exports: 'named' ,
-        sourcemap,
-      })),
-    plugins: [...plugins, rpi_commonjs()], ...kw})
+  if (_cfg_min_)
+    yield { ..._cfg_min_, input, output: [
+      { file: `esm/${src_name}.min.js`, format: 'es', sourcemap: false },
+      { file: `iife/${src_name}.min.js`, format: 'iife', sourcemap: false }, ]}
 }

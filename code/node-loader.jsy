@@ -1,4 +1,4 @@
-import jsy_transpile_srcmap from './with_srcmap.jsy'
+import jsy_transpile_srcmap from 'jsy-transpile'
 export {jsy_transpile_srcmap}
 
 export async function resolve(specifier, context, nextResolve) ::

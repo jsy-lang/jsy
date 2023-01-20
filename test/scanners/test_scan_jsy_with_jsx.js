@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { transpile_jsy } from 'jsy-transpile/esm/all.js'
+import { jsy_transpile } from 'jsy-transpile/esm/all.js'
 import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content, jsy_scan_throws } from './_ast_test_utils'
 
 
@@ -621,7 +621,7 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
             'offside_dedent'
 
       assert.deepEqual @
-        transpile_jsy(offside_ast).split(/\n/), @[]
+        jsy_transpile(offside_ast).split(/\n/), @[]
           'const ex =('
           '    <ul>{'
           '      this.props.items.map(item =>('

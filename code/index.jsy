@@ -1,3 +1,0 @@
-import jsy_transpile from './transpile_jsy.jsy'
-jsy_transpile.default = jsy_transpile
-export default jsy_transpile

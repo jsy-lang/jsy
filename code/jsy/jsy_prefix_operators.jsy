@@ -1,4 +1,4 @@
-import {regexp_from_jsy_op} from './jsy_regexp_utils.jsy'
+import {regexp_from_jsy_op} from './utils.jsy'
 
 
 export const op_prefix_nullish = /* #__PURE__ */ @{}

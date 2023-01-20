@@ -1,5 +1,5 @@
+import jsy_transpile_srcmap from 'jsy-transpile'
 import { createFilter } from '@rollup/pluginutils'
-import jsy_transpile_srcmap from './with_srcmap.jsy'
 
 export default function jsy_rollup_plugin(config) ::
   config = @{}

@@ -1,4 +1,4 @@
-import {regexp_from_jsy_op} from './jsy_regexp_utils.jsy'
+import {regexp_from_jsy_op} from './utils.jsy'
 import {at_offside, at_unknown_ops, keywords_locator_parts} from './jsy_operators.jsy'
 
 const regexp_keyword = sz => ::

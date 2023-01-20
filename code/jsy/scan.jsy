@@ -1,6 +1,6 @@
-import { rx_offside_ops, rx_keyword_ops, rx_unknown_ops } from './jsy_regexp.jsy'
-import inject_dedent from './scanner/inject_dedent.jsy'
-import scan_jsx_javascript from './scanner/scan_jsx_javascript.jsy'
+import { rx_offside_ops, rx_keyword_ops, rx_unknown_ops } from './regexp.jsy'
+import inject_dedent from '../scanner/inject_dedent.jsy'
+import scan_jsx_javascript from '../scanner/scan_jsx_javascript.jsy'
 
 //import {dbg_dump_ast} from './_ast_debug.jsy'
 

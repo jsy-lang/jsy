@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { transpile_jsy } from 'jsy-transpile/esm/all.js'
+import { jsy_transpile } from 'jsy-transpile/esm/all.js'
 import { scan_jsy_lines, test_ast_tokens_content, ast_tokens_content, jsy_scan_throws } from './_ast_test_utils'
 
 
@@ -13,7 +13,7 @@ describe @ 'JSY Scanner (template strings)', @=> ::
       '   After all, if you need greater control, you\'ll likely'
       '     have to manually format the strings anyway… `'
 
-    const js_src = transpile_jsy @ scan_jsy_lines(jsy_src)
+    const js_src = jsy_transpile @ scan_jsy_lines(jsy_src)
     assert.deepEqual @ js_src.split('\n'), @[]
       'test(`'
       '  Wouldn\'t it be nice to have your multi-line strings'
