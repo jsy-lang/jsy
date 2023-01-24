@@ -1,6 +1,6 @@
 const { assert } = require('chai')
 import { scan_clike } from 'jsy-transpile/esm/scanner/index.js'
-import { test_ast_tokens, test_ast_tokens_content } from './_ast_test_utils'
+import { test_ast_tokens, test_ast_tokens_content } from './_ast_test_utils.jsy'
 
 describe @ 'Scanners', @=> ::
   describe @ 'C-Like Line Scanner', @=> ::

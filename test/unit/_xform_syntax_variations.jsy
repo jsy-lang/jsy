@@ -1,6 +1,6 @@
 const {assert} = require('chai')
 import * as acorn from 'acorn'
-import jsy_as_ast from './_jsy_as_ast'
+import jsy_as_ast from './_jsy_as_ast.jsy'
 
 export function testSyntaxError(testCase) ::
   const block = () => ::

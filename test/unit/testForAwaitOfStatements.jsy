@@ -1,5 +1,5 @@
 
-import { genSyntaxTestCases, asyncFunctionTransforms } from './_xform_syntax_variations'
+import { genSyntaxTestCases, asyncFunctionTransforms } from './_xform_syntax_variations.jsy'
 
 describe @ 'For Await Of Statements', @=> ::
   const {inAsyncFunction} = asyncFunctionTransforms

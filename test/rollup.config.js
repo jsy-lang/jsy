@@ -4,9 +4,7 @@ import rpi_jsy from '../stable/rollup-jsy-bootstrap.mjs'
 
 const _cfg_ = {
   plugins: [
-    rpi_jsy({
-      include: [ '**/*.jsy', 'scanners/*.js', 'unit/*.js' ],
-    }),
+    rpi_jsy(),
     rpi_resolve(),
     rpi_commonjs({ include: 'node_modules/**'}),
   ]

@@ -1,4 +1,4 @@
-import { scan_jsy_lines, test_ast_tokens_content } from './_ast_test_utils'
+import { scan_jsy_lines, test_ast_tokens_content } from './_ast_test_utils.jsy'
 
 describe @ 'JSY RegExp handling', @=> ::
   it @ 'allow division operator', @=> ::

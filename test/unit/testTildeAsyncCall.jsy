@@ -1,5 +1,5 @@
 
-import { genMochaSyntaxTestCases, standardTransforms } from './_xform_syntax_variations'
+import { genMochaSyntaxTestCases, standardTransforms } from './_xform_syntax_variations.jsy'
 
 describe @ 'Tilde Async Call Statements',
   genMochaSyntaxTestCases @ iterTildeAsyncCalls, standardTransforms
