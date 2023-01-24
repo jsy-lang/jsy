@@ -34,7 +34,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
 
     it @ 'include', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
-        preprocess: p => true
+        preprocessor: () => p => true
 
       assert.deepEqual @ js_src.split('\n'), @[]
         '#!/usr/bin/env jsy-node'
@@ -49,7 +49,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
 
     it @ 'replace', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
-        preprocess: p => '//'+p.content
+        preprocessor: () => p => '//'+p.content
 
       assert.deepEqual @ js_src.split('\n'), @[]
         '#!/usr/bin/env jsy-node'
@@ -64,7 +64,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
 
     it @ 'exclude', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
-        preprocess: p => false
+        preprocessor: () => p => false
 
       assert.deepEqual @ js_src.split('\n'), @[]
         '#!/usr/bin/env jsy-node'
@@ -80,7 +80,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
     it @ 'advanced', @=>> ::
       const log = []
       const js_src = jsy_transpile @ ast_src, @{}
-        preprocess: (p, add_xform) =>
+        preprocessor: () => (p, add_xform) =>
           add_xform @:
             process(src_parts, ln) ::
               log.push @# 'process', ln.loc.start.line, src_parts.join('')
@@ -222,6 +222,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
       let ast_src
       beforeEach @=> ::
         ast_src = scan_jsy_lines @#
+          'before'
           '# IF OPT_A && OPT_B && OPT_C'
           '    body_abc'
           '# ELIF OPT_A && OPT_C || OPT_B && OPT_C'
@@ -232,53 +233,68 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
           '    body_ab_or_c'
           '# ELSE'
           '    body_last'
+          'after'
 
       it @ 'A && B && C', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true, OPT_B: true, OPT_C: true
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
           'body_abc'
+          'after'
 
       it @ 'A', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
           'body_a_or_bc'
+          'after'
 
       it @ 'B', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_B: true
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
           'body_last'
+          'after'
 
       it @ 'C', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_C: true
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
           'body_ab_or_c'
+          'after'
 
       it @ 'BC', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_B: true, OPT_C: true
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
           'body_ac_or_bc'
+          'after'
 
       it @ 'AB', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true, OPT_B: true
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
           'body_a_or_bc'
+          'after'
 
       it @ 'AC', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true, OPT_C: true
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
           'body_ac_or_bc'
+          'after'
 

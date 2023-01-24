@@ -9,7 +9,9 @@ export default function jsy_rollup_plugin(config) ::
 
   const filter = createFilter @ config.include, config.exclude
   const sourcemap = false !== config.sourcemap && false !== config.sourceMap
-  const { preprocess, preprocessor, defines } = config
+  const { preprocessor, defines } = config
+  if ! preprocessor && config.preprocess ::
+    preprocessor = () => config.preprocess
 
   return @{}
     name: 'jsy'
@@ -19,7 +21,7 @@ export default function jsy_rollup_plugin(config) ::
       try ::
         let jsy = jsy_transpile_srcmap @ code, id, @{}
           ... config.jsy,
-          preprocess, preprocessor, defines,
+          preprocessor, defines,
           sourcemap, 
 
         return @{} code: jsy.code, map: jsy.srcmap.toJSON()
