@@ -15,5 +15,5 @@ export default [
     output: { file: './__unittest.iife.js', format: 'iife', name: `test_jsy_transpile`, sourcemap: 'inline' } },
 
   { ..._cfg_, input: `./unittest.jsy`,
-    output: { file: './__unittest.cjs.js', format: 'cjs', sourcemap: 'inline' } },
+    output: { file: './__unittest.cjs', format: 'cjs', sourcemap: 'inline' } },
 ]

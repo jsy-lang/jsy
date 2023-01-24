@@ -17,8 +17,8 @@
     "watch": "npm -s run build -- --watch",
     "pretest": "npm -s run build",
     "test": "npm -s run test:one",
-    "test:one": "mocha ./__unittest.cjs.js",
-    "test:lean": "TEST_LEAN=true mocha ./nodejs_unittest.js",
-    "test:min": "TEST_LEAN=true mocha --reporter=min ./nodejs_unittest.js"
+    "test:one": "mocha ./__unittest.cjs",
+    "test:lean": "TEST_LEAN=true mocha ./__unittest.cjs",
+    "test:min": "TEST_LEAN=true mocha --reporter=min ./__unittest.cjs"
   }
 }

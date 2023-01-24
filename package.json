@@ -24,11 +24,10 @@
   },
   "files": [
     "esm",
-    "iife",
     "code",
+    "jsy-script.js",
     "transpile.mjs",
     "unittest.html",
-    "test/browser_unittest.js",
     "test/__unittest.iife.js"
   ],
   "type": "module",
@@ -61,6 +60,7 @@
     "test": "cd test; npm -s run test",
     "test:install": "cd test; npm -s install",
     "test:one": "cd test; npm -s run test:one",
+    "test:lean": "cd test; npm -s run test:lean",
     "test:watch": "cd test; npm -s run test:watch",
     "prepublishOnly": "npm -s run clean && npm -s run test"
   }

@@ -4,15 +4,28 @@
   <meta charset="utf-8">
   <title>JSY Transpile Mocha Tests</title>
   <link rel='stylesheet' href='https://unpkg.com/mocha@5.2.0/mocha.css' />
+
+  <script crossorigin src='https://unpkg.com/mocha@5.2.0/mocha.js'></script>
+  <script crossorigin src='https://unpkg.com/chai@4.1.2/chai.js'></script>
+  <script crossorigin src='https://unpkg.com/acorn@5.7.2/dist/acorn.js'></script>
+  <script crossorigin src='https://unpkg.com/source-map@0.7.3/dist/source-map.js'></script>
 </head>
 <body>
 
 <div id="mocha"></div>
 
-<script>
+<script type=module>
+  import { jsy_transpile } from './esm/index.js'
+  window.jsy_transpile = jsy_transpile 
+
+  window.mocha.setup({ ui: 'bdd' })
+  window['source-map'] = window.sourceMap
+  window.require = module => window[module]
   window.unittest_root = window.location // new URL('https://unpkg.com/jsy-transpile/')
+
+  import('./test/__unittest.iife.js', unittest_root)
+    .then(() => mocha.run())
 </script>
-<script src='./test/browser_unittest.js'></script>
 
 </body>
 </html>
