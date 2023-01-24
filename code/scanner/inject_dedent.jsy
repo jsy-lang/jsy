@@ -1,5 +1,4 @@
 
-export default inject_dedent
 export function inject_dedent(offside_lines, trailing_types) ::
   if 'function' !== typeof trailing_types ::
     const s_trailing_types = new Set @

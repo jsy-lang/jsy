@@ -1,4 +1,4 @@
-import jsy_transpile_srcmap from 'jsy-transpile'
+import { jsy_transpile_srcmap } from 'jsy-transpile'
 import { readFile } from 'node:fs/promises'
 
 

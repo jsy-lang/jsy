@@ -1,5 +1,5 @@
-import jsy_transpile_srcmap from 'jsy-transpile'
-export {jsy_transpile_srcmap}
+import { jsy_transpile_srcmap } from 'jsy-transpile'
+export { jsy_transpile_srcmap }
 
 export async function resolve(specifier, context, nextResolve) ::
   // as .jsy are local real files, we don't need a custom resolver

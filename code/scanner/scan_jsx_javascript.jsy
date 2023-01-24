@@ -1,4 +1,4 @@
-import scan_offside_contexts from './basic_offside_contexts.jsy'
+import { scan_offside_contexts } from './basic_offside_contexts.jsy'
 import { js_context_scanners } from './scan_javascript.jsy'
 import { scanner_nestedSrc } from './scan_clike.jsy'
 import { SourceCodeScanner, RegExpScanner } from './context_scanner.jsy'
@@ -209,7 +209,6 @@ export const jsx_context_scanners = Object.freeze @#
   scanner_jsx
   ... js_context_scanners
 
-export default scan_javascript_with_jsx
 export function scan_javascript_with_jsx(source, feedback) ::
   return scan_offside_contexts(source, feedback, jsx_context_scanners)
 

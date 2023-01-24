@@ -1,11 +1,11 @@
 import { rx_offside_ops, rx_keyword_ops, rx_unknown_ops } from './regexp.jsy'
-import inject_dedent from '../scanner/inject_dedent.jsy'
-import scan_jsx_javascript from '../scanner/scan_jsx_javascript.jsy'
+import { inject_dedent } from '../scanner/inject_dedent.jsy'
+import { scan_javascript_with_jsx } from '../scanner/scan_jsx_javascript.jsy'
 
 //import {dbg_dump_ast} from './_ast_debug.jsy'
 
 export function scan_jsy(source, feedback) ::
-  const jsy_ast = scan_jsx_javascript(source, feedback)
+  const jsy_ast = scan_javascript_with_jsx(source, feedback)
   //dbg_dump_ast('out.json5', jsy_ast)
 
   inject_dedent @ jsy_ast, @[] 'comment_eol'

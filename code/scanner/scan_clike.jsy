@@ -1,5 +1,5 @@
 import { SourceCodeScanner, NestedCodeScanner, RegExpScanner, MultiLineScanner } from './context_scanner.jsy'
-import scan_offside_contexts from './basic_offside_contexts.jsy'
+import { scan_offside_contexts } from './basic_offside_contexts.jsy'
 
 export const scanner_source =
   new SourceCodeScanner @:
@@ -72,7 +72,6 @@ export const clike_context_scanners = Object.freeze @#
   scanner_preprocessor
 
 
-export default scan_clike
 export function scan_clike(source, feedback) ::
   return scan_offside_contexts(source, feedback, clike_context_scanners)
 

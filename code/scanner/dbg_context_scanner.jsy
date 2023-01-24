@@ -41,4 +41,3 @@ export class DBGRegExpScanner extends RegExpScanner ::
   scan(ctx, idx0) :: return RXDBG.dbg_scan(this, ctx, idx0)
   scan_continue(ctx, idx0) :: return RXDBG.dbg_scan_continue(this, ctx, idx0)
 
-export default RXDBG

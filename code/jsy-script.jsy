@@ -1,5 +1,5 @@
 'use strict';
-import jsy_transpile_srcmap from 'jsy-transpile'
+import { jsy_transpile_srcmap } from 'jsy-transpile'
 
 class JSYScript extends HTMLElement ::
   static jsy_transpile_srcmap(...args) ::

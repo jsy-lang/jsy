@@ -1,6 +1,5 @@
 import { DispatchScanner, DispatchFirstlineScanner } from './context_scanner.jsy'
 
-export default bind_context_scanner
 export function bind_context_scanner(context_scanners) ::
   if ! Object.isFrozen(context_scanners) || ! Array.isArray(context_scanners) ::
     throw new TypeError @ `Expected a frozen array of context scanners`

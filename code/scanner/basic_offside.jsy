@@ -4,7 +4,6 @@ export const rx_indent_order = /^[\t]*[ ]*$/ ;
 
 import createLoc from './_location.jsy'
 
-export default basic_offside_scanner
 export function basic_offside_scanner(source, feedback) ::
   if null == feedback ::
     feedback = @{}
