@@ -1,8 +1,6 @@
 import { at_offside_map, extra_jsy_ops  } from './jsy_operators.jsy'
-import { createTransform, applyPreprocessor } from './preprocess.jsy'
-import checkOptionalComma from './optional_comma.jsy'
-
-export { applyPreprocessor }
+import { create_xform } from './preprocess.jsy'
+import { checkOptionalComma } from './optional_comma.jsy'
 
 const rx_leading_space = /* #__PURE__ */ /^[ \t]+/ ;
 
@@ -10,6 +8,37 @@ const root_head = /* #__PURE__ */ Object.freeze @: __proto__: null
 
 export const transpile_visitor = /* #__PURE__ */ @{}
   __proto__: null
+
+  *ast_iter(jsy_ast) ::
+    this.start()
+
+    let ln, fin
+    for ln of jsy_ast ::
+      fin = this.ast_line(ln)
+      yield `${fin?.join('') ?? fin ?? ''}\n`
+
+    fin = this.finish()
+    yield `${fin?.join('') ?? fin ?? ''}\n`
+
+
+  ast_line(ln) ::
+    if ln.is_blank ::
+      return this.blank_line(ln)
+
+    this.start_line(ln)
+    this.v$offside_indent(ln.indent)
+
+    let prev = ln.indent
+    for let part of ln.content ::
+      let fn_visit = `v$${part.type}`
+      if undefined === this[fn_visit] ::
+        throw new Error @ `JSY transpile function "${key}" not found`
+
+      this[fn_visit]( part, ln, prev )
+      prev = part
+
+    return this.finish_line(ln)
+
   start() ::
     this.lineno = 0
     this.head = root_head
@@ -88,6 +117,7 @@ export const transpile_visitor = /* #__PURE__ */ @{}
         comma_body.shift()
       return cur
 
+  _checkOptionalComma: checkOptionalComma
   checkOptionalComma
 
   stack_push(op, p) ::
@@ -244,12 +274,10 @@ export const transpile_visitor = /* #__PURE__ */ @{}
 
 
   v$preprocessor(p, ln) ::
-    const preprocess = this.preprocess
-    const xform_cur = this.xform_tip
     const add_xform = arg =>
-      this.push_xform(ln, xform_cur).update(arg)
+      this.push_xform(ln, this.xform_tip).update(arg)
 
-    const ans = preprocess @ p, add_xform
+    let ans = this.preprocess(p, add_xform)
 
     if p === ans ::
       return this.emit @ p.content, p.loc.start
@@ -260,9 +288,9 @@ export const transpile_visitor = /* #__PURE__ */ @{}
 
     return this.emit_raw('')
 
-  preprocess(p) :: return p
+  preprocess(p, add_xform) :: return p
   push_xform(ln, xform_cur) ::
-    return this.xform_next = createTransform(ln, xform_cur)
+    return this.xform_next = create_xform(ln, xform_cur)
 
   _xform_start_line(ln) ::
     while true ::

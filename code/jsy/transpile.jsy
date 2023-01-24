@@ -1,64 +1,42 @@
 import { scan_jsy } from './scan.jsy'
-import { transpile_visitor, applyPreprocessor } from './visitor.jsy'
+import { basic_preprocessor } from './preprocess.jsy'
+import { transpile_visitor } from './visitor.jsy'
 import { sourcemap_comment } from './utils.jsy'
 
 
 export function jsy_transpile(jsy_ast, feedback) ::
+  let lines = [... jsy_iter_transpile(jsy_ast, feedback)]
+  return lines.join('').trimEnd()
+
+export function * jsy_iter_transpile(jsy_ast, feedback) ::
   if ! feedback :: feedback = {}
+
   if 'string' === typeof jsy_ast ::
     jsy_ast = scan_jsy(jsy_ast, feedback)
 
-  const visitor = @{} __proto__: transpile_visitor
+  let visitor = @{}
+    __proto__: transpile_visitor
+    ... feedback.visitor
 
-  if feedback.checkOptionalComma ::
-    visitor._checkOptionalComma = visitor.checkOptionalComma
-    visitor.checkOptionalComma = feedback.checkOptionalComma
+  ::
+    if feedback.checkOptionalComma ::
+      visitor.checkOptionalComma = feedback.checkOptionalComma
 
-  if feedback.addSourceMapping ::
-    Object.defineProperties @ visitor, @{}
-      addSourceMapping: @{} value: feedback.addSourceMapping
+    if feedback.addSourceMapping ::
+      visitor.addSourceMapping = feedback.addSourceMapping
 
-  const preprocess = applyPreprocessor(feedback)
-  if 'function' === typeof preprocess ::
-    visitor.preprocess = preprocess
+    visitor.preprocess = feedback.preprocessor?.()
+      ?? basic_preprocessor(feedback.defines)
 
-  const lines = []
-  visitor.start()
 
-  for const ln of jsy_ast ::
-    if ln.is_blank ::
-      visitor.blank_line(ln)
-      lines.push @ ''
-      continue
+  yield * visitor.ast_iter(jsy_ast)
 
-    visitor.start_line(ln)
-    visitor.v$offside_indent(ln.indent)
-
-    let prev = ln.indent
-    for const part of ln.content ::
-      const key = `v$${part.type}`
-
-      if undefined === visitor[key] ::
-        throw new Error @ `JSY transpile function "${key}" not found`
-
-      visitor[key] @ part, ln, prev
-      prev = part
-
-    const fin = visitor.finish_line(ln)
-    lines.push @ Array.isArray(fin) ? fin.join('') : fin || ''
-
-  visitor.finish()
-
-  if feedback.inlineSourceMap ::
-    let srcmap = feedback.inlineSourceMap()
-    if srcmap ::
-      lines.push @ '', sourcemap_comment @ srcmap
-
-  return lines.join('\n')
-
+  let srcmap = feedback.inlineSourceMap?.()
+  if srcmap ::
+    yield sourcemap_comment(srcmap, '\n')
     
+
 export { version } from './version.js'
 export @{}
-  jsy_transpile as default,
-  jsy_transpile as transpile_jsy
+  jsy_transpile as default
 

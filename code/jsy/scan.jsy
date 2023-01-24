@@ -4,7 +4,6 @@ import scan_jsx_javascript from '../scanner/scan_jsx_javascript.jsy'
 
 //import {dbg_dump_ast} from './_ast_debug.jsy'
 
-export default scan_jsy
 export function scan_jsy(source, feedback) ::
   const jsy_ast = scan_jsx_javascript(source, feedback)
   //dbg_dump_ast('out.json5', jsy_ast)

@@ -13,7 +13,6 @@ const rx_rescue_comma_head = /* #__PURE__ */
 const rx_last_bits = /* #__PURE__ */ /[()\[\]{}]|<\/?\w*>/ ;
 const rx_dict_as_name = /* #__PURE__ */ /\s+as\s+\w+/g
 
-export default checkOptionalComma
 export function checkOptionalComma(op, pre_body, post_body) ::
   let pre_end = pre_body.split(rx_last_bits).pop()
   if rx_disrupt_comma_tail.test(pre_end) ::

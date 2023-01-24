@@ -16,7 +16,7 @@ export function regexp_from_jsy_op(jsy_op, with_spacing) ::
     return jsy_op.source
 
 
-export function sourcemap_comment(srcmap_json) ::
+export function sourcemap_comment(srcmap_json, newline='\n') ::
   if 'string' !== typeof srcmap_json ::
     srcmap_json = JSON.stringify(srcmap_json)
 
@@ -25,6 +25,6 @@ export function sourcemap_comment(srcmap_json) ::
     : globalThis.btoa @ unescape @ encodeURIComponent @ srcmap_json
 
   // break up the source mapping url trigger string to prevent false positives on the following line
-  return `//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}`
+  return `${newline}//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}${newline}`
 
 
