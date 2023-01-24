@@ -1,8 +1,9 @@
 #!/usr/bin/env node
+//import { jsy_transpile_srcmap } from '@jsy-lang/jsy'
 import { jsy_transpile_srcmap } from 'jsy-transpile'
 import { readFile } from 'node:fs/promises'
 
-export async function jsy_transpile_main(filename, opt={}) {
+async function jsy_transpile_main(filename, opt={}) {
   try {
     let [jsy_src, source_ref] =
       filename && '-' !== filename
@@ -36,10 +37,5 @@ async function _read_stdin(stdin=process.stdin) {
 }
 
 
-if (import.meta.url.includes(process.argv[1]))
-  jsy_transpile_main(process.argv.slice(2).pop())
+jsy_transpile_main(process.argv.slice(2).pop())
 
-export {
-  jsy_transpile_main as default,
-  jsy_transpile_main as main,
-}

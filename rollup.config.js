@@ -17,7 +17,8 @@ const _rpis_ = (defines, ...args) => [
   rpi_dgnotify()]
 
 const _cfg_ = {
-  external: id => /^\w*:/.test(id) || builtinModules.includes(id),
+  external: id => /^\w*:/.test(id) || builtinModules.includes(id)
+    || 'jsy-transpile' == id || '@jsy-lang/jsy' == id,
   plugins: _rpis_({}) }
 
 let is_watch = process.argv.includes('--watch')
@@ -27,20 +28,15 @@ const _cfg_min_ = fast_build || is_watch || 'undefined'===typeof rpi_terser ? nu
 
 
 export default [
-  ... add_jsy('index', {ext: '.js'}),
+  ... add_jsy('index', {ext: '.js', min: true}),
   ... add_jsy('all', {ext: '.js'}),
 
-  ... fast_build ? [] : [
-    ... add_jsy('scanner/index', {ext: '.js'}),
+  ... add_jsy('scanner/index', {ext: '.js'}),
 
-    ... add_jsy_web('jsy-script'),
-    ... add_jsy('node-loader'),
-
-    // add rpi_commonjs to support @rollup/pluginutils use of picomatch
-    { ... _cfg_, input: 'code/rollup.jsy',
-      plugins: [ rpi_commonjs(), ..._cfg_.plugins ],
-      output: {file: 'esm/rollup.js', format: 'es', sourcemap: true} },
-  ],
+  // add rpi_commonjs to support @rollup/pluginutils use of picomatch
+  { ... _cfg_, input: 'code/rollup.jsy',
+    plugins: [ rpi_commonjs(), ..._cfg_.plugins ],
+    output: {file: 'esm/rollup.js', format: 'es', sourcemap: true} },
 ]
 
 
@@ -49,16 +45,9 @@ function * add_jsy(src_name, opt={}) {
   const input = `code/${src_name}${opt.ext || '.jsy'}`
   yield { ..._cfg_, input, output: [
     { file: `esm/${src_name}.js`, format: 'es', sourcemap: true }, ]}
-}
 
-function * add_jsy_web(src_name, opt={}) {
-  const input = `code/${src_name}${opt.ext || '.jsy'}`
-  yield { ..._cfg_, input, output: [
-    { file: `esm/${src_name}.js`, format: 'es', sourcemap: true },
-    { file: `iife/${src_name}.js`, format: 'iife', sourcemap: true }, ]}
-
-  if (_cfg_min_)
+  if (_cfg_min_ && opt.min)
     yield { ..._cfg_min_, input, output: [
-      { file: `esm/${src_name}.min.js`, format: 'es', sourcemap: false },
-      { file: `iife/${src_name}.min.js`, format: 'iife', sourcemap: false }, ]}
+      { file: `esm/${src_name}.min.js`, format: 'es', sourcemap: false }, ]}
 }
+
