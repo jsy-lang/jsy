@@ -21,6 +21,7 @@ describe @ 'JSY Scanner (template strings)', @=> ::
       ''
       'After all, if you need greater control, you\'ll likely'
       '  have to manually format the strings anyway… `)'
+      ''
 
 
   it @ 'single template strings', @=> ::

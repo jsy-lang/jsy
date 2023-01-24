@@ -17,6 +17,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         'if after() ::'
         '  console.log @'
         '    "hello JSY world!"'
+        ''
 
     it @ 'default', @=> ::
       const js_src = jsy_transpile @ ast_src
@@ -31,6 +32,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         'if (after()) {',
         '  console.log(',
         '    "hello JSY world!") }'
+        ''
 
     it @ 'include', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
@@ -46,6 +48,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         'if (after()) {',
         '  console.log(',
         '    "hello JSY world!") }'
+        ''
 
     it @ 'replace', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
@@ -61,6 +64,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         'if (after()) {',
         '  console.log(',
         '    "hello JSY world!") }'
+        ''
 
     it @ 'exclude', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
@@ -76,6 +80,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         'if (after()) {',
         '  console.log(',
         '    "hello JSY world!") }'
+        ''
 
     it @ 'advanced', @=>> ::
       const log = []
@@ -97,6 +102,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         'if (after()) {',
         '  console.log(',
         '    "hello JSY world!") }'
+        ''
 
       assert.deepEqual @ log, @[]
         @[] "process", 4, "  if (test()) {"

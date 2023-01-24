@@ -1,0 +1,64 @@
+const { assert } = require('chai')
+import { jsy_transpile } from 'jsy-transpile/esm/all.js'
+import { scan_jsy_lines, jsy_scan_throws, test_ast_tokens_content } from './_ast_test_utils'
+
+
+describe @ 'JSY Scanner (misc)', @=> ::
+  it @ 'hashbang', @=> ::
+    const jsy_src = @[]
+      '#!/usr/bin/env jsy-node'
+      ''
+      'if test() ::'
+      '  console.log @'
+      '    "hello JSY world!"'
+
+    const js_src = jsy_transpile @ scan_jsy_lines(jsy_src)
+    assert.deepEqual @ js_src.split('\n'), @[]
+      '#!/usr/bin/env jsy-node'
+      ''
+      'if (test()) {'
+      '  console.log('
+      '    "hello JSY world!") }'
+      ''
+
+
+  it @ 'syntax error on mixed tabs and spaces (same line)', @=> ::
+    jsy_scan_throws @#
+      'first @'
+      '  second @'
+      ' \t third @'
+
+  it @ 'syntax error on unterminated single-quote string', @=> ::
+    jsy_scan_throws @#
+      'line1'
+      'const sz = \'unterminated string example'
+      'line3'
+
+  it @ 'syntax error on unterminated double-quote string', @=> ::
+    jsy_scan_throws @#
+      'line1'
+      'const sz = "unterminated string example'
+      'line3'
+
+  it @ 'correctly handles @{} at end of line with trailing spaces', @=> ::
+    const offside_ast = scan_jsy_lines @#
+      'const test = @{} a, b, c: @[] '
+      '  d, e, f'
+
+    test_ast_tokens_content @ offside_ast,
+      @[] 'src "const test ="'
+          'jsy_op " @{}"'
+          'src " a, b, c:"'
+          'jsy_op " @[]"'
+          'src " "'
+          'offside_dedent'
+
+      @[] 'src "d, e, f"'
+          'offside_dedent'
+
+    const js_src = jsy_transpile @ offside_ast
+    assert.deepEqual @ js_src.split('\n'), @[]
+      'const test ={a, b, c:['
+      '  d, e, f] }'
+      ''
+

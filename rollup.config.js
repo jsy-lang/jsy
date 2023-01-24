@@ -32,7 +32,6 @@ export default [
 
   ... fast_build ? [] : [
     ... add_jsy('scanner/index', {ext: '.js'}),
-    ... add_jsy('cli_transpile'),
 
     ... add_jsy_web('jsy-script'),
     ... add_jsy('node-loader'),

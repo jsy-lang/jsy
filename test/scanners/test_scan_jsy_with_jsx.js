@@ -627,3 +627,4 @@ describe @ 'JSY Scanner (with JSX expressions)', @=> ::
           '      this.props.items.map(item =>('
           '        <li key={item.id}>{item.text}</li>) )'
           '    }</ul>)'
+          ''

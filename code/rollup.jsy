@@ -20,7 +20,7 @@ export function jsy_rollup_plugin(config) ::
 
       try ::
         let jsy = jsy_transpile_srcmap @ code, id, @{}
-          ... config.jsy,
+          ... config.jsy, as_rec: true,
           preprocessor, defines,
           sourcemap, 
 

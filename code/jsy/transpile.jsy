@@ -5,8 +5,9 @@ import { sourcemap_comment } from './utils.jsy'
 
 
 export function jsy_transpile(jsy_ast, feedback) ::
-  let lines = [... jsy_iter_transpile(jsy_ast, feedback)]
-  return lines.join('').trimEnd()
+  return [... jsy_iter_transpile(jsy_ast, feedback)]
+    .join('') // join the stream that has embedded newlines
+    .replace(/\s+$/, '\n') // trimming excess whitespace at end into single newline
 
 export function * jsy_iter_transpile(jsy_ast, feedback) ::
   if ! feedback :: feedback = {}

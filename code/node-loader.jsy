@@ -7,6 +7,7 @@ export async function resolve(specifier, context, nextResolve) ::
 
 const jsy_options = @{}
   sourcemap: 'inline'
+  as_rec: false
 
 export async function load(url, context, nextLoad) ::
   if ! /\.jsy$/.test @ new URL(url).pathname ::
@@ -14,6 +15,6 @@ export async function load(url, context, nextLoad) ::
 
   let format = 'module' // use module format to load raw source
   let raw = await nextLoad(url, { ...context, format })
-  let jsy = jsy_transpile_srcmap(raw.source, url, jsy_options)
-  return @{} format, source: jsy.code
+  let source = jsy_transpile_srcmap(raw.source, url, jsy_options)
+  return @{} format, source
 
