@@ -5,14 +5,15 @@ import rpi_jsy from './esm/rollup.js'
 
 const _cfg_ = {
   external: id => /^\w*:/.test(id),
-  plugins: [ rpi_commonjs(), rpi_resolve(), rpi_jsy(), rpi_dgnotify() ],
+  plugins: [ rpi_resolve(), rpi_jsy(), rpi_dgnotify() ],
 }
 
 export default [
   { ..._cfg_, input: 'code/index.js', output:
     {file: 'stable/jsy-self-bootstrap.mjs', sourcemap: true, format: 'es' }},
 
-  { ..._cfg_, input: 'code/rollup.jsy', output:
+  { ..._cfg_, plugins: [rpi_commonjs(), ..._cfg_.plugins],
+    input: 'code/rollup.js', output:
     {file: 'stable/rollup-jsy-bootstrap.mjs', sourcemap: true, format: 'es' }},
 ]
 

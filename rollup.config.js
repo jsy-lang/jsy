@@ -34,7 +34,7 @@ export default [
   ... add_jsy('scanner/index', {ext: '.js'}),
 
   // add rpi_commonjs to support @rollup/pluginutils use of picomatch
-  { ... _cfg_, input: 'code/rollup.jsy',
+  { ... _cfg_, input: 'code/rollup.js',
     plugins: [ rpi_commonjs(), ..._cfg_.plugins ],
     output: {file: 'esm/rollup.js', format: 'es', sourcemap: true} },
 ]
