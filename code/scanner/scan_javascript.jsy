@@ -47,7 +47,7 @@ export const scanner_strTemplate =
       example: '`template string`'
       op: 'str_template'
       kind: '`'
-      rx_open: /(`)/
+      rx_open: /(`)\\?/
       rx_close: /(?:\\.|\$(?!{)|[^\$`\\])*(`|\${|$)/
       nesting: @{}
         '${': templateArgNesting
