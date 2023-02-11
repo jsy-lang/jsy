@@ -262,9 +262,9 @@ export const transpile_visitor = /* #__PURE__ */ @{}
 
 
   v$str_template(p, ln, p0) ::
-    if p0 === ln.indent && p.block_indent ::
-      const indent = this._cur.pop()
-      this._cur.push @ indent.slice(p.block_indent)
+    if p0 === ln.indent && p.mlctx ::
+      let indent = this._cur.pop()
+      this._cur.push @ indent.slice(p.mlctx.col)
 
     this.emit @ p.content, p.loc.start
 

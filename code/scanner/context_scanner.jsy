@@ -424,6 +424,18 @@ export class MultiLineScanner extends RegExpScanner ::
   newline(ctx, is_blank) ::
   get multiline() :: return true
 
+  _ast_extend(ctx, ast) ::
+    //let ln = this.ln_first || ctx.ln
+    let col = ast.loc.start.column
+    let mlctx = this.mlctx ??= {col}
+
+    if col < mlctx.col ::
+      mlctx.col = col
+
+    ast.mlctx = mlctx
+    return ast
+
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 export class TaggedRegExpScanner extends RegExpScanner ::
