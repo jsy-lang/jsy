@@ -18,6 +18,9 @@ async function jsy_transpile_main(filename, opt={}) {
       opt.create_sourcemap = () => null
     else opt.sourcemap ??= 'inline'
 
+    let defines = JSON.parse(process.env.JSY_DEFINES || null)
+    if (defines) opt.defines = defines
+
     let source = jsy_transpile_srcmap(jsy_src, source_ref, opt)
     process.stdout.write(source)
   } catch (err) {

@@ -7,8 +7,8 @@
 
 const kw_expansion = @{}
   'elif': @{} pre: 'else if', post: ''
-  'unless': @{} pre: 'if (!', post: ')'
-  'else unless': @{} pre: 'else if (!', post: ')'
+  'unless': @{} pre: 'if (!(', post: '))'
+  'else unless': @{} pre: 'else if (!(', post: '))'
 
 function kwExpandOp(p) ::
   const kw = kw_expansion[p.kw] || {pre: p.kw, post:''}

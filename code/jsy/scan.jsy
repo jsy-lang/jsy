@@ -2,14 +2,13 @@ import { rx_offside_ops, rx_keyword_ops, rx_unknown_ops } from './regexp.jsy'
 import { inject_dedent } from '../scanner/inject_dedent.jsy'
 import { scan_javascript_with_jsx } from '../scanner/scan_jsx_javascript.jsy'
 
-//import {dbg_dump_ast} from './_ast_debug.jsy'
+export * from '../scanner/ast_debug.jsy'
 
-export function scan_jsy(source, feedback) ::
+const _is_offside_dedent = part => 'offside_dedent' === part.type
+export function jsy_scan(source, feedback) ::
   const jsy_ast = scan_javascript_with_jsx(source, feedback)
-  //dbg_dump_ast('out.json5', jsy_ast)
 
   inject_dedent @ jsy_ast, @[] 'comment_eol'
-  //dbg_dump_ast('out-post.json5', jsy_ast)
 
   for const ln of jsy_ast ::
     if ln.is_blank :: continue
@@ -17,7 +16,7 @@ export function scan_jsy(source, feedback) ::
     const parts = transform_jsy_ops(ln.content, ln)
     ln.content = parts
 
-    const idx_dedent = parts.findIndex @ p => 'offside_dedent' === p.type
+    const idx_dedent = parts.findIndex @ _is_offside_dedent
 
     for let i_last=idx_dedent-1; i_last >= 0; i_last-- ::
       const last = parts[i_last]
@@ -156,3 +155,5 @@ function transform_jsy_part(res, part, ln) ::
 function as_src_ast(content, start, end) ::
   return @{} type: 'src', loc: {start, end}, content
 
+
+export { jsy_scan as scan_jsy, jsy_scan as default }

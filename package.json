@@ -20,13 +20,15 @@
   },
   "homepage": "https://github.com/jsy-lang/jsy-transpile#readme",
   "bin": {
-    "jsy-transpile": "transpile.mjs"
+    "jsy-transpile": "transpile.mjs",
+    "jsy-scan": "scan.mjs"
   },
   "files": [
     "esm",
     "code",
     "jsy-script.js",
     "transpile.mjs",
+    "scan.mjs",
     "unittest.html",
     "test/__unittest.iife.js"
   ],

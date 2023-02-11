@@ -1,0 +1,36 @@
+
+const _as_loc_column = (start, end) => @
+  `${1 + start.pos - start.line_pos}` + @
+    end.pos - start.pos <= 1 ? '' :
+      `..${end.pos - end.line_pos}`
+
+const _as_loc = p => p.loc &&=
+  `${p.loc.start.line}:${_as_loc_column(p.loc.start, p.loc.end)}`
+
+export function * iter_ast_ndjson(iter_ast) ::
+  for let ln of iter_ast ::
+    _as_loc(ln)
+    if ln.indent ::
+      _as_loc(ln.indent)
+
+    ln.content?.map?.(_as_loc)
+    yield ln
+
+
+export function ast_to_json5(ast) ::
+  const out = []
+  for let ln of ast ::
+    if loc :: loc = loc.start.toString()
+    if ! content ::
+      out.push @ `  ["${type} at ${loc}"],`
+      continue
+
+    out.push @ `  ["${type} at ${loc} with '${indent.indent}'",`
+
+    for let {type:ct, content:cc} of content ::
+      out.push @ `    ${JSON.stringify([ct, cc])},`
+
+    out.push @ `  ],\n`
+
+  return `[\n${out.join('\n')}\n]\n`
+

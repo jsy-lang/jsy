@@ -31,6 +31,7 @@ export default [
   ... add_jsy('index', {ext: '.js', min: true}),
   ... add_jsy('all', {ext: '.js'}),
 
+  ... add_jsy('jsy/scan', {}),
   ... add_jsy('scanner/index', {ext: '.js'}),
 
   // add rpi_commonjs to support @rollup/pluginutils use of picomatch

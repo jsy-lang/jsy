@@ -1,4 +1,4 @@
-import { scan_jsy } from './scan.jsy'
+import { jsy_scan } from './scan.jsy'
 import { basic_preprocessor } from './preprocess.jsy'
 import { transpile_visitor } from './visitor.jsy'
 import { sourcemap_comment } from './utils.jsy'
@@ -13,7 +13,7 @@ export function * jsy_iter_transpile(jsy_ast, feedback) ::
   if ! feedback :: feedback = {}
 
   if 'string' === typeof jsy_ast ::
-    jsy_ast = scan_jsy(jsy_ast, feedback)
+    jsy_ast = jsy_scan(jsy_ast, feedback)
 
   let visitor = @{}
     __proto__: transpile_visitor
