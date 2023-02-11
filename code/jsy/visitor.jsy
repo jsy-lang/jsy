@@ -54,16 +54,17 @@ export const transpile_visitor = /* #__PURE__ */ @{}
   start_line(ln) ::
     this.lineno ++
     this.cur_ln = ln
-    this._cur = []
+    let line_src = this._cur = []
+    line_src.finish_ops = []
 
     this._xform_start_line(ln)
 
   finish_line(ln) ::
     let line_src = this._cur
-    if 'function' === typeof line_src.finish_commas ::
-      line_src = line_src.finish_commas(line_src)
+    for let fn of line_src.finish_ops || [] ::
+      line_src = fn(line_src, ln)
 
-    const comma_body = this.head.comma_body
+    let comma_body = this.head.comma_body
     if undefined !== comma_body ::
       comma_body.push @ '\n'
 
@@ -104,7 +105,7 @@ export const transpile_visitor = /* #__PURE__ */ @{}
 
     cur.push @ indent || ' '
 
-    cur.finish_commas = cur => ::
+    let finish_commas = (cur) => ::
       const pre = comma_body[0]
       if ! pre :: return cur
 
@@ -116,6 +117,8 @@ export const transpile_visitor = /* #__PURE__ */ @{}
         else cur[0] = ','
         comma_body.shift()
       return cur
+
+    cur.finish_ops.push @ finish_commas
 
   _checkOptionalComma: checkOptionalComma
   checkOptionalComma
@@ -134,7 +137,7 @@ export const transpile_visitor = /* #__PURE__ */ @{}
       isFoldable: op.isFoldable
       nestBreak: op.nestBreak
 
-    if true === op.implicitCommas ::
+    if ',' == op.implicitSep ::
       const comma_body = head.comma_body = []
       comma_body.op = op
       comma_body.len_inner = this.cur_ln.len_inner
@@ -146,23 +149,23 @@ export const transpile_visitor = /* #__PURE__ */ @{}
 
     head.tail = [this.head].concat(head.tail || [])
 
-    const src = head.op.pre
-    if src :: this.emit @ src
+    let src_pre = head.op.pre
+    if src_pre :: this.emit @ src_pre
 
     this.head = head
 
   stack_pop(c) ::
-    const head = this.head
-    const next = head.tail[0]
+    let head = this.head
+    let next = head.tail[0]
     this.head = next
 
-    if head.op.implicitCommas && next.comma_body ::
+    if next.comma_body && (',' == head.op.implicitSep) ::
       // internal op was an expression; simplify for comma_body
       next.comma_body.push(' expr ')
 
-    const src = head.op.post
-    if src ::
-      this.emit @ c ? ' '+src : src
+    let src_post = head.op.post
+    if src_post ::
+      this.emit @ c ? ' '+src_post : src_post
 
   v$jsy_unknown(p) ::
     throw p.loc.start.syntaxError @
@@ -303,10 +306,10 @@ export const transpile_visitor = /* #__PURE__ */ @{}
       if xform.done :: xform.done(ln)
 
   _xform_finish_line(line_src, ln) ::
-    const xform_tip = this.xform_tip
+    let xform_tip = this.xform_tip
 
     // switch to xform_next after finishing the current line
-    const xform_next = this.xform_next
+    let xform_next = this.xform_next
     if undefined !== xform_next ::
       this.xform_next = undefined
       this.xform_tip = xform_next
