@@ -223,11 +223,10 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
 
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
 
-    describe @ 'eval shunting yard', @=> ::
 
-      let ast_src
-      beforeEach @=> ::
-        ast_src = scan_jsy_lines @#
+
+    describe @ 'eval shunting yard (using &&, ||, !)', @=>
+      _test_shunting_yard @#
           'before'
           '# IF OPT_A && OPT_B && OPT_C'
           '    body_abc'
@@ -237,9 +236,33 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
           '    body_a_or_bc'
           '# ELIF OPT_A && OPT_B || OPT_C'
           '    body_ab_or_c'
+          '# ELIF ! OPT_A && OPT_D'
+          '    body_not_a_and_d'
           '# ELSE'
           '    body_last'
           'after'
+
+    describe @ 'eval shunting yard (using AND, OR, NOT)', @=>
+      _test_shunting_yard @#
+          'before'
+          '# IF OPT_A AND OPT_B AND OPT_C'
+          '    body_abc'
+          '# ELIF OPT_A AND OPT_C OR OPT_B AND OPT_C'
+          '    body_ac_or_bc'
+          '# ELIF OPT_A OR OPT_B AND OPT_C'
+          '    body_a_or_bc'
+          '# ELIF OPT_A AND OPT_B OR OPT_C'
+          '    body_ab_or_c'
+          '# ELIF NOT OPT_A AND OPT_D'
+          '    body_not_a_and_d'
+          '# ELSE'
+          '    body_last'
+          'after'
+
+    function _test_shunting_yard(jsy_src_lines) ::
+      let ast_src
+      beforeEach @=> ::
+        ast_src = scan_jsy_lines(jsy_src_lines)
 
       it @ 'A && B && C', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
@@ -302,5 +325,14 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
           'before'
           'body_ac_or_bc'
+          'after'
+
+      it @ 'D', @=> ::
+        const js_src = jsy_transpile @ ast_src, @{}
+          defines: @{} OPT_D: true
+
+        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+          'before'
+          'body_not_a_and_d'
           'after'
 

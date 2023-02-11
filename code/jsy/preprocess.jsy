@@ -95,9 +95,9 @@ export function basic_preprocessor(answerFor) ::
 export function shunting_yard(defines) ::
   ::
     let _op_ = (order, op_fn) => (op_fn.order=order, op_fn)
-    let NOT = z => ! z.pop()
-    let AND = (z, a=z.pop(), b=z.pop()) => a && b
-    let OR = (z, a=z.pop(), b=z.pop()) => a || b
+    let NOT = v => ! v
+    let AND = (a, b) => a && b
+    let OR = (a, b) => a || b
 
     let ops = @{}
       __proto__: null
@@ -108,6 +108,12 @@ export function shunting_yard(defines) ::
       OR, '||': _op_(20, OR),
 
     var lut_expr = key => ops[key] ?? defines[key]
+
+  function eval_op(fn_op, args) ::
+    args.push @
+      fn_op.length
+        ? fn_op(... args.splice(-fn_op.length))
+        : fn_op()
 
   return function eval_shunting_yard(expr_src) ::
     // see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
@@ -121,14 +127,14 @@ export function shunting_yard(defines) ::
 
       // eval all lesser order operations
       while ops[0] && (0 | ops[0].order) <= (0 | tip.order) ::
-        args.push @ ops.shift() @ args
+        eval_op(ops.shift(), args)
 
       // push this operator on the stack
       ops.unshift(tip)
 
     // evaluate all operations
     while ops[0] ::
-      args.push @ ops.shift() @ args
+      eval_op(ops.shift(), args)
 
     if 1 !== args.length ::
       throw new SyntaxError @
