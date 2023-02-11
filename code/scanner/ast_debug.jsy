@@ -1,11 +1,5 @@
 
-const _as_loc_column = (start, end) => @
-  `${1 + start.pos - start.line_pos}` + @
-    end.pos - start.pos <= 1 ? '' :
-      `..${end.pos - end.line_pos}`
-
-const _as_loc = p => p.loc &&=
-  `${p.loc.start.line}:${_as_loc_column(p.loc.start, p.loc.end)}`
+const _as_loc = p => p.loc &&= `${p.loc.start}..${p.loc.end}`
 
 export function * iter_ast_ndjson(iter_ast) ::
   for let ln of iter_ast ::
