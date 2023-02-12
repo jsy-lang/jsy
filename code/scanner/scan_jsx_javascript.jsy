@@ -19,7 +19,7 @@ export const scanner_jsxContentExpr =
       rx_open: /\s*({)/,
       rx_close: /()/,
 
-      nestTrim(content, close) :: return ''
+      nestTrim(content, close, isContinue) ::
       post_scan(ctx) :: jsxArgNesting @ ctx, null
 
 export const scanner_jsxAttrNameValue =
@@ -99,8 +99,9 @@ export const scanner_jsxTag =
         '"': scanner_jsxAttrDouble
 
       nestTrim(content, close, isContinue) ::
-        return this.nesting[close] ? content
-          : content.slice(0, - close.length)
+        if ! this.nesting[close] ::
+          content = content.slice(0, - close.length)
+        return content || null
 
       nestMatch(close, ctx, hostScanner) ::
         let inner = this.nesting[close]
