@@ -10,32 +10,33 @@ export function jsy_scan(source, feedback) ::
 
   inject_dedent @ jsy_ast, @[] 'comment_eol'
 
-  for const ln of jsy_ast ::
+  for let ln of jsy_ast ::
     if ln.is_blank :: continue
 
-    const parts = transform_jsy_ops(ln.content, ln)
-    ln.content = parts
+    let ln_parts = ln.content = transform_jsy_ops(ln.content, ln)
 
-    const idx_dedent = parts.findIndex @ _is_offside_dedent
+    let idx_tail = ln_parts.findIndex @ _is_offside_dedent
+    let dedent = ln_parts[idx_tail--]
 
-    for let i_last=idx_dedent-1; i_last >= 0; i_last-- ::
-      const last = parts[i_last]
-      if undefined === last ::
+    while idx_tail >= 0 ::
+      let tail = ln_parts[idx_tail--]
+      if undefined === tail ::
         continue
-      else if last.type.startsWith('jsy_op') ::
-        parts[idx_dedent].ends_with_jsy_op = true
-        last.ending_jsy_op = true
-      else if 'src' !== last.type || last.content.trim() ::
+
+      if /^jsy_op/.test(tail.type) ::
+        dedent.ends_with_jsy_op = true
+        tail.ending_jsy_op = true
+      else if 'src' !== tail.type || tail.content.trim() ::
         break
 
   return jsy_ast
 
 
 
-function transform_jsy_ops(parts, ln) ::
+function transform_jsy_ops(ln_parts, ln) ::
   const res = []
 
-  for let p, i=0; undefined !== (p = parts[i]) ; i++ ::
+  for let p, i=0; undefined !== (p = ln_parts[i]) ; i++ ::
     if 'src' === p.type ::
       transform_jsy_part(res, p, ln)
     else res.push(p)

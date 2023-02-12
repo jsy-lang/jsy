@@ -52,6 +52,12 @@ export const scanner_strTemplate =
       nesting: @{}
         '${': templateArgNesting
 
+      ast_scan_match(scan, ast) ::
+        if '`' == scan.open ::
+          ast.tmpl_opened = true
+        if '`' == scan.close ::
+          ast.tmpl_closed = true
+
 function templateArgNesting(ctx, hostScanner) ::
   const src = scanner_nestedSrc.withOuter @:
     scanner: hostScanner.continueScanner(ctx)

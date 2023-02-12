@@ -177,11 +177,11 @@ export class BaseSourceScanner ::
     const start = ctx.loc_tip
     const end = ctx.loc_tip = start.move(content || 0)
     const ast = @{} type: ast_type || this.op, loc: {start, end}, content
-    this._ast_extend(ctx, ast)
+    this.ast_extend(ctx, ast)
     ctx.parts.push @ ast
     return ast
 
-  _ast_extend(ctx, ast) ::
+  ast_extend(ctx, ast) ::
 
   newline(ctx, is_blank) ::
   scan_fragment(ctx, content) ::
@@ -301,7 +301,7 @@ export class RegExpScanner extends BaseSourceScanner ::
       throw ctx.ln.loc.end.syntaxError @
         `Newline in ${this.description} (${ctx.ln.loc.end})`
 
-  _ast_extend(ctx, ast) ::
+  ast_extend(ctx, ast) ::
     const ln = this.ln_first || ctx.ln
     if undefined !== ln.len_inner ::
       ast.block_indent = ln.len_inner
@@ -316,7 +316,9 @@ export class RegExpScanner extends BaseSourceScanner ::
     const [content, open, close] = match
 
     const t_content = this.nestTrim(content, close, false)
-    if t_content :: this.emit_ast @ ctx, t_content
+    if null != t_content ::
+      this.ast_scan_match @ {open, close},
+        this.emit_ast @ ctx, t_content,
     return this.post_scan(ctx, close)
 
   scan_continue(ctx, idx0) ::
@@ -330,17 +332,14 @@ export class RegExpScanner extends BaseSourceScanner ::
     const [content, close] = match
 
     const t_content = this.nestTrim(content, close, true)
-    if t_content :: this.emit_ast @ ctx, t_content
+    if null != t_content ::
+      this.ast_scan_match @ {close},
+        this.emit_ast @ ctx, t_content,
     return this.post_scan(ctx, close)
 
-  nestTrim(content, close, isContinue) ::
-    const nestingTrim = this.nestingTrim
-    if undefined !== nestingTrim ::
-      let trim = nestingTrim[close]
-      if true === trim :: trim = close
-      if trim :: return content.slice(0, - trim.length)
+  ast_scan_match(match, ast) ::
 
-    return content
+  nestTrim(content, close, isContinue) :: return content
 
   post_scan(ctx, close) ::
     if ! close ::
@@ -424,7 +423,7 @@ export class MultiLineScanner extends RegExpScanner ::
   newline(ctx, is_blank) ::
   get multiline() :: return true
 
-  _ast_extend(ctx, ast) ::
+  ast_extend(ctx, ast) ::
     //let ln = this.ln_first || ctx.ln
     let col = ast.loc.start.column
     let mlctx = this.mlctx ??= {col}

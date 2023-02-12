@@ -45,6 +45,7 @@ export const at_inner_offside = /* #__PURE__ */ [].concat @
 
   at_inner_prefix_nullish
 
+export const op_template_str = @{} nestBreak: true
 
 export const at_offside = /* #__PURE__ */ [].concat @
   at_outer_offside

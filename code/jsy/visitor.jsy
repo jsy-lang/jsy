@@ -1,4 +1,4 @@
-import { at_offside_map, extra_jsy_ops  } from './jsy_operators.jsy'
+import { at_offside_map, extra_jsy_ops, op_template_str } from './jsy_operators.jsy'
 import { create_xform } from './preprocess.jsy'
 import { checkOptionalComma } from './optional_comma.jsy'
 
@@ -32,7 +32,7 @@ export const transpile_visitor = /* #__PURE__ */ @{}
     for let part of ln.content ::
       let fn_visit = `v$${part.type}`
       if undefined === this[fn_visit] ::
-        throw new Error @ `JSY transpile function "${key}" not found`
+        throw new Error @ `JSY transpile function "${fn_visit}" not found`
 
       this[fn_visit]( part, ln, prev )
       prev = part
@@ -255,18 +255,28 @@ export const transpile_visitor = /* #__PURE__ */ @{}
     this._dedent_nested_block(p)
     this.emit_raw @ p.content
 
-    const comma_body = this.head.comma_body
+    let comma_body = this.head.comma_body
     if undefined !== comma_body ::
       // fixup comma_body with simplified template param
       comma_body.push @ 'null }'
 
 
   v$str_template(p, ln, p0) ::
+    if p.tmpl_opened ::
+      this.stack_push @ op_template_str, p
+
     if p0 === ln.indent && p.mlctx ::
       let indent = this._cur.pop()
       this._cur.push @ indent.slice(p.mlctx.col)
 
     this.emit @ p.content, p.loc.start
+
+    if p.tmpl_closed ::
+      this.stack_pop()
+      let comma_body = this.head.comma_body
+      if undefined !== comma_body ::
+        // fixup comma_body with simplified template param
+        comma_body.push @ '`tmpl_expr`'
 
   v$src(p, ln, p0) ::
     let content = p.content
