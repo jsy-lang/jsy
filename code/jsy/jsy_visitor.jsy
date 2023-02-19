@@ -1,5 +1,4 @@
 import { at_offside_map, extra_jsy_ops, op_template_str } from './jsy_operators.jsy'
-import { create_xform } from './preprocess.jsy'
 import { checkOptionalComma } from './optional_comma.jsy'
 
 const rx_leading_space = /* #__PURE__ */ /^[ \t]+/ ;
@@ -44,7 +43,6 @@ export const transpile_visitor = /* #__PURE__ */ @{}
     this.head = root_head
 
   finish() ::
-    this._xform_start_line(null)
     if root_head !== this.head ::
       throw new Error @ 'Excess stack at finish'
 
@@ -57,8 +55,6 @@ export const transpile_visitor = /* #__PURE__ */ @{}
     let line_src = this._cur = []
     line_src.finish_ops = []
 
-    this._xform_start_line(ln)
-
   finish_line(ln) ::
     let line_src = this._cur
     for let fn of line_src.finish_ops || [] ::
@@ -68,7 +64,7 @@ export const transpile_visitor = /* #__PURE__ */ @{}
     if undefined !== comma_body ::
       comma_body.push @ '\n'
 
-    return this._xform_finish_line(line_src, ln)
+    return line_src
 
   emit_raw(src) ::
     if src :: this._cur.push @ src
@@ -286,48 +282,20 @@ export const transpile_visitor = /* #__PURE__ */ @{}
     this.emit @ content, p.loc.start
 
 
-  v$preprocessor(p, ln) ::
-    const add_xform = arg =>
-      this.push_xform(ln, this.xform_tip).update(arg)
-
-    let ans = this.preprocess(p, add_xform)
-
-    if p === ans ::
-      return this.emit @ p.content, p.loc.start
-    else if 'string' === typeof ans ::
-      return this.emit @ ans, p.loc.start
-    else if 'boolean' === typeof ans || 'function' === typeof ans ::
-      add_xform(ans)
-
-    return this.emit_raw('')
-
-  preprocess(p, add_xform) :: return p
-  push_xform(ln, xform_cur) ::
-    return this.xform_next = create_xform(ln, xform_cur)
-
-  _xform_start_line(ln) ::
-    while true ::
-      const xform = this.xform_tip
-      if undefined === xform :: return
-      if null !== ln && xform.depth <= ln.len_indent ::
-        return
-
-      this.xform_tip = xform.next
-      if xform.done :: xform.done(ln)
-
-  _xform_finish_line(line_src, ln) ::
-    let xform_tip = this.xform_tip
-
-    // switch to xform_next after finishing the current line
-    let xform_next = this.xform_next
-    if undefined !== xform_next ::
-      this.xform_next = undefined
-      this.xform_tip = xform_next
-
-    if undefined === xform_tip :: return line_src
-
-    return xform_tip.process(line_src, ln)
-
+  v$preprocessor(p, ln) :: this.emit(p.content)
+  v$preprocessor_sz(p, ln) :: this.emit(p.ans)
+  v$preprocessor_inc(p, ln) ::
+    if this.inc_preprocessor ::
+      this.emit @ `//+~${p.content}`
+  v$preprocessor_exc(p, ln) ::
+    if this.inc_preprocessor ::
+      this.emit @ `//-~${p.content}`
+  v$exclude_line(p, ln) ::
+    if this.inc_preprocessor ::
+      this.emit(p.content)
+  v$exclude_part(p, ln) ::
+    if this.inc_preprocessor ::
+      this.emit(p.content)
 
   v$str: direct_src
   v$str1: direct_src

@@ -1,0 +1,84 @@
+
+export const preprocess_visitor = /* #__PURE__ */ @{}
+  __proto__: null
+
+  *ast_iter(ast) ::
+    let ln, state = this.start()
+
+    for ln of ast ::
+      ln = ln.is_blank
+        ? this.blank_line(ln)
+        : this.ast_line(ln, state)
+
+      if null != ln ::
+        yield ln
+
+    ln = this.finish(state)
+    if null != ln ::
+      yield ln
+
+  start() :: return @{} tip: {}
+  finish(state) ::
+
+  blank_line(ln) :: return ln
+
+  indent_state(ln, state) ::
+    let tip = state.tip
+    while ln.len_indent < (tip.len|0) ::
+      tip = tip.tail
+
+    return state.tip = tip
+
+  _dbg_ln(ln) :: return ln.indent.indent + ln.content.map(v=>v.content||'').join('')
+
+  ast_line(ln, state) ::
+    let tip = this.indent_state(ln, state)
+
+    if 'exclude' === tip.op ::
+      this.exclude_line(ln, state)
+      return ln
+
+    //if tip.dedent > 0  ::
+    //  ln.indent.indent = ln.indent.indent.slice(0, -tip.dedent)
+
+    for let part of ln.content ::
+      this[`v$${part.type}`]?.( part, ln, state )
+    return ln
+
+  preprocess(p, stacktop) ::
+  v$preprocessor(p, ln, state) ::
+    let tail = state.tip
+    let ans = p.ans = this.preprocess(p, tail)
+
+    if false === ans ::
+      p.type += '_exc'
+      state.tip = @{}
+        op: 'exclude'
+        len: ln.len_inner
+        tail
+
+    else if true === ans ::
+      p.type += '_inc'
+      state.tip = @{}
+        len: ln.len_inner
+        //dedent: (tail.dedent|0) + ln.len_inner - ln.len_indent
+        tail
+
+    else if 'string' === typeof ans ::
+      p.type += '_sz'
+
+
+  exclude_line(ln, state) ::
+    let content = @[]
+      @{} type: 'exclude_line', content: '//~ '
+
+    for let part of ln.content ::
+      if 'offside_dedent' === part.type ::
+        content.unshift(part)
+      else ::
+        part.type = 'exclude_part'
+        content.push(part)
+
+    ln.content = content
+    return ln
+

@@ -3,6 +3,9 @@ import { jsy_transpile, scan_jsy } from 'jsy-transpile/esm/all.js'
 import { scan_jsy_lines, jsy_scan_throws, test_ast_tokens_content } from './_ast_test_utils.jsy'
 const { SourceMapGenerator } = require('source-map')
 
+const _pp_normalize = js_src =>
+  js_src.split('\n').map @ ln => ln.trimRight()
+
 describe @ 'JSY Scanner (preprocessor)', @=> ::
   describe @ 'scenarios', @=> ::
     let ast_src
@@ -22,7 +25,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
     it @ 'default', @=> ::
       const js_src = jsy_transpile @ ast_src
 
-      assert.deepEqual @ js_src.split('\n'), @[]
+      assert.deepEqual @ _pp_normalize(js_src), @[]
         '#!/usr/bin/env jsy-node'
         ''
         '# TESTME'
@@ -38,13 +41,13 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
         preprocessor: () => p => true
 
-      assert.deepEqual @ js_src.split('\n'), @[]
+      assert.deepEqual @ _pp_normalize(js_src), @[]
         '#!/usr/bin/env jsy-node'
         ''
         ''
-        'if (test()) {'
-        '  console.log('
-        '    "hello JSY world with compile time processing!") }'
+        '  if (test()) {'
+        '    console.log('
+        '      "hello JSY world with compile time processing!") }'
         'if (after()) {',
         '  console.log(',
         '    "hello JSY world!") }'
@@ -54,7 +57,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
         preprocessor: () => p => '//'+p.content
 
-      assert.deepEqual @ js_src.split('\n'), @[]
+      assert.deepEqual @ _pp_normalize(js_src), @[]
         '#!/usr/bin/env jsy-node'
         ''
         '//# TESTME'
@@ -70,7 +73,7 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
       const js_src = jsy_transpile @ ast_src, @{}
         preprocessor: () => p => false
 
-      assert.deepEqual @ js_src.split('\n'), @[]
+      assert.deepEqual @ _pp_normalize(js_src), @[]
         '#!/usr/bin/env jsy-node'
         ''
         ''
@@ -81,34 +84,6 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         '  console.log(',
         '    "hello JSY world!") }'
         ''
-
-    it @ 'advanced', @=>> ::
-      const log = []
-      const js_src = jsy_transpile @ ast_src, @{}
-        preprocessor: () => (p, add_xform) =>
-          add_xform @:
-            process(src_parts, ln) ::
-              log.push @# 'process', ln.loc.start.line, src_parts.join('')
-            done(ln) ::
-              log.push @# 'done', ln.loc.start.line, ln.source
-
-      assert.deepEqual @ js_src.split('\n'), @[]
-        '#!/usr/bin/env jsy-node'
-        ''
-        ''
-        ''
-        ''
-        ''
-        'if (after()) {',
-        '  console.log(',
-        '    "hello JSY world!") }'
-        ''
-
-      assert.deepEqual @ log, @[]
-        @[] "process", 4, "  if (test()) {"
-        @[] "process", 5, "    console.log("
-        @[] "process", 6, "      \"hello JSY world with compile time processing!\") }"
-        @[] "done",    7, "if after() ::"
 
 
   describe @ 'IF / ELIF', @=> ::
@@ -131,22 +106,22 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_WEB: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          'body_web'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '  body_web'
 
       it @ 'PLAT_NODEJS', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_NODEJS: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          'body_nodejs'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '  body_nodejs'
 
       it @ 'ELSE', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: {}
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          'body_else'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '  body_else'
 
 
     describe @ 'two-level', @=> ::
@@ -179,49 +154,49 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_WEB: true, OPT_A: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          '  body_web_opt_a'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '    body_web_opt_a'
 
       it @ 'PLAT_WEB OPT_B', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_WEB: true, OPT_B: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          '  body_web_opt_b'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '    body_web_opt_b'
 
       it @ 'PLAT_WEB ELSE', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_WEB: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          '  body_web_else'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '    body_web_else'
 
       it @ 'PLAT_NODEJS OPT_A', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_NODEJS: true, OPT_A: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          '  body_nodejs_opt_a'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '    body_nodejs_opt_a'
 
       it @ 'PLAT_NODEJS OPT_B', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_NODEJS: true, OPT_B: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          '  body_nodejs_opt_b'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '    body_nodejs_opt_b'
 
       it @ 'PLAT_NODEJS ELSE', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} PLAT_NODEJS: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
-          '  body_nodejs_else'
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
+          '    body_nodejs_else'
 
       it @ 'ELSE', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true, OPT_B: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
 
 
 
@@ -268,71 +243,71 @@ describe @ 'JSY Scanner (preprocessor)', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true, OPT_B: true, OPT_C: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_abc'
+          '    body_abc'
           'after'
 
       it @ 'A', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_a_or_bc'
+          '    body_a_or_bc'
           'after'
 
       it @ 'B', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_B: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_last'
+          '    body_last'
           'after'
 
       it @ 'C', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_C: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_ab_or_c'
+          '    body_ab_or_c'
           'after'
 
       it @ 'BC', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_B: true, OPT_C: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_ac_or_bc'
+          '    body_ac_or_bc'
           'after'
 
       it @ 'AB', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true, OPT_B: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_a_or_bc'
+          '    body_a_or_bc'
           'after'
 
       it @ 'AC', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_A: true, OPT_C: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_ac_or_bc'
+          '    body_ac_or_bc'
           'after'
 
       it @ 'D', @=> ::
         const js_src = jsy_transpile @ ast_src, @{}
           defines: @{} OPT_D: true
 
-        assert.deepEqual @ js_src.split('\n').filter(Boolean), @[]
+        assert.deepEqual @ _pp_normalize(js_src).filter(Boolean), @[]
           'before'
-          'body_not_a_and_d'
+          '    body_not_a_and_d'
           'after'
 

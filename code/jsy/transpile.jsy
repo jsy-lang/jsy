@@ -1,40 +1,53 @@
 import { jsy_scan } from './scan.jsy'
 import { basic_preprocessor } from './preprocess.jsy'
-import { transpile_visitor } from './visitor.jsy'
+import { preprocess_visitor } from './preprocess_visitor.jsy'
+import { transpile_visitor } from './jsy_visitor.jsy'
 import { sourcemap_comment } from './utils.jsy'
 
 
-export function jsy_transpile(jsy_ast, feedback) ::
-  return [... jsy_iter_transpile(jsy_ast, feedback)]
+export function jsy_transpile(ast, feedback) ::
+  return [... jsy_iter_transpile(ast, feedback)]
     .join('') // join the stream that has embedded newlines
     .replace(/\s+$/, '\n') // trimming excess whitespace at end into single newline
 
-export function * jsy_iter_transpile(jsy_ast, feedback) ::
+export function * jsy_iter_transpile(ast, feedback) ::
   if ! feedback :: feedback = {}
 
-  if 'string' === typeof jsy_ast ::
-    jsy_ast = jsy_scan(jsy_ast, feedback)
+  if 'string' === typeof ast ::
+    ast = jsy_scan(ast, feedback)
 
-  let visitor = @{}
-    __proto__: transpile_visitor
-    ... feedback.visitor
 
-  ::
+  let preprocess = feedback.preprocessor?.()
+    ?? basic_preprocessor(feedback.defines)
+
+  if preprocess :: // preprocessor pass
+    let pp_visitor = @{}
+      __proto__: preprocess_visitor
+      ... feedback.preprocess_visitor
+      preprocess
+
+    ast = pp_visitor.ast_iter(ast)
+
+
+  :: // transpile pass
+    let jsy_visitor = @{}
+      __proto__: transpile_visitor
+      ... feedback.visitor
+
     if feedback.checkOptionalComma ::
-      visitor.checkOptionalComma = feedback.checkOptionalComma
+      jsy_visitor.checkOptionalComma = feedback.checkOptionalComma
 
     if feedback.addSourceMapping ::
-      visitor.addSourceMapping = feedback.addSourceMapping
-
-    visitor.preprocess = feedback.preprocessor?.()
-      ?? basic_preprocessor(feedback.defines)
+      jsy_visitor.addSourceMapping = feedback.addSourceMapping
 
 
-  yield * visitor.ast_iter(jsy_ast)
+    yield * jsy_visitor.ast_iter(ast)
 
-  let srcmap = feedback.inlineSourceMap?.()
-  if srcmap ::
-    yield sourcemap_comment(srcmap, '\n')
+
+  :: // sourcemap output
+    let srcmap = feedback.inlineSourceMap?.()
+    if srcmap ::
+      yield sourcemap_comment(srcmap, '\n')
     
 
 export { version } from './version.js'

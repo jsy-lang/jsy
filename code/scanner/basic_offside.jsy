@@ -83,20 +83,24 @@ export function basic_offside_scanner(source, feedback) ::
 
 
 function add_indent_info(all_lines) ::
-  let len_dedent=0
-  const len_stack = [0]
+  let len_dedent = 0 // how far to dedent to next outer level
+  let len_stack = [0]
+  // work backwards from the file end
   for let i = all_lines.length-1 ; i>=0 ; i-- ::
-    const ln = all_lines[i]
+    let ln = all_lines[i]
     if ln.is_blank :: continue
 
     ln.len_dedent = len_dedent
-    const len_indent = ln.len_indent
+
+    // how many indent prefix chars per line
+    let len_indent = ln.len_indent
 
     let len_inner
     while len_stack[0] > len_indent ::
       len_inner = len_stack.shift()
 
     if len_stack[0] < len_indent ::
+      // len_indent is the new stack tip
       len_stack.unshift @ len_indent
 
     if len_inner ::

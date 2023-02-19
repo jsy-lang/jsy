@@ -1,95 +1,55 @@
-const rx_all_space = /* #__PURE__ */ /^[ \t]*$/ ;
 
-const xform_proto = /* #__PURE__ */ @{}
-  __proto__: null
+const pp_sym = Symbol('#IF?')
+const basic_preprocessor_proto = @{}
+  bind() ::
+    const rx = /^#\s*([A-Z]+\b)(.*)$/
+    return @\ part, stacktop ::
+      let [,directive,arg] = rx.exec(part.content) || []
+      if ! this['v$'+directive] ::
+        throw this.syntaxError(part)
 
-  process() :: // noop
+      return this['v$'+directive] @
+        part, (arg||'').trim(), stacktop
 
-  update(arg) ::
-    if 'function' === typeof arg ::
-      this.process = arg
-    else if 'boolean' === typeof arg ::
-      if arg :: return this.dedent()
-      this.process = xform_proto.process
-    else if 'object' === typeof arg ::
-      Object.assign(this, arg)
-      let process = this.process
-      if 'function' !== typeof process && 'object' !== typeof process ::
-        return this.update(process)
-    else ::
-      throw new TypeError @ `Unsupported update type: ${typeof arg}`
+  syntaxError: part => part.loc.start.syntaxError @ `Preprocessor Invalid: "${part.content}"`
 
-    return this
+  v$IF(part, arg, stacktop) ::
+    if ! arg :: throw this.syntaxError(part)
+    if undefined !== stacktop[pp_sym] ::
+      throw this.syntaxError(part)
 
-  dedent() ::
-    let len_trim = this.ln.len_indent - this.ln.len_inner
-    return this.update @ src_parts => ::
-      let indent = src_parts[0]
-      if rx_all_space.test(indent) ::
-        src_parts[0] = indent.slice(0, len_trim)
-      return src_parts
+    let ans = !! this.answerFor(arg)
+    return stacktop[pp_sym] = ans
 
+  v$ELIF(part, arg, stacktop) ::
+    if ! arg || 'boolean' !== typeof stacktop[pp_sym] ::
+      throw this.syntaxError(part)
 
-export const create_xform = @\ ln, xform_cur => @:
-  __proto__: xform_proto
-  next: xform_cur
-  ln, depth: ln.len_inner
+    if ! stacktop[pp_sym] ::
+      let ans = !! this.answerFor(arg)
+      return stacktop[pp_sym] = ans
+    return false
+
+  v$ELSE(part, arg, stacktop) ::
+    if arg || 'boolean' !== typeof stacktop[pp_sym] ::
+      throw this.syntaxError(part)
+
+    if ! stacktop[pp_sym] ::
+      stacktop[pp_sym] = null
+      return true
+    return false
 
 
 export function basic_preprocessor(answerFor) ::
   if null == answerFor ::
-    return p => p // defines is null -- disable preprocessor
+    return // defines is null -- disable preprocessor
 
   if 'object' === typeof answerFor ::
     answerFor = shunting_yard(answerFor)
   else if 'function' !== typeof answerFor ::
     throw new TypeError @ `Expected a function or object for basic_preprocessor`
 
-
-  const directives = @{}
-    IF(p, arg, state) ::
-      if ! arg :: throw syntaxError(p)
-      return state.handled = !! answerFor(arg)
-
-    ELIF(p, arg, state) ::
-      if ! arg || 'boolean' !== typeof state.handled ::
-        throw syntaxError(p)
-      if state.handled :: return false
-      return state.handled = !! answerFor(arg)
-
-    ELSE(p, arg, state) ::
-      if arg || 'boolean' !== typeof state.handled ::
-        throw syntaxError(p)
-      if state.handled :: return false
-      state.handled = null
-      return true
-
-  const rx = /^#\s*([A-Z]+\b)(.*)$/
-
-  const stack = []
-  let allow = true, state = {}
-  return (p, add_xform) => ::
-    let m = rx.exec(p.content)
-    let dispatch = m && directives[m[1]]
-    if ! dispatch :: throw syntaxError(p)
-
-    if ! allow ::
-      state = null
-      return false
-
-    let ans = dispatch @ p, m[2].trim(), state
-    allow = !! ans
-
-    stack.push(state); state = {}
-
-    add_xform @:
-      process: allow
-      done(ln) ::
-        state = stack.pop()
-        allow = true
-
-  function syntaxError(p) ::
-    return p.loc.start.syntaxError @ `Preprocessor Invalid: "${p.content}"`
+  return {__proto__: basic_preprocessor_proto, answerFor}.bind()
 
 
 export function shunting_yard(defines) ::
