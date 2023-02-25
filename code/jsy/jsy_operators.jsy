@@ -7,7 +7,7 @@ export const at_outer_offside = /* #__PURE__ */ @[]
   @{} jsy_op: '::()', pre: '(', post: ')', nestBreak: true
   @{} jsy_op: '::{}', pre: '{', post: '}', nestBreak: true
   @{} jsy_op: '::[]', pre: '[', post: ']', nestBreak: true
-  @{} jsy_op: '::', pre: ' {', post: '}', implicitSep: ';', nestBreak: true, is_kw_close: true
+  @{} jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true
 
 export const at_inner_offside_basic = /* #__PURE__ */ @[]
   @{} jsy_op: '@:', pre: '({', post: '})', implicitSep: ',', isFoldable: true
