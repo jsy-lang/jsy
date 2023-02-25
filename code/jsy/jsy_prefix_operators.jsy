@@ -1,15 +1,21 @@
 import {regexp_from_jsy_op} from './utils.jsy'
 
 
-export const op_prefix_nullish = /* #__PURE__ */ @{}
-  prefix: '?', rx_prefix: /\?(\.?)/
+export const as_op_prefix = (rx, sep=rx.source, inject_sep=sep) => @:
+  prefix: sep, rx_prefix: rx
   opPrefixResolve(p, at_op) ::
     let at_res = at_op.opResolve ? at_op.opResolve(p) : at_op
-    let pre = '?.' + (at_res.pre || '')
+    let pre = inject_sep + (at_res.pre || '')
     return @{} ... at_res, pre
 
 
-export function at_op_for_prefix(jsy_prefix_op, at_op) ::
+export const jsy_prefix_operators = /* #__PURE__ */ @[]
+  as_op_prefix(/;/)
+  as_op_prefix(/,/)
+  as_op_prefix(/\?(\.?)/, '?', '?.')
+
+
+function * at_op_for_prefix(at_op, jsy_prefix_operators) ::
   let {jsy_op0, jsy_op} = at_op
   if ! /^[@?]/.test @ jsy_op0 || jsy_op ::
     return
@@ -24,21 +30,18 @@ export function at_op_for_prefix(jsy_prefix_op, at_op) ::
   else if 'function' !== typeof jsy_op.exec ::
     throw new Error @ 'Unexpected jsy_op type'
 
-  jsy_op0 = jsy_prefix_op.prefix + jsy_op0
-  jsy_op = new RegExp @ `${jsy_prefix_op.rx_prefix.source}${jsy_op.source}`, jsy_op.flags
+  for let jsy_prefix_op of jsy_prefix_operators ::
+    yield @{} ...at_op,
+      jsy_op0: jsy_prefix_op.prefix + jsy_op0
+      jsy_op: new RegExp @ `${jsy_prefix_op.rx_prefix.source}${jsy_op.source}`, jsy_op.flags
+      foldTop: true
+      opResolve: p => jsy_prefix_op.opPrefixResolve @ p, at_op
 
-  return @{} ...at_op,
-    jsy_op0, jsy_op, foldTop: true
-    opResolve: p => jsy_prefix_op.opPrefixResolve @ p, at_op
 
-
-export function apply_prefix_op({jsy_prefix_op, op_collections}) ::
+export function apply_prefix_operators(at_inner_operators, jsy_prefix_operators) ::
   let res = []
-  for let at_op_list of op_collections ::
-    for let at_op of at_op_list ::
-      let ea = at_op_for_prefix @
-        jsy_prefix_op, at_op
-      if undefined !== ea ::
-        res.push @ ea
+  for let at_op of at_inner_operators ::
+    res.push @ ... at_op_for_prefix(at_op, jsy_prefix_operators)
+  res.push(... at_inner_operators)
   return res
 
