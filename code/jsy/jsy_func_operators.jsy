@@ -8,21 +8,13 @@ const func_block_tbl = /* #__PURE__ */ @{}
   '*': a => @: pre: `(function * (${a}) {`, post: '})'
 
 
-const bindFuncOpResolve = (table, withArgs) =>
-  function opResolve(p) ::
-    let [_, m1, m2] = p.content.match(this.jsy_op)
-    let args = withArgs ? m1 || '' : ''
-    let suffix = (withArgs ? m2 : m1) || ''
-
-    let entry = table[suffix]
-    if undefined === entry ::
-      throw new SyntaxError @ `JSY function expression unrecognized specifier ("${suffix}")`
-
-    return entry(args)
-
-
 export const at_func_offside = /* #__PURE__ */ @[]
   @{} jsy_op0: '@~::', jsy_op: /@~(.*?)::(>?\*?)/,
       pre: '(function () {', post: '})',
-      opResolve: bindFuncOpResolve @ func_block_tbl, true
+      opResolve(p) ::
+        let [_, args, suffix] = p.content.match(this.jsy_op)
+        let entry = func_block_tbl[suffix]
+        if undefined === entry ::
+          throw new SyntaxError @ `JSY function expression unrecognized specifier ("${suffix}")`
+        return entry(args || '')
 

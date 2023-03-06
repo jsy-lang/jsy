@@ -29,36 +29,59 @@ const iife_arrow_tbl = /* #__PURE__ */ @{}
   '>': a => @: pre: `((async (${a}) =>`, post: ')())'
 
 
-const bindLambdaOpResolve = (table, withArgs) =>
-  function opResolve(p) ::
-    let [_, m1, m2] = p.content.match(this.jsy_op)
-    let args = withArgs ? m1 || '' : ''
-    let suffix = (withArgs ? m2 : m1) || ''
-
-    let entry = table[suffix]
+const bindLambdaOpZero = table =>
+  function opResolveLambdaZero(p) ::
+    let [_, suffix] = p.content.match(this.jsy_op)
+    let entry = table[suffix || '']
     if undefined === entry ::
       throw new SyntaxError @ `JSY lambda expression unrecognized specifier ("${suffix}")`
+    return entry('')
 
-    return entry(args)
+
+const fmt_arg_kw = args => `{${args}}`
+const fmt_arg_vec = args => `[${args}]`
+const bindLambdaOpResolve = (table, as_args=(v=>v)) =>
+  function opResolveLambda(p) ::
+    let [_, args, suffix] = p.content.match(this.jsy_op)
+    let entry = table[suffix || '']
+    if undefined === entry ::
+      throw new SyntaxError @ `JSY lambda with args expression unrecognized specifier ("${suffix}")`
+    return entry(as_args(args) || '')
 
 
 
 export const at_lambda_offside = /* #__PURE__ */ @[]
-  @{} jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
-      pre: '(()=>', post: ')',
-      opResolve: bindLambdaOpResolve @ lambda_arrow_tbl
+  // object unpack all args
+  @{} jsy_op0: '@\\:=>', jsy_op: /@\\:(.*?)=>(>?\*?)/,
+      pre: '(()=>', post: ')'
+      opResolve: bindLambdaOpResolve @ lambda_arrow_tbl, fmt_arg_kw
+  @{} jsy_op0: '@\\:::', jsy_op: /@\\:(.*?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindLambdaOpResolve @ lambda_block_tbl, fmt_arg_kw
 
+  // array unpack all args
+  @{} jsy_op0: '@\\#=>', jsy_op: /@\\#(.*?)=>(>?\*?)/,
+      pre: '(()=>', post: ')'
+      opResolve: bindLambdaOpResolve @ lambda_arrow_tbl, fmt_arg_vec
+  @{} jsy_op0: '@\\#::', jsy_op: /@\\#(.*?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindLambdaOpResolve @ lambda_block_tbl, fmt_arg_vec
+
+  // normal args
   @{} jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
       pre: '(()=>', post: ')'
-      opResolve: bindLambdaOpResolve @ lambda_arrow_tbl, true
-
-  @{} jsy_op0: '@::', jsy_op: /@::(>?\*?)/,
+      opResolve: bindLambdaOpResolve @ lambda_arrow_tbl
+  @{} jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
       pre: '(()=>{', post: '})',
       opResolve: bindLambdaOpResolve @ lambda_block_tbl
 
-  @{} jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
+  // zero args
+  @{} jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
+      pre: '(()=>', post: ')',
+      opResolve: bindLambdaOpZero @ lambda_arrow_tbl
+  @{} jsy_op0: '@::', jsy_op: /@::(>?\*?)/,
       pre: '(()=>{', post: '})',
-      opResolve: bindLambdaOpResolve @ lambda_block_tbl, true
+      opResolve: bindLambdaOpZero @ lambda_block_tbl
 
 
 export const at_lambda_iife_offside = /* #__PURE__ */ @[]
@@ -70,22 +93,17 @@ export const at_lambda_iife_offside = /* #__PURE__ */ @[]
   @{} jsy_op0: '@!*#', jsy_op: /@!\*#/, pre: '([... (function *(){', post: '}).call(this)])'
   @{} jsy_op0: '@!*', jsy_op: /@!\*/, pre: '((function *(){', post: '}).call(this))'
 
-
-  @{} jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
-      pre: '((()=>', post: ')())',
-      opResolve: bindLambdaOpResolve @ iife_expr_tbl, true
-
-  @{} jsy_op0: '@!\\=>', jsy_op: /@!\\(.*?)=>(>?\*?)/,
-      pre: '((()=>', post: ')())',
-      opResolve: bindLambdaOpResolve @ iife_arrow_tbl, true
-
   @{} jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
       pre: '((()=>', post: ')())',
-      opResolve: bindLambdaOpResolve @ iife_arrow_tbl
+      opResolve: bindLambdaOpZero @ iife_arrow_tbl
+
+  @{} jsy_op0: '@!::', jsy_op: /@!::(>?\*?)/,
+      pre: '((()=>{', post: '})())',
+      opResolve: bindLambdaOpZero @ iife_expr_tbl
 
   @{} jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
       pre: '((()=>{', post: '})())',
-      opResolve: bindLambdaOpResolve @ iife_expr_tbl
+      opResolve: bindLambdaOpZero @ iife_expr_tbl
 
 
 export const at_lambda_offside_all = /* #__PURE__ */ [].concat @
