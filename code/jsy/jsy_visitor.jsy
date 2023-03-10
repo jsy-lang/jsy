@@ -155,9 +155,15 @@ export const transpile_visitor = /* #__PURE__ */ @{}
     let next = head.tail[0]
     this.head = next
 
-    if next.comma_body && (',' == head.op.implicitSep) ::
-      // internal op was an expression; simplify for comma_body
-      next.comma_body.push(' expr ')
+    if next.comma_body ::
+      let substitute = head.op.substitute ?? @ // explicit substution
+        ',' == head.op.implicitSep ? 'expr' // is a comma-based expression
+        : /[\)\]]\s*$/.test(head.op.post) ? 'expr' // ends as call or index expr
+        : null
+
+      if null != substitute ::
+        // internal op was an expression; simplify for comma_body
+        next.comma_body.push(` ${substitute} `)
 
     let src_post = head.op.post
     if src_post ::

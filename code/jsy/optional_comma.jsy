@@ -24,6 +24,9 @@ export function checkOptionalComma(op, pre_body, post_body) ::
       return false
 
   if op.pre.includes('{') ::
+    // support for blocks like:
+    //   import {name as othername} from 'file' blocks
+    //   export {name as othername}
     pre_body = pre_body.replace(rx_dict_as_name, '')
     post_body = post_body.replace(rx_dict_as_name, '')
 
