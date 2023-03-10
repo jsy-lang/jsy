@@ -15,9 +15,6 @@ const basic_preprocessor_proto = @{}
 
   v$IF(part, arg, stacktop) ::
     if ! arg :: throw this.syntaxError(part)
-    if undefined !== stacktop[pp_sym] ::
-      throw this.syntaxError(part)
-
     let ans = !! this.answerFor(arg)
     return stacktop[pp_sym] = ans
 
