@@ -1,0 +1,4 @@
+{
+  "name": "jsy-transpile",
+  "description": "Offside (indention) JSY syntax transpiler to standard JavaScript — without Babel"
+}

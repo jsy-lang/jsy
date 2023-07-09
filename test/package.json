@@ -1,15 +1,13 @@
 {
   "private": true,
   "dependencies": {
-    "jsy-transpile": "file:.."
+    "jsy-transpile": "file:..",
+    "@jsy-lang/jsy": "file:.."
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-node-resolve": "^15.0.1",
     "acorn": "^8.8.2",
     "chai": "^4.3.7",
-    "mocha": "^10.2.0",
-    "rollup": "^2.79.1"
+    "mocha": "^10.2.0"
   },
   "scripts": {
     "prebuild": "test -d ./node_modules || npm -s ci",

@@ -1,29 +1,4 @@
 {
-  "name": "jsy-transpile",
-  "version": "0.10.3",
-  "description": "Offside (indention) JSY syntax transpiler to standard JavaScript — without Babel",
-  "author": "Shane Holloway <shane.holloway@ieee.org>",
-  "license": "BSD-2-Clause",
-  "keywords": [
-    "jsy",
-    "python",
-    "wisp",
-    "coffeescript",
-    "offside",
-    "indention",
-    "indent",
-    "syntax",
-    "transpile",
-    "transpiler"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jsy-lang/jsy-transpile.git"
-  },
-  "bugs": {
-    "url": "https://github.com/jsy-lang/jsy-transpile/issues"
-  },
-  "homepage": "https://github.com/jsy-lang/jsy-transpile#readme",
   "bin": {
     "jsy-transpile": "transpile.mjs",
     "jsy-scan": "scan.mjs"
