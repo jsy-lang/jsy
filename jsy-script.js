@@ -1,15 +1,10 @@
-//import { jsy_transpile_srcmap } from 'jsy-transpile/esm/index.min.js'
-import { jsy_transpile_srcmap } from './esm/index.min.js'
+//import { jsy_transpile_srcmap, version } from '@jsy-lang/jsy/esm/index.min.js'
+import { jsy_transpile_srcmap, version } from './esm/index.min.js'
 
-export { jsy_transpile_srcmap }
+export { jsy_transpile_srcmap, version }
 
 export function jsy_script(code, ref) {
-  if (null == code)
-    return fetch(ref, {mode: 'cors'})
-      .then(res => res.text())
-      .then(code => jsy_script(code, ref))
-
-  let el = (this?.ownerDocument || document).createElement('script')
+  let el = document.createElement('script')
   el.dataset.transpiled = 'jsy'
   el.jsy_source = code
   el.type = 'module'
@@ -22,13 +17,21 @@ export class JSYScript extends HTMLElement {
     this.jsy_script ||= jsy_script
     this.style = 'display: none'
 
-    let el, src = this.getAttribute('src')
-    if (src)
-      el = await this.jsy_script(null, src)
-    else el = this.jsy_script(this.textContent, src)
+    let href = this.getAttribute('src')
+    let code = href ? null : this.textContent
+    return this.run_jsy(code, href)
+  }
 
-    this.textContent = ''
-    this.append(el)
+  async run_jsy(code, href) {
+    this.textContent = '' // clear content
+    if (!code && href)
+      code = this.fetch_jsy(href)
+    this.append( this.jsy_script(await code, href) )
+  }
+
+  async fetch_jsy(href) {
+    let req = await fetch(href, {mode: 'cors'})
+    return req.text()
   }
 }
 

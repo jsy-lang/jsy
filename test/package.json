@@ -1,5 +1,6 @@
 {
   "private": true,
+  "type": "module",
   "dependencies": {
     "jsy-transpile": "file:..",
     "@jsy-lang/jsy": "file:.."

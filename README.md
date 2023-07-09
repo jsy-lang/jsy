@@ -1,36 +1,34 @@
-# jsy-transpile
-[![Build Status](https://travis-ci.org/jsy-lang/jsy-transpile.svg?branch=master)](https://travis-ci.org/jsy-lang/jsy-transpile)
+# `@jsy-lang/jsy` (formerly `jsy-transpile`)
 
-JSY is an indented (offside) JavaScript dialect. We believe indentation is better at describing code blocks.
+JSY is a syntax for ECMAScript/JavaScript using offside indentation to
+describe code blocks like Python, CoffeeScript, or WISP.
 
-This is an offside (indention) JSY syntax transpiler to standard JavaScript with zero dependencies — e.g. No Babel, no Acorn!
+This library is the JSY syntax tranpiler and scanner written in JSY itself.
+Zero runtime dependencies. No Babel. No Acorn.
+6262 unit tests and counting.
 
 Please see [JSY language docs](https://github.com/jsy-lang/jsy-lang-docs) for details on the JSY dialect.
 
-## Use from the command line
 
-Ensure you are using Node 10.x or later.
+## Use
 
-Install globally with `npm install -g jsy-transpile`
-
-Transpile a JSY file with `npx jsy-transpile test.jsy > test.js`
-
-Run a JSY file with `npx jsy-node test.jsy` – see [jsy-node](https://github.com/jsy-lang/jsy-node)
-
-## Use from Bundlers
-
-- via `npm init jsy` – see [npm-create-jsy](https://github.com/jsy-lang/npm-create-jsy)
-- via Rollup with [rollup-plugin-jsy-lite](https://github.com/jsy-lang/rollup-plugin-jsy-lite)
-- via Babel with [babel-plugin-jsy-lite](https://github.com/jsy-lang/babel-plugin-jsy-lite)
+- Start from a template via `npm init jsy` – see [npm-create-jsy](https://github.com/jsy-lang/npm-create-jsy)
+- With [Rollup](https://rollupjs.org) via [rollup-plugin-jsy](https://github.com/jsy-lang/rollup-plugin-jsy)
+- Use `--loader` feature with `node --loader @jsy-lang/nodejs some-demo.jsy`
+- Transpile via `npx @jsy-lang/jsy some-demo.jsy`
 
 
 ## Use directly from HTML
 
 ```html
 ...
-<script type='module' src='https://cdn.jsdelivr.net/npm/jsy-transpile/esm/jsy-script.min.js'></script>
+<script type='module' src='https://cdn.jsdelivr.net/npm/@jsy-lang/jsy@latest/jsy-script.js'></script>
 ...
-<jsy-script src='./example.jsy'></jsy-script>
+<jsy-script src='./some-demo.jsy'></jsy-script>
 ...
 ```
+
+## License
+
+[BSD-2-Clause License](./LICENSE)
 

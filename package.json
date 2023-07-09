@@ -18,13 +18,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jsy-lang/jsy-transpile.git"
+    "url": "git+https://github.com/jsy-lang/jsy.git"
   },
   "bugs": {
-    "url": "https://github.com/jsy-lang/jsy-transpile/issues"
+    "url": "https://github.com/jsy-lang/jsy/issues"
   },
-  "homepage": "https://github.com/jsy-lang/jsy-transpile#readme",
+  "homepage": "https://github.com/jsy-lang/jsy#readme",
   "bin": {
+    "jsy": "transpile.mjs",
     "jsy-transpile": "transpile.mjs",
     "jsy-scan": "scan.mjs"
   },
@@ -62,8 +63,8 @@
   },
   "scripts": {
     "clean": "rm -rf umd/ esm/ iife/",
-    "switch:jsy": "node ./package.switch.mjs && npm install && npm run build",
-    "switch:legacy": "node ./package.switch.mjs --legacy && npm install && npm run build",
+    "switch:jsy": "node ./pkg.switch.mjs && npm install && npm run build",
+    "switch:legacy": "node ./pkg.switch.mjs --legacy && npm install && npm run build",
     "build": "rollup --config",
     "build:stable": "rollup --config rollup.stable.js",
     "watch:fast": "JSY_BUILD=fast npm -s run build -- --watch",
