@@ -31,124 +31,124 @@ describe @ 'Scanners', @=> ::
     it @ 'line 0 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 0', offside_ast[0], @{}
         type: 'offside_line'
-        loc: @{} start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 33, line_pos: 0 }
-        len_indent: 0, len_dedent: 2, len_inner: 2
+        loc: @{} start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 35, line_pos: 0 }
+        len_indent: 2, len_dedent: 4, len_inner: 4
 
         indent: @{}
            type: 'offside_indent'
-           loc: @{} start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 0, line_pos: 0 }
-           len_indent: 0, indent: ''
+           loc: @{} start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 2, line_pos: 0 }
+           len_indent: 2, indent: '  '
 
         content: @[]
          @{} type: 'src'
-             loc: @{} start: { line: 1, pos: 0, line_pos: 0 }, end: { line: 1, pos: 33, line_pos: 0 }
+             loc: @{} start: { line: 1, pos: 2, line_pos: 0 }, end: { line: 1, pos: 35, line_pos: 0 }
              content: 'export function hash_fnv32(sz) ::'
 
 
     it @ 'line 1 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 1', offside_ast[1], @{}
         type: 'offside_line'
-        loc: @{} start: { line: 2, pos: 34, line_pos: 34 }, end: { line: 2, pos: 137, line_pos: 34 }
-        len_indent: 2, len_dedent: 2
+        loc: @{} start: { line: 2, pos: 36, line_pos: 36 }, end: { line: 2, pos: 141, line_pos: 36 }
+        len_indent: 4, len_dedent: 4
 
         indent: @{}
            type: 'offside_indent',
-           loc: @{} start: { line: 2, pos: 34, line_pos: 34 }, end: { line: 2, pos: 36, line_pos: 34 }
-           len_indent: 2, indent: '  '
+           loc: @{} start: { line: 2, pos: 36, line_pos: 36 }, end: { line: 2, pos: 40, line_pos: 36 }
+           len_indent: 4, indent: '    '
 
         content: @[]
          @{} type: 'comment_eol',
-             loc: @{} start: { line: 2, pos: 36, line_pos: 34 }, end: { line: 2, pos: 137, line_pos: 34 }
+             loc: @{} start: { line: 2, pos: 40, line_pos: 36 }, end: { line: 2, pos: 141, line_pos: 36 }
              content: '// FNV32, from https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash'
 
     it @ 'line 2 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 2', offside_ast[2], @{}
         type: 'offside_line'
-        loc: @{} start: { line: 3, pos: 138, line_pos: 138 }, end: { line: 3, pos: 189, line_pos: 138 }
-        len_indent: 2, len_dedent: 2
+        loc: @{} start: { line: 3, pos: 142, line_pos: 142 }, end: { line: 3, pos: 195, line_pos: 142 }
+        len_indent: 4, len_dedent: 4
 
         indent: @{}
           type: 'offside_indent',
-          loc: { start: { line: 3, pos: 138, line_pos: 138 }, end: { line: 3, pos: 140, line_pos: 138 } },
-          len_indent: 2, indent: '  '
+          loc: { start: { line: 3, pos: 142, line_pos: 142 }, end: { line: 3, pos: 146, line_pos: 142 } },
+          len_indent: 4, indent: '    '
 
         content: @[]
          @{} type: 'src',
-             loc: { start: { line: 3, pos: 140, line_pos: 138 }, end: { line: 3, pos: 159, line_pos: 138 } },
+             loc: { start: { line: 3, pos: 146, line_pos: 142 }, end: { line: 3, pos: 165, line_pos: 142 } },
              content: 'let h = 0x811C9DC5 '
 
          @{} type: 'comment_eol',
-             loc: { start: { line: 3, pos: 159, line_pos: 138 }, end: { line: 3, pos: 189, line_pos: 138 } },
+             loc: { start: { line: 3, pos: 165, line_pos: 142 }, end: { line: 3, pos: 195, line_pos: 142 } },
              content: '// fnv-1a 32 bit initial value'
 
     it @ 'line 3 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 3', offside_ast[3], @{}
         type: 'offside_line',
-        loc: { start: { line: 4, pos: 190, line_pos: 190 }, end: { line: 4, pos: 226, line_pos: 190 } },
-        len_indent: 2, len_dedent: 4, len_inner: 4
+        loc: { start: { line: 4, pos: 196, line_pos: 196 }, end: { line: 4, pos: 234, line_pos: 196 } },
+        len_indent: 4, len_dedent: 6, len_inner: 6
 
         indent: @{}
            type: 'offside_indent',
-           loc: { start: { line: 4, pos: 190, line_pos: 190 }, end: { line: 4, pos: 192, line_pos: 190 } },
-           len_indent: 2, indent: '  '
+           loc: { start: { line: 4, pos: 196, line_pos: 196 }, end: { line: 4, pos: 200, line_pos: 196 } },
+           len_indent: 4, indent: '    '
 
         content: @[]
          @{} type: 'src',
-             loc: { start: { line: 4, pos: 192, line_pos: 190 }, end: { line: 4, pos: 226, line_pos: 190 } },
+             loc: { start: { line: 4, pos: 200, line_pos: 196 }, end: { line: 4, pos: 234, line_pos: 196 } },
              content: 'for let i=0; i < sz.length; i++ ::'
 
     it @ 'line 4 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 4', offside_ast[4], @{}
         type: 'offside_line',
-        loc: { start: { line: 5, pos: 227, line_pos: 227 }, end: { line: 5, pos: 252, line_pos: 227 } },
-        len_indent: 4, len_dedent: 4
+        loc: { start: { line: 5, pos: 235, line_pos: 235 }, end: { line: 5, pos: 262, line_pos: 235 } },
+        len_indent: 6, len_dedent: 6
 
         indent: @{}
            type: 'offside_indent'
-           loc: { start: { line: 5, pos: 227, line_pos: 227 }, end: { line: 5, pos: 231, line_pos: 227 } },
-           len_indent: 4, indent: '    '
+           loc: { start: { line: 5, pos: 235, line_pos: 235 }, end: { line: 5, pos: 241, line_pos: 235 } },
+           len_indent: 6, indent: '      '
 
         content: @[]
          @{} type: 'src'
-             loc: { start: { line: 5, pos: 231, line_pos: 227 }, end: { line: 5, pos: 252, line_pos: 227 } },
+             loc: { start: { line: 5, pos: 241, line_pos: 235 }, end: { line: 5, pos: 262, line_pos: 235 } },
              content: 'h ^= sz.charCodeAt(i)'
 
     it @ 'line 5 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 5', offside_ast[5], @{}
         type: 'offside_line'
-        loc: { start: { line: 6, pos: 253, line_pos: 253 }, end: { line: 6, pos: 315, line_pos: 253 } },
-        len_indent: 4, len_dedent: 2
+        loc: { start: { line: 6, pos: 263, line_pos: 263 }, end: { line: 6, pos: 327, line_pos: 263 } },
+        len_indent: 6, len_dedent: 4
 
         indent: @{}
            type: 'offside_indent'
-           loc: { start: { line: 6, pos: 253, line_pos: 253 }, end: { line: 6, pos: 257, line_pos: 253 } },
-           len_indent: 4, indent: '    '
+           loc: { start: { line: 6, pos: 263, line_pos: 263 }, end: { line: 6, pos: 269, line_pos: 263 } },
+           len_indent: 6, indent: '      '
 
         content: @[]
          @{} type: 'src'
-             loc: { start: { line: 6, pos: 257, line_pos: 253 }, end: { line: 6, pos: 315, line_pos: 253 } },
+             loc: { start: { line: 6, pos: 269, line_pos: 263 }, end: { line: 6, pos: 327, line_pos: 263 } },
              content: 'h += (h << 24) + (h << 8) + (h << 7) + (h << 4) + (h << 1)'
 
     it @ 'line 6 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 6', offside_ast[6], @{}
         type: 'offside_line'
-        loc: { start: { line: 7, pos: 316, line_pos: 316 }, end: { line: 7, pos: 326, line_pos: 316 } },
-        len_indent: 2, len_dedent: 0
+        loc: { start: { line: 7, pos: 328, line_pos: 328 }, end: { line: 7, pos: 340, line_pos: 328 } },
+        len_indent: 4, len_dedent: 0
 
         indent: @{}
            type: 'offside_indent'
-           loc: { start: { line: 7, pos: 316, line_pos: 316 }, end: { line: 7, pos: 318, line_pos: 316 } },
-           len_indent: 2, indent: '  '
+           loc: { start: { line: 7, pos: 328, line_pos: 328 }, end: { line: 7, pos: 332, line_pos: 328 } },
+           len_indent: 4, indent: '    '
 
         content: @[]
          @{} type: 'src'
-             loc: { start: { line: 7, pos: 318, line_pos: 316 }, end: { line: 7, pos: 326, line_pos: 316 } },
+             loc: { start: { line: 7, pos: 332, line_pos: 328 }, end: { line: 7, pos: 340, line_pos: 328 } },
              content: 'return h'
 
     it @ 'line 7 matches this offside AST structure', @=> ::
       check_ast_entry @ 'line 7', offside_ast[7], @{}
         type: 'offside_blank_line'
-        loc: { start: { line: 8, pos: 327, line_pos: 327 }, end: { line: 8, pos: 327, line_pos: 327 } },
+        loc: { start: { line: 8, pos: 341, line_pos: 341 }, end: { line: 8, pos: 341, line_pos: 341 } },
         is_blank: true
 
 

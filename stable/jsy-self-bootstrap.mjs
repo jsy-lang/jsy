@@ -55,36 +55,59 @@ const iife_arrow_tbl = {
 , '>': a =>({pre: `((async (${a}) =>`, post: ')())'}) };
 
 
-const bindLambdaOpResolve = (table, withArgs) =>
-  function opResolve(p) {
-    let [_, m1, m2] = p.content.match(this.jsy_op);
-    let args = withArgs ? m1 || '' : '';
-    let suffix = (withArgs ? m2 : m1) || '';
-
-    let entry = table[suffix];
+const bindLambdaOpZero = table =>
+  function opResolveLambdaZero(p) {
+    let [_, suffix] = p.content.match(this.jsy_op);
+    let entry = table[suffix || ''];
     if (undefined === entry) {
       throw new SyntaxError(`JSY lambda expression unrecognized specifier ("${suffix}")`) }
+    return entry('')};
 
-    return entry(args)};
+
+const fmt_arg_kw = args => `{${args}}`;
+const fmt_arg_vec = args => `[${args}]`;
+const bindLambdaOpResolve = (table, as_args=(v=>v)) =>
+  function opResolveLambda(p) {
+    let [_, args, suffix] = p.content.match(this.jsy_op);
+    let entry = table[suffix || ''];
+    if (undefined === entry) {
+      throw new SyntaxError(`JSY lambda with args expression unrecognized specifier ("${suffix}")`) }
+    return entry(as_args(args) || '')};
 
 
 
 const at_lambda_offside = [
-  {jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
-      pre: '(()=>', post: ')',
-      opResolve: bindLambdaOpResolve(lambda_arrow_tbl) }
-
-, {jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
+  // object unpack all args
+  {jsy_op0: '@\\:=>', jsy_op: /@\\:(.*?)=>(>?\*?)/,
       pre: '(()=>', post: ')'
-    , opResolve: bindLambdaOpResolve(lambda_arrow_tbl, true) }
+    , opResolve: bindLambdaOpResolve(lambda_arrow_tbl, fmt_arg_kw) }
+, {jsy_op0: '@\\:::', jsy_op: /@\\:(.*?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindLambdaOpResolve(lambda_block_tbl, fmt_arg_kw) }
 
-, {jsy_op0: '@::', jsy_op: /@::(>?\*?)/,
+, // array unpack all args
+  {jsy_op0: '@\\#=>', jsy_op: /@\\#(.*?)=>(>?\*?)/,
+      pre: '(()=>', post: ')'
+    , opResolve: bindLambdaOpResolve(lambda_arrow_tbl, fmt_arg_vec) }
+, {jsy_op0: '@\\#::', jsy_op: /@\\#(.*?)::(>?\*?)/,
+      pre: '(()=>{', post: '})',
+      opResolve: bindLambdaOpResolve(lambda_block_tbl, fmt_arg_vec) }
+
+, // normal args
+  {jsy_op0: '@\\=>', jsy_op: /@\\(.*?)=>(>?\*?)/,
+      pre: '(()=>', post: ')'
+    , opResolve: bindLambdaOpResolve(lambda_arrow_tbl) }
+, {jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
       pre: '(()=>{', post: '})',
       opResolve: bindLambdaOpResolve(lambda_block_tbl) }
 
-, {jsy_op0: '@\\::', jsy_op: /@\\(.*?)::(>?\*?)/,
+, // zero args
+  {jsy_op0: '@=>', jsy_op: /@=>(>?\*?)/,
+      pre: '(()=>', post: ')',
+      opResolve: bindLambdaOpZero(lambda_arrow_tbl) }
+, {jsy_op0: '@::', jsy_op: /@::(>?\*?)/,
       pre: '(()=>{', post: '})',
-      opResolve: bindLambdaOpResolve(lambda_block_tbl, true) } ];
+      opResolve: bindLambdaOpZero(lambda_block_tbl) } ];
 
 
 const at_lambda_iife_offside = [
@@ -96,22 +119,17 @@ const at_lambda_iife_offside = [
 , {jsy_op0: '@!*#', jsy_op: /@!\*#/, pre: '([... (function *(){', post: '}).call(this)])'}
 , {jsy_op0: '@!*', jsy_op: /@!\*/, pre: '((function *(){', post: '}).call(this))'}
 
-
-, {jsy_op0: '@!\\::', jsy_op: /@!\\(.*?)::(>?\*?)/,
-      pre: '((()=>', post: ')())',
-      opResolve: bindLambdaOpResolve(iife_expr_tbl, true) }
-
-, {jsy_op0: '@!\\=>', jsy_op: /@!\\(.*?)=>(>?\*?)/,
-      pre: '((()=>', post: ')())',
-      opResolve: bindLambdaOpResolve(iife_arrow_tbl, true) }
-
 , {jsy_op0: '@!=>', jsy_op: /@!=>(>?\*?)/,
       pre: '((()=>', post: ')())',
-      opResolve: bindLambdaOpResolve(iife_arrow_tbl) }
+      opResolve: bindLambdaOpZero(iife_arrow_tbl) }
+
+, {jsy_op0: '@!::', jsy_op: /@!::(>?\*?)/,
+      pre: '((()=>{', post: '})())',
+      opResolve: bindLambdaOpZero(iife_expr_tbl) }
 
 , {jsy_op0: '@!', jsy_op: /@!(>?\*?)(?!=>)/,
       pre: '((()=>{', post: '})())',
-      opResolve: bindLambdaOpResolve(iife_expr_tbl) } ];
+      opResolve: bindLambdaOpZero(iife_expr_tbl) } ];
 
 // Like lambdas without closing over `this`
 // @~::   @~::>   @~::>*   @~::*
@@ -122,33 +140,31 @@ const func_block_tbl = {
 , '*': a =>({pre: `(function * (${a}) {`, post: '})'}) };
 
 
-const bindFuncOpResolve = (table, withArgs) =>
-  function opResolve(p) {
-    let [_, m1, m2] = p.content.match(this.jsy_op);
-    let args = withArgs ? m1 || '' : '';
-    let suffix = (withArgs ? m2 : m1) || '';
-
-    let entry = table[suffix];
-    if (undefined === entry) {
-      throw new SyntaxError(`JSY function expression unrecognized specifier ("${suffix}")`) }
-
-    return entry(args)};
-
-
 const at_func_offside = [
   {jsy_op0: '@~::', jsy_op: /@~(.*?)::(>?\*?)/,
       pre: '(function () {', post: '})',
-      opResolve: bindFuncOpResolve(func_block_tbl, true) } ];
+      opResolve(p) {
+        let [_, args, suffix] = p.content.match(this.jsy_op);
+        let entry = func_block_tbl[suffix];
+        if (undefined === entry) {
+          throw new SyntaxError(`JSY function expression unrecognized specifier ("${suffix}")`) }
+        return entry(args || '')} } ];
 
-const op_prefix_nullish = {
-  prefix: '?', rx_prefix: /\?(\.?)/
+const as_op_prefix = (rx, sep=rx.source, inject_sep=sep) =>({
+  prefix: sep, rx_prefix: rx
 , opPrefixResolve(p, at_op) {
     let at_res = at_op.opResolve ? at_op.opResolve(p) : at_op;
-    let pre = '?.' + (at_res.pre || '');
-    return {... at_res, pre} } };
+    let pre = inject_sep + (at_res.pre || '');
+    return {... at_res, pre} } });
 
 
-function at_op_for_prefix(jsy_prefix_op, at_op) {
+const jsy_prefix_operators = [
+  as_op_prefix(/;/)
+, as_op_prefix(/,/)
+, as_op_prefix(/\?(\.?)/, '?', '?.')];
+
+
+function * at_op_for_prefix(at_op, jsy_prefix_operators) {
   let {jsy_op0, jsy_op} = at_op;
   if (! /^[@?]/.test(jsy_op0 || jsy_op) ) {
     return}
@@ -163,22 +179,19 @@ function at_op_for_prefix(jsy_prefix_op, at_op) {
   else if ('function' !== typeof jsy_op.exec) {
     throw new Error('Unexpected jsy_op type') }
 
-  jsy_op0 = jsy_prefix_op.prefix + jsy_op0;
-  jsy_op = new RegExp(`${jsy_prefix_op.rx_prefix.source}${jsy_op.source}`, jsy_op.flags);
+  for (let jsy_prefix_op of jsy_prefix_operators) {
+    yield {...at_op,
+      jsy_op0: jsy_prefix_op.prefix + jsy_op0
+    , jsy_op: new RegExp(`${jsy_prefix_op.rx_prefix.source}${jsy_op.source}`, jsy_op.flags)
+    , foldTop: true
+    , opResolve: p => jsy_prefix_op.opPrefixResolve(p, at_op) }; } }
 
-  return {...at_op,
-    jsy_op0, jsy_op, foldTop: true
-  , opResolve: p => jsy_prefix_op.opPrefixResolve(p, at_op) } }
 
-
-function apply_prefix_op({jsy_prefix_op, op_collections}) {
+function apply_prefix_operators(at_inner_operators, jsy_prefix_operators) {
   let res = [];
-  for (let at_op_list of op_collections) {
-    for (let at_op of at_op_list) {
-      let ea = at_op_for_prefix(
-        jsy_prefix_op, at_op);
-      if (undefined !== ea) {
-        res.push(ea); } } }
+  for (let at_op of at_inner_operators) {
+    res.push(... at_op_for_prefix(at_op, jsy_prefix_operators)); }
+  res.push(... at_inner_operators);
   return res}
 
 // Order matters here -- list more specific matchers higher (first) in the order
@@ -189,13 +202,19 @@ const at_outer_offside = [
 , {jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true} ];
 
 const at_inner_offside_basic = [
-  {jsy_op: '@:', pre: '({', post: '})', implicitCommas: true, isFoldable: true}
-, {jsy_op: '@#', pre: '([', post: '])', implicitCommas: true, isFoldable: true}
-, {jsy_op: '@()', pre: '(', post: ')', implicitCommas: true, isFoldable: true}
-, {jsy_op: '@{}', pre: '{', post: '}', implicitCommas: true, isFoldable: true}
-, {jsy_op: '@[]', pre: '[', post: ']', implicitCommas: true, isFoldable: true}
-, {jsy_op: '@', pre: '(', post: ')', implicitCommas: true, isFoldable: true} ];
+  {jsy_op: '@:', pre: '({', post: '})', implicitSep: ',', isFoldable: true}
+, {jsy_op: '@#', pre: '([', post: '])', implicitSep: ',', isFoldable: true}
+, {jsy_op: '@()', pre: '(', post: ')', implicitSep: ',', isFoldable: true}
+, {jsy_op: '@{}', pre: '{', post: '}', implicitSep: ',', isFoldable: true}
+, {jsy_op: '@[]', pre: '[', post: ']', implicitSep: ',', isFoldable: true}
+, {jsy_op: '@', pre: '(', post: ')', implicitSep: ',', isFoldable: true} ];
 
+
+const at_inner_offside_core = /* #__PURE__ */ [].concat(
+  at_func_offside
+, at_lambda_offside
+, at_lambda_iife_offside
+, at_inner_offside_basic);
 
 
 const at_experimental = [
@@ -204,26 +223,19 @@ const at_experimental = [
 
 const at_unknown_ops = [
   {jsy_op0: '?@', jsy_op: /\?@[^\w\s]+/,}
+, {jsy_op0: ';@', jsy_op: /;@[^\w\s]+/,}
+, {jsy_op0: ',@', jsy_op: /,@[^\w\s]+/,}
 , {jsy_op0: '::', jsy_op: /::[^\w\s]+/,}
 , {jsy_op0: '@', jsy_op: /@[^\w\s]+/,} ];
 
 
-const at_inner_prefix_nullish = /* #__PURE__ */ apply_prefix_op({
-  jsy_prefix_op: op_prefix_nullish
-, op_collections:[
-    at_func_offside
-  , at_lambda_offside
-  , at_lambda_iife_offside
-  , at_inner_offside_basic] });
+const at_inner_offside = /* #__PURE__ */
+  apply_prefix_operators(
+    at_inner_offside_core.flat()
+  , jsy_prefix_operators);
 
-const at_inner_offside = /* #__PURE__ */ [].concat(
-  at_func_offside
-, at_lambda_offside
-, at_lambda_iife_offside
-, at_inner_offside_basic
 
-, at_inner_prefix_nullish);
-
+const op_template_str ={nestBreak: true};
 
 const at_offside = /* #__PURE__ */ [].concat(
   at_outer_offside
@@ -452,20 +464,24 @@ function basic_offside_scanner(source, feedback) {
 
 
 function add_indent_info(all_lines) {
-  let len_dedent=0;
-  const len_stack = [0];
+  let len_dedent = 0; // how far to dedent to next outer level
+  let len_stack = [0];
+  // work backwards from the file end
   for (let i = all_lines.length-1 ; i>=0 ; i--) {
-    const ln = all_lines[i];
+    let ln = all_lines[i];
     if (ln.is_blank) {continue}
 
     ln.len_dedent = len_dedent;
-    const len_indent = ln.len_indent;
+
+    // how many indent prefix chars per line
+    let len_indent = ln.len_indent;
 
     let len_inner;
     while (len_stack[0] > len_indent) {
       len_inner = len_stack.shift();}
 
     if (len_stack[0] < len_indent) {
+      // len_indent is the new stack tip
       len_stack.unshift(len_indent); }
 
     if (len_inner) {
@@ -481,7 +497,7 @@ function ensure_indent(ctx, scanner) {
   const d_dedent = ctx.ln.len_indent - len_first_indent;
   if (d_dedent < 0) {
     throw ctx.ln.indent.loc.end.syntaxError(
-      `Invalid indent level in ${scanner.description}. (${ctx.ln.indent.loc.end})  --  current indent: ${ctx.ln.len_indent}  start indent: ${len_first_indent} from (${ln_first.loc.start})`) }
+`Invalid indent level in ${scanner.description}. (${ctx.ln.indent.loc.end})  --  current indent: ${ctx.ln.len_indent}  start indent: ${len_first_indent} from (${ln_first.loc.start})`) }
   else return true}
 
 
@@ -651,11 +667,11 @@ class BaseSourceScanner {
     const start = ctx.loc_tip;
     const end = ctx.loc_tip = start.move(content || 0);
     const ast ={type: ast_type || this.op, loc: {start, end}, content};
-    this._ast_extend(ctx, ast);
+    this.ast_extend(ctx, ast);
     ctx.parts.push(ast);
     return ast}
 
-  _ast_extend(ctx, ast) {}
+  ast_extend(ctx, ast) {}
 
   newline(ctx, is_blank) {}
   scan_fragment(ctx, content) {
@@ -722,7 +738,7 @@ class NestedCodeScanner extends SourceCodeScanner {
       if (tip !== p) {
         const loc = ctx.loc_tip.move(content);
         throw loc.syntaxError(
-          `Mismatched nesting in ${this.description} (${loc})`) }
+    `Mismatched nesting in ${this.description} (${loc})`) }
 
       if (0 !== stack.length) {
         content += tok;
@@ -773,9 +789,9 @@ class RegExpScanner extends BaseSourceScanner {
   newline(ctx, is_blank) {
     if (! this.multiline && ! this.allow_blank_close) {
       throw ctx.ln.loc.end.syntaxError(
-        `Newline in ${this.description} (${ctx.ln.loc.end})`) } }
+  `Newline in ${this.description} (${ctx.ln.loc.end})`) } }
 
-  _ast_extend(ctx, ast) {
+  ast_extend(ctx, ast) {
     const ln = this.ln_first || ctx.ln;
     if (undefined !== ln.len_inner) {
       ast.block_indent = ln.len_inner;}
@@ -785,12 +801,14 @@ class RegExpScanner extends BaseSourceScanner {
     const match = this.rx_disp.exec(ctx.ln_source.slice(idx0));
     if (null === match) {
       throw ctx.loc_tip.syntaxError(
-        `Invalid scan ${this.description}. (${ctx.loc_tip})`) }
+  `Invalid scan ${this.description}. (${ctx.loc_tip})`) }
 
     const [content, open, close] = match;
 
     const t_content = this.nestTrim(content, close, false);
-    if (t_content) {this.emit_ast(ctx, t_content);}
+    if (null != t_content) {
+      this.ast_scan_match({open, close},
+        this.emit_ast(ctx, t_content,) ); }
     return this.post_scan(ctx, close)}
 
   scan_continue(ctx, idx0) {
@@ -799,22 +817,19 @@ class RegExpScanner extends BaseSourceScanner {
     const match = this.rx_resume.exec(ctx.ln_source.slice(idx0));
     if (null === match) {
       throw ctx.loc_tip.syntaxError(
-        `Invalid scan continue ${this.description}. (${ctx.loc_tip})`) }
+  `Invalid scan continue ${this.description}. (${ctx.loc_tip})`) }
 
     const [content, close] = match;
 
     const t_content = this.nestTrim(content, close, true);
-    if (t_content) {this.emit_ast(ctx, t_content);}
+    if (null != t_content) {
+      this.ast_scan_match({close},
+        this.emit_ast(ctx, t_content,) ); }
     return this.post_scan(ctx, close)}
 
-  nestTrim(content, close, isContinue) {
-    const nestingTrim = this.nestingTrim;
-    if (undefined !== nestingTrim) {
-      let trim = nestingTrim[close];
-      if (true === trim) {trim = close;}
-      if (trim) {return content.slice(0, - trim.length)} }
+  ast_scan_match(match, ast) {}
 
-    return content}
+  nestTrim(content, close, isContinue) {return content}
 
   post_scan(ctx, close) {
     if (! close) {
@@ -896,7 +911,19 @@ class RegExpScanner extends BaseSourceScanner {
 
 class MultiLineScanner extends RegExpScanner {
   newline(ctx, is_blank) {}
-  get multiline() {return true} }
+  get multiline() {return true}
+
+  ast_extend(ctx, ast) {
+    //let ln = this.ln_first || ctx.ln
+    let col = ast.loc.start.column;
+    let mlctx = this.mlctx ??= {col};
+
+    if (col < mlctx.col) {
+      mlctx.col = col;}
+
+    ast.mlctx = mlctx;
+    return ast} }
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1160,10 +1187,16 @@ const scanner_strTemplate =
     , example: '`template string`'
     , op: 'str_template'
     , kind: '`'
-    , rx_open: /(`)/
+    , rx_open: /(`)\\?/
     , rx_close: /(?:\\.|\$(?!{)|[^\$`\\])*(`|\${|$)/
     , nesting:{
-        '${': templateArgNesting} });
+        '${': templateArgNesting}
+
+    , ast_scan_match(scan, ast) {
+        if ('`' == scan.open) {
+          ast.tmpl_opened = true;}
+        if ('`' == scan.close) {
+          ast.tmpl_closed = true;} } });
 
 function templateArgNesting(ctx, hostScanner) {
   const src = scanner_nestedSrc.withOuter({
@@ -1196,7 +1229,7 @@ const scanner_jsxContentExpr =
     , rx_open: /\s*({)/,
       rx_close: /()/,
 
-      nestTrim(content, close) {return ''}
+      nestTrim(content, close, isContinue) {}
     , post_scan(ctx) {jsxArgNesting(ctx, null);} });
 
 const scanner_jsxAttrNameValue =
@@ -1249,7 +1282,7 @@ const scanner_jsxTagClose =
     , post_scan(ctx, close) {
         if (close !== this.tag) {
           throw ctx.loc_tip.syntaxError(
-            `Mismatched JSX close tag "</${close}>", expected "</${this.tag}>". (${ctx.loc_tip})`) }
+      `Mismatched JSX close tag "</${close}>", expected "</${this.tag}>". (${ctx.loc_tip})`) }
 
         ctx.scanner = this.restore_scanner;} });
 
@@ -1276,8 +1309,9 @@ const scanner_jsxTag =
       , '"': scanner_jsxAttrDouble}
 
     , nestTrim(content, close, isContinue) {
-        return this.nesting[close] ? content
-          : content.slice(0, - close.length)}
+        if (! this.nesting[close]) {
+          content = content.slice(0, - close.length);}
+        return content || null}
 
     , nestMatch(close, ctx, hostScanner) {
         let inner = this.nesting[close];
@@ -1346,7 +1380,7 @@ const scanner_jsx_close_fragment =
     , post_scan(ctx, close) {
         if (close) {
           throw ctx.loc_tip.syntaxError(
-            `Mismatched JSX fragment close tag "</${close}>", expected "</$>". (${ctx.loc_tip})`) }
+      `Mismatched JSX fragment close tag "</${close}>", expected "</$>". (${ctx.loc_tip})`) }
 
         ctx.scanner = this.restore_scanner;} });
 
@@ -1389,41 +1423,39 @@ const jsx_context_scanners = Object.freeze([
 function scan_javascript_with_jsx(source, feedback) {
   return scan_offside_contexts(source, feedback, jsx_context_scanners)}
 
-//import {dbg_dump_ast} from './_ast_debug.jsy'
-
-function scan_jsy(source, feedback) {
+const _is_offside_dedent = part => 'offside_dedent' === part.type;
+function jsy_scan(source, feedback) {
   const jsy_ast = scan_javascript_with_jsx(source, feedback);
-  //dbg_dump_ast('out.json5', jsy_ast)
 
   inject_dedent(jsy_ast,['comment_eol']);
-  //dbg_dump_ast('out-post.json5', jsy_ast)
 
-  for (const ln of jsy_ast) {
+  for (let ln of jsy_ast) {
     if (ln.is_blank) {continue}
 
-    const parts = transform_jsy_ops(ln.content, ln);
-    ln.content = parts;
+    let ln_parts = ln.content = transform_jsy_ops(ln.content, ln);
 
-    const idx_dedent = parts.findIndex(p => 'offside_dedent' === p.type);
+    let idx_tail = ln_parts.findIndex(_is_offside_dedent);
+    let dedent = ln_parts[idx_tail--];
 
-    for (let i_last=idx_dedent-1; i_last >= 0; i_last--) {
-      const last = parts[i_last];
-      if (undefined === last) {
+    while (idx_tail >= 0) {
+      let tail = ln_parts[idx_tail--];
+      if (undefined === tail) {
         continue}
-      else if (last.type.startsWith('jsy_op')) {
-        parts[idx_dedent].ends_with_jsy_op = true;
-        last.ending_jsy_op = true;}
-      else if ('src' !== last.type || last.content.trim()) {
+
+      if (/^jsy_op/.test(tail.type)) {
+        dedent.ends_with_jsy_op = true;
+        tail.ending_jsy_op = true;}
+      else if ('src' !== tail.type || tail.content.trim()) {
         break} } }
 
   return jsy_ast}
 
 
 
-function transform_jsy_ops(parts, ln) {
+function transform_jsy_ops(ln_parts, ln) {
   const res = [];
 
-  for (let p, i=0; undefined !== (p = parts[i]) ; i++) {
+  for (let p, i=0; undefined !== (p = ln_parts[i]) ; i++) {
     if ('src' === p.type) {
       transform_jsy_part(res, p, ln);}
     else res.push(p);}
@@ -1543,106 +1575,62 @@ function transform_jsy_part(res, part, ln) {
 function as_src_ast(content, start, end) {
   return {type: 'src', loc: {start, end}, content} }
 
-const rx_all_space =  /^[ \t]*$/ ;
+const pp_sym = Symbol('#IF?');
+const basic_preprocessor_proto ={
+  bind() {
+    const rx = /^#\s*([A-Z]+\b)(.*)$/;
+    return (( part, stacktop ) => {
+      let [,directive,arg] = rx.exec(part.content) || [];
+      if (! this['v$'+directive]) {
+        throw this.syntaxError(part)}
 
-const xform_proto = {
-  __proto__: null
+      return this['v$'+directive](
+        part, (arg||'').trim(), stacktop) }) }
 
-, process() {}// noop
+, syntaxError: part => part.loc.start.syntaxError(`Preprocessor Invalid: "${part.content}"`)
 
-, update(arg) {
-    if ('function' === typeof arg) {
-      this.process = arg;}
-    else if ('boolean' === typeof arg) {
-      if (arg) {return this.dedent()}
-      this.process = xform_proto.process;}
-    else if ('object' === typeof arg) {
-      Object.assign(this, arg);
-      let process = this.process;
-      if ('function' !== typeof process && 'object' !== typeof process) {
-        return this.update(process)} }
-    else {
-      throw new TypeError(`Unsupported update type: ${typeof arg}`) }
+, v$IF(part, arg, stacktop) {
+    if (! arg) {throw this.syntaxError(part)}
+    let ans = !! this.answerFor(arg);
+    return stacktop[pp_sym] = ans}
 
-    return this}
+, v$ELIF(part, arg, stacktop) {
+    if (! arg || 'boolean' !== typeof stacktop[pp_sym]) {
+      throw this.syntaxError(part)}
 
-, dedent() {
-    let len_trim = this.ln.len_indent - this.ln.len_inner;
-    return this.update(src_parts => {
-      let indent = src_parts[0];
-      if (rx_all_space.test(indent)) {
-        src_parts[0] = indent.slice(0, len_trim);}
-      return src_parts} ) } };
+    if (! stacktop[pp_sym]) {
+      let ans = !! this.answerFor(arg);
+      return stacktop[pp_sym] = ans}
+    return false}
 
+, v$ELSE(part, arg, stacktop) {
+    if (arg || 'boolean' !== typeof stacktop[pp_sym]) {
+      throw this.syntaxError(part)}
 
-const create_xform = (( ln, xform_cur ) =>({
-  __proto__: xform_proto
-, next: xform_cur
-, ln, depth: ln.len_inner}) );
+    if (! stacktop[pp_sym]) {
+      stacktop[pp_sym] = null;
+      return true}
+    return false} };
 
 
 function basic_preprocessor(answerFor) {
   if (null == answerFor) {
-    return p => p }// defines is null -- disable preprocessor
+    return }// defines is null -- disable preprocessor
 
   if ('object' === typeof answerFor) {
     answerFor = shunting_yard(answerFor);}
   else if ('function' !== typeof answerFor) {
     throw new TypeError(`Expected a function or object for basic_preprocessor`) }
 
-
-  const directives ={
-    IF(p, arg, state) {
-      if (! arg) {throw syntaxError(p)}
-      return state.handled = !! answerFor(arg)}
-
-  , ELIF(p, arg, state) {
-      if (! arg || 'boolean' !== typeof state.handled) {
-        throw syntaxError(p)}
-      if (state.handled) {return false}
-      return state.handled = !! answerFor(arg)}
-
-  , ELSE(p, arg, state) {
-      if (arg || 'boolean' !== typeof state.handled) {
-        throw syntaxError(p)}
-      if (state.handled) {return false}
-      state.handled = null;
-      return true} };
-
-  const rx = /^#\s*([A-Z]+\b)(.*)$/;
-
-  const stack = [];
-  let allow = true, state = {};
-  return (p, add_xform) => {
-    let m = rx.exec(p.content);
-    let dispatch = m && directives[m[1]];
-    if (! dispatch) {throw syntaxError(p)}
-
-    if (! allow) {
-      state = null;
-      return false}
-
-    let ans = dispatch(p, m[2].trim(), state);
-    allow = !! ans;
-
-    stack.push(state); state = {};
-
-    add_xform({
-      process: allow
-    , done(ln) {
-        state = stack.pop();
-        allow = true;} }); }
-
-  function syntaxError(p) {
-    return p.loc.start.syntaxError(`Preprocessor Invalid: "${p.content}"`) } }
+  return {__proto__: basic_preprocessor_proto, answerFor}.bind()}
 
 
 function shunting_yard(defines) {
    {
     let _op_ = (order, op_fn) => (op_fn.order=order, op_fn);
-    let NOT = z => ! z.pop();
-    let AND = (z, a=z.pop(), b=z.pop()) => a && b;
-    let OR = (z, a=z.pop(), b=z.pop()) => a || b;
+    let NOT = v => ! v;
+    let AND = (a, b) => a && b;
+    let OR = (a, b) => a || b;
 
     let ops ={
       __proto__: null
@@ -1653,6 +1641,12 @@ function shunting_yard(defines) {
       OR, '||': _op_(20, OR),};
 
     var lut_expr = key => ops[key] ?? defines[key];}
+
+  function eval_op(fn_op, args) {
+    args.push(
+      fn_op.length
+        ? fn_op(... args.splice(-fn_op.length))
+        : fn_op()); }
 
   return function eval_shunting_yard(expr_src) {
     // see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
@@ -1666,20 +1660,103 @@ function shunting_yard(defines) {
 
       // eval all lesser order operations
       while (ops[0] && (0 | ops[0].order) <= (0 | tip.order)) {
-        args.push(ops.shift()(args)); }
+        eval_op(ops.shift(), args);}
 
       // push this operator on the stack
       ops.unshift(tip);}
 
     // evaluate all operations
     while (ops[0]) {
-      args.push(ops.shift()(args)); }
+      eval_op(ops.shift(), args);}
 
     if (1 !== args.length) {
       throw new SyntaxError(
-        `Invalid preprocessor expression: "${expr_src}"`) }
+  `Invalid preprocessor expression: "${expr_src}"`) }
 
     return args[0]} }
+
+const preprocess_visitor = {
+  __proto__: null
+
+, *ast_iter(ast) {
+    let ln, state = this.start();
+
+    for (ln of ast) {
+      ln = ln.is_blank
+        ? this.blank_line(ln)
+        : this.ast_line(ln, state);
+
+      if (null != ln) {
+        yield ln;} }
+
+    ln = this.finish(state);
+    if (null != ln) {
+      yield ln;} }
+
+, start() {return {tip: {}}}
+, finish(state) {}
+
+, blank_line(ln) {return ln}
+
+, indent_state(ln, state) {
+    let tip = state.tip;
+    while (ln.len_indent < (tip.len|0)) {
+      tip = tip.tail;}
+
+    return state.tip = tip}
+
+, _dbg_ln(ln) {return ln.indent.indent + ln.content.map(v=>v.content||'').join('')}
+
+, ast_line(ln, state) {
+    let tip = this.indent_state(ln, state);
+
+    if ('exclude' === tip.op) {
+      this.exclude_line(ln, state);
+      return ln}
+
+    //if tip.dedent > 0  ::
+    //  ln.indent.indent = ln.indent.indent.slice(0, -tip.dedent)
+
+    for (let part of ln.content) {
+      this[`v$${part.type}`]?.( part, ln, state );}
+    return ln}
+
+, preprocess(p, stacktop) {}
+, v$preprocessor(p, ln, state) {
+    let tail = state.tip;
+    let ans = p.ans = this.preprocess(p, tail);
+
+    if (false === ans) {
+      p.type += '_exc';
+      state.tip ={
+        op: 'exclude'
+      , len: ln.len_inner
+      , tail}; }
+
+    else if (true === ans) {
+      p.type += '_inc';
+      state.tip ={
+        len: ln.len_inner
+      , //dedent: (tail.dedent|0) + ln.len_inner - ln.len_indent
+        tail}; }
+
+    else if ('string' === typeof ans) {
+      p.type += '_sz';} }
+
+
+, exclude_line(ln, state) {
+    let content =[
+      {type: 'exclude_line', content: '//~ '} ];
+
+    for (let part of ln.content) {
+      if ('offside_dedent' === part.type) {
+        content.unshift(part);}
+      else {
+        part.type = 'exclude_part';
+        content.push(part);} }
+
+    ln.content = content;
+    return ln} };
 
 const rx_punct =  /[,.;:?]/;
 const rx_binary_ops =  /\&\&|\|\|/;
@@ -1707,6 +1784,9 @@ function checkOptionalComma(op, pre_body, post_body) {
       return false} }
 
   if (op.pre.includes('{')) {
+    // support for blocks like:
+    //   import {name as othername} from 'file' blocks
+    //   export {name as othername}
     pre_body = pre_body.replace(rx_dict_as_name, '');
     post_body = post_body.replace(rx_dict_as_name, '');}
 
@@ -1770,7 +1850,7 @@ const transpile_visitor = {
     for (let part of ln.content) {
       let fn_visit = `v$${part.type}`;
       if (undefined === this[fn_visit]) {
-        throw new Error(`JSY transpile function "${key}" not found`) }
+        throw new Error(`JSY transpile function "${fn_visit}" not found`) }
 
       this[fn_visit]( part, ln, prev );
       prev = part;}
@@ -1782,7 +1862,6 @@ const transpile_visitor = {
     this.head = root_head;}
 
 , finish() {
-    this._xform_start_line(null);
     if (root_head !== this.head) {
       throw new Error('Excess stack at finish') } }
 
@@ -1792,20 +1871,19 @@ const transpile_visitor = {
 , start_line(ln) {
     this.lineno ++;
     this.cur_ln = ln;
-    this._cur = [];
-
-    this._xform_start_line(ln);}
+    let line_src = this._cur = [];
+    line_src.finish_ops = [];}
 
 , finish_line(ln) {
     let line_src = this._cur;
-    if ('function' === typeof line_src.finish_commas) {
-      line_src = line_src.finish_commas(line_src);}
+    for (let fn of line_src.finish_ops || []) {
+      line_src = fn(line_src, ln);}
 
-    const comma_body = this.head.comma_body;
+    let comma_body = this.head.comma_body;
     if (undefined !== comma_body) {
       comma_body.push('\n'); }
 
-    return this._xform_finish_line(line_src, ln)}
+    return line_src}
 
 , emit_raw(src) {
     if (src) {this._cur.push(src);} }
@@ -1842,7 +1920,7 @@ const transpile_visitor = {
 
     cur.push(indent || ' ');
 
-    cur.finish_commas = cur => {
+    let finish_commas = (cur) => {
       const pre = comma_body[0];
       if (! pre) {return cur}
 
@@ -1853,7 +1931,9 @@ const transpile_visitor = {
           cur[0] = cur[0].replace(/\s\s$/, ', ');}
         else cur[0] = ',';
         comma_body.shift();}
-      return cur}; }
+      return cur};
+
+    cur.finish_ops.push(finish_commas); }
 
 , _checkOptionalComma: checkOptionalComma
 , checkOptionalComma
@@ -1872,7 +1952,7 @@ const transpile_visitor = {
     , isFoldable: op.isFoldable
     , nestBreak: op.nestBreak};
 
-    if (true === op.implicitCommas) {
+    if (',' == op.implicitSep) {
       const comma_body = head.comma_body = [];
       comma_body.op = op;
       comma_body.len_inner = this.cur_ln.len_inner;}
@@ -1884,27 +1964,33 @@ const transpile_visitor = {
 
     head.tail = [this.head].concat(head.tail || []);
 
-    const src = head.op.pre;
-    if (src) {this.emit(src);}
+    let src_pre = head.op.pre;
+    if (src_pre) {this.emit(src_pre);}
 
     this.head = head;}
 
 , stack_pop(c) {
-    const head = this.head;
-    const next = head.tail[0];
+    let head = this.head;
+    let next = head.tail[0];
     this.head = next;
 
-    if (head.op.implicitCommas && next.comma_body) {
-      // internal op was an expression; simplify for comma_body
-      next.comma_body.push(' expr ');}
+    if (next.comma_body) {
+      let substitute = head.op.substitute ??(// explicit substution
+        ',' == head.op.implicitSep ? 'expr' // is a comma-based expression
+        : /[\)\]]\s*$/.test(head.op.post) ? 'expr' // ends as call or index expr
+        : null);
 
-    const src = head.op.post;
-    if (src) {
-      this.emit(c ? ' '+src : src); } }
+      if (null != substitute) {
+        // internal op was an expression; simplify for comma_body
+        next.comma_body.push(` ${substitute} `);} }
+
+    let src_post = head.op.post;
+    if (src_post) {
+      this.emit(c ? ' '+src_post : src_post); } }
 
 , v$jsy_unknown(p) {
     throw p.loc.start.syntaxError(
-      `JSY unknown operator "${p.op}"`) }
+`JSY unknown operator "${p.op}"`) }
 
 , v$jsy_kw(p) {
     const kw_op = p.explicit
@@ -1990,18 +2076,28 @@ const transpile_visitor = {
     this._dedent_nested_block(p);
     this.emit_raw(p.content);
 
-    const comma_body = this.head.comma_body;
+    let comma_body = this.head.comma_body;
     if (undefined !== comma_body) {
       // fixup comma_body with simplified template param
       comma_body.push('null }'); } }
 
 
 , v$str_template(p, ln, p0) {
-    if (p0 === ln.indent && p.block_indent) {
-      const indent = this._cur.pop();
-      this._cur.push(indent.slice(p.block_indent)); }
+    if (p.tmpl_opened) {
+      this.stack_push(op_template_str, p); }
 
-    this.emit(p.content, p.loc.start); }
+    if (p0 === ln.indent && p.mlctx) {
+      let indent = this._cur.pop();
+      this._cur.push(indent.slice(p.mlctx.col)); }
+
+    this.emit(p.content, p.loc.start);
+
+    if (p.tmpl_closed) {
+      this.stack_pop();
+      let comma_body = this.head.comma_body;
+      if (undefined !== comma_body) {
+        // fixup comma_body with simplified template param
+        comma_body.push('`tmpl_expr`'); } } }
 
 , v$src(p, ln, p0) {
     let content = p.content;
@@ -2011,48 +2107,20 @@ const transpile_visitor = {
     this.emit(content, p.loc.start); }
 
 
-, v$preprocessor(p, ln) {
-    const add_xform = arg =>
-      this.push_xform(ln, this.xform_tip).update(arg);
-
-    let ans = this.preprocess(p, add_xform);
-
-    if (p === ans) {
-      return this.emit(p.content, p.loc.start) }
-    else if ('string' === typeof ans) {
-      return this.emit(ans, p.loc.start) }
-    else if ('boolean' === typeof ans || 'function' === typeof ans) {
-      add_xform(ans);}
-
-    return this.emit_raw('')}
-
-, preprocess(p, add_xform) {return p}
-, push_xform(ln, xform_cur) {
-    return this.xform_next = create_xform(ln, xform_cur)}
-
-, _xform_start_line(ln) {
-    while (true) {
-      const xform = this.xform_tip;
-      if (undefined === xform) {return}
-      if (null !== ln && xform.depth <= ln.len_indent) {
-        return}
-
-      this.xform_tip = xform.next;
-      if (xform.done) {xform.done(ln);} } }
-
-, _xform_finish_line(line_src, ln) {
-    const xform_tip = this.xform_tip;
-
-    // switch to xform_next after finishing the current line
-    const xform_next = this.xform_next;
-    if (undefined !== xform_next) {
-      this.xform_next = undefined;
-      this.xform_tip = xform_next;}
-
-    if (undefined === xform_tip) {return line_src}
-
-    return xform_tip.process(line_src, ln)}
-
+, v$preprocessor(p, ln) {this.emit(p.content);}
+, v$preprocessor_sz(p, ln) {this.emit(p.ans);}
+, v$preprocessor_inc(p, ln) {
+    if (this.inc_preprocessor) {
+      this.emit(`//+~${p.content}`); } }
+, v$preprocessor_exc(p, ln) {
+    if (this.inc_preprocessor) {
+      this.emit(`//-~${p.content}`); } }
+, v$exclude_line(p, ln) {
+    if (this.inc_preprocessor) {
+      this.emit(p.content);} }
+, v$exclude_part(p, ln) {
+    if (this.inc_preprocessor) {
+      this.emit(p.content);} }
 
 , v$str: direct_src
 , v$str1: direct_src
@@ -2092,37 +2160,49 @@ function validate_jsy_op_item(jsy_op_item) {
 
 const version = 'GITREPO';
 
-function jsy_transpile(jsy_ast, feedback) {
-  return [... jsy_iter_transpile(jsy_ast, feedback)]
+function jsy_transpile(ast, feedback) {
+  return [... jsy_iter_transpile(ast, feedback)]
     .join('') // join the stream that has embedded newlines
     .replace(/\s+$/, '\n') }// trimming excess whitespace at end into single newline
 
-function * jsy_iter_transpile(jsy_ast, feedback) {
+function * jsy_iter_transpile(ast, feedback) {
   if (! feedback) {feedback = {};}
 
-  if ('string' === typeof jsy_ast) {
-    jsy_ast = scan_jsy(jsy_ast, feedback);}
+  if ('string' === typeof ast) {
+    ast = jsy_scan(ast, feedback);}
 
-  let visitor ={
-    __proto__: transpile_visitor
-  , ... feedback.visitor};
 
-   {
+  let preprocess = feedback.preprocessor?.()
+    ?? basic_preprocessor(feedback.defines);
+
+  if (preprocess) {// preprocessor pass
+    let pp_visitor ={
+      __proto__: preprocess_visitor
+    , ... feedback.preprocess_visitor
+    , preprocess};
+
+    ast = pp_visitor.ast_iter(ast);}
+
+
+   {// transpile pass
+    let jsy_visitor ={
+      __proto__: transpile_visitor
+    , ... feedback.visitor};
+
     if (feedback.checkOptionalComma) {
-      visitor.checkOptionalComma = feedback.checkOptionalComma;}
+      jsy_visitor.checkOptionalComma = feedback.checkOptionalComma;}
 
     if (feedback.addSourceMapping) {
-      visitor.addSourceMapping = feedback.addSourceMapping;}
-
-    visitor.preprocess = feedback.preprocessor?.()
-      ?? basic_preprocessor(feedback.defines);}
+      jsy_visitor.addSourceMapping = feedback.addSourceMapping;}
 
 
-  yield * visitor.ast_iter(jsy_ast);
+    yield * jsy_visitor.ast_iter(ast);}
 
-  let srcmap = feedback.inlineSourceMap?.();
-  if (srcmap) {
-    yield sourcemap_comment(srcmap, '\n');} }
+
+   {// sourcemap output
+    let srcmap = feedback.inlineSourceMap?.();
+    if (srcmap) {
+      yield sourcemap_comment(srcmap, '\n');} } }
 
 /* A tiny implementation of SourceMapGenerator usable in ES Module, CommonJS, and Browser friendly formats
 
