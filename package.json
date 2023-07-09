@@ -1,6 +1,6 @@
 {
   "name": "@jsy-lang/jsy",
-  "version": "0.10.3",
+  "version": "0.10.4",
   "description": "JSY offside syntax for ECMAScript/JS",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
   "license": "BSD-2-Clause",
@@ -31,6 +31,7 @@
   },
   "files": [
     "esm",
+    "cjs",
     "code",
     "jsy-script.js",
     "transpile.mjs",
