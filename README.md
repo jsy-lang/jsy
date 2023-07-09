@@ -1,4 +1,5 @@
-# `@jsy-lang/jsy` _(formerly `jsy-transpile`)_
+# `@jsy-lang/jsy`
+_(formerly [`jsy-transpile`](https://www.npmjs.com/package/jsy-transpile))_
 
 JSY is a syntax dialect for ECMAScript using offside indentation
 similar to [Python][] or [CoffeeScript][]
