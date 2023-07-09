@@ -37,7 +37,10 @@ export default [
   // add rpi_commonjs to support @rollup/pluginutils use of picomatch
   { ... _cfg_, input: 'code/rollup.js',
     plugins: [ rpi_commonjs(), ..._cfg_.plugins ],
-    output: {file: 'esm/rollup.js', format: 'es', sourcemap: true} },
+    output: [
+      {file: 'esm/rollup.js', format: 'es', sourcemap: true},
+      {file: 'cjs/rollup.cjs', format: 'cjs', sourcemap: true},
+    ]},
 ]
 
 
@@ -45,7 +48,9 @@ export default [
 function * add_jsy(src_name, opt={}) {
   const input = `code/${src_name}${opt.ext || '.jsy'}`
   yield { ..._cfg_, input, output: [
-    { file: `esm/${src_name}.js`, format: 'es', sourcemap: true }, ]}
+    { file: `esm/${src_name}.js`, format: 'es', sourcemap: true },
+    { file: `cjs/${src_name}.cjs`, format: 'cjs', exports: 'named', sourcemap: true },
+  ]}
 
   if (_cfg_min_ && opt.min)
     yield { ..._cfg_min_, input, output: [

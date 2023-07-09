@@ -1,11 +1,10 @@
-//import { jsy_transpile_srcmap } from '@jsy-lang/jsy'
-import { jsy_transpile_srcmap } from 'jsy-transpile'
+import { jsy_transpile_srcmap, version } from './jsy/with_srcmap.jsy'
 import { createFilter } from '@rollup/pluginutils'
 
-export function jsy_rollup_plugin(config) {
+export default function jsy_rollup_plugin(config) {
   config = {
     include: ['**/*.jsy'],
-    exclude: ['**/*.mjs', '**/*.cjs', 'node_modules/**'],
+    exclude: ['node_modules/**'],
     ... config }
 
   const filter = createFilter(config.include, config.exclude)
@@ -15,7 +14,7 @@ export function jsy_rollup_plugin(config) {
     preprocessor = () => config.preprocess
 
   return {
-    name: 'jsy',
+    name: `jsy-${version}`,
     transform(code, id) {
       if (! filter(id)) return
 
@@ -35,5 +34,3 @@ export function jsy_rollup_plugin(config) {
     }
   }
 }
-
-export { jsy_rollup_plugin as default }
