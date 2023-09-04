@@ -59,9 +59,9 @@ function compile_context_scanner(context_scanners) ::
 
   function build_composite_scanner() ::
     const ds_body = new DispatchScanner().startCompile()
-    ds_body.description = 'Dispatch scanner (0)'
+    ds_body.description = 'JSY Dispatch scanner (0)'
     const ds_first = new DispatchFirstlineScanner().startCompile()
-    ds_first.description = 'Firstline Dispatch scanner (0)'
+    ds_first.description = 'Firstline JSY Dispatch scanner (0)'
 
     for const scanner of context_scanners ::
       if ! scanner :: continue
