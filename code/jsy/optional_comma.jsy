@@ -1,8 +1,9 @@
 const rx_punct = /* #__PURE__ */ /[,.;:?]/
-const rx_binary_ops = /* #__PURE__ */ /\&\&|\|\|/
+const rx_binary_ops = /* #__PURE__ */ /\&\&|\|\||\?\?/
+const rx_add_sub_ops = /* #__PURE__ */ /(?<![+-])[+-]/ // but exclude increment and decrement ops
 
 const rx_disrupt_comma_tail = /* #__PURE__ */
-  _regexp_join('', [ rx_punct, /=>/, /[+-]/, rx_binary_ops ], '\\s*$')
+  _regexp_join('', [ rx_punct, /=>/, rx_add_sub_ops, rx_binary_ops ], '\\s*$')
 
 const rx_disrupt_comma_head = /* #__PURE__ */
   _regexp_join('^\\s*', [ rx_punct, rx_binary_ops ], '')

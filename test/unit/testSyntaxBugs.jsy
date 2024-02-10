@@ -80,6 +80,26 @@ function * iterBugWithOptionalCommas() ::
       "       @ !has  || has .split(' ').every @ a => op.attrs.includes @ a"
       "    && @ !sans || sans.split(' ').every @ a => ! op.attrs.includes @ a"
 
+  yield @{}
+    title: 'Problem with optional commas and post-increment operator'
+    source: @[]
+      "let a = 0"
+      "let data = @{}"
+      "  a"
+      "  b: 2"
+      "  c: a++ // here"
+      "  d: 3"
+
+  yield @{}
+    title: 'Problem with optional commas and post-decrement operator'
+    source: @[]
+      "let a = 0"
+      "let data = @{}"
+      "  a"
+      "  b: 2"
+      "  c: a-- // here"
+      "  d: 3"
+
 
 function * iterBugWithBlankFirstLine() ::
   yield @{}
