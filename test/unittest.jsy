@@ -1,4 +1,3 @@
-(require('source-map-support') || {install(){}}).install()
 
 import './scanners/test_basic_offside.jsy'
 import './scanners/test_offside_ast.jsy'

@@ -1,4 +1,4 @@
-const { assert } = require('chai')
+import { assert } from 'chai'
 import { basic_offside_scanner } from '@jsy-lang/jsy/esm/scanner/index.js'
 
 describe @ 'Scanners', @=> ::

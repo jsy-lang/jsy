@@ -1,6 +1,6 @@
-const { assert } = require('chai')
+import { assert } from 'chai'
 import { jsy_transpile, scan_jsy } from '@jsy-lang/jsy/esm/all.js'
-const { SourceMapGenerator } = require('source-map')
+import SourceMapGenerator from 'tiny-source-map'
 
 
 describe @ 'JSY Scanner (doc example)', @=> ::

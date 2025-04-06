@@ -1,4 +1,4 @@
-const { assert } = require('chai')
+import { assert } from 'chai'
 import { scan_jsy, jsy_transpile } from '@jsy-lang/jsy/esm/all.js'
 
 export function scan_jsy_lines(jsy_lines) ::

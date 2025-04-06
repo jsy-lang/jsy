@@ -5,9 +5,9 @@
     "@jsy-lang/jsy": "file:.."
   },
   "devDependencies": {
-    "acorn": "^8.8.2",
-    "chai": "^4.3.7",
-    "mocha": "^10.2.0"
+    "acorn": "^8.14.1",
+    "chai": "^5.2.0",
+    "mocha": "^11.1.0"
   },
   "scripts": {
     "prebuild": "test -d ./node_modules || npm -s ci",

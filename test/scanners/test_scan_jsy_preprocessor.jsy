@@ -1,7 +1,6 @@
-const { assert } = require('chai')
+import { assert } from 'chai'
 import { jsy_transpile, scan_jsy } from '@jsy-lang/jsy/esm/all.js'
 import { scan_jsy_lines, jsy_scan_throws, test_ast_tokens_content } from './_ast_test_utils.jsy'
-const { SourceMapGenerator } = require('source-map')
 
 const _pp_normalize = js_src =>
   js_src.split('\n').map @ ln => ln.trimRight()
