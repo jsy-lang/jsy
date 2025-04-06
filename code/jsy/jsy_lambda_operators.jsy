@@ -1,21 +1,21 @@
 
 
 // @::   @::>   @::>*   @::*
-const lambda_block_tbl = /* #__PURE__ */ @{}
+const lambda_block_tbl = @{}
   '': a => @: pre: `((${a}) => {`, post: '})'
   '>': a => @: pre: `(async (${a}) => {`, post: '})'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).bind(this))'
   '*': a => @: pre: `((function * (${a}) {`, post: '}).bind(this))'
 
 // @=>   @=>>
-const lambda_arrow_tbl = /* #__PURE__ */ @{}
+const lambda_arrow_tbl = @{}
   __proto__: lambda_block_tbl
   '': a => @: pre: `((${a}) =>`, post: ')'
   '>': a => @: pre: `(async (${a}) =>`, post: ')'
 
 
 // @!::   @!::>   @!::>*   @!::*
-const iife_expr_tbl = /* #__PURE__ */ @{}
+const iife_expr_tbl = @{}
   '': a => @: pre: `(((${a}) => {`, post: '})())'
   '>': a => @: pre: `((async (${a}) => {`, post: '})())'
   '>*': a => @: pre: `((async function * (${a}) {`, post: '}).call(this))'
@@ -23,7 +23,7 @@ const iife_expr_tbl = /* #__PURE__ */ @{}
 
 
 // @!=>   @!=>>
-const iife_arrow_tbl = /* #__PURE__ */ @{}
+const iife_arrow_tbl = @{}
   __proto__: iife_expr_tbl
   '': a => @: pre: `(((${a}) =>`, post: ')())'
   '>': a => @: pre: `((async (${a}) =>`, post: ')())'
@@ -50,7 +50,7 @@ const bindLambdaOpResolve = (table, as_args=(v=>v)) =>
 
 
 
-export const at_lambda_offside = /* #__PURE__ */ @[]
+export const at_lambda_offside = @[]
   // object unpack all args
   @{} jsy_op0: '@\\:=>', jsy_op: /@\\:(.*?)=>(>?\*?)/,
       pre: '(()=>', post: ')'
@@ -84,7 +84,7 @@ export const at_lambda_offside = /* #__PURE__ */ @[]
       opResolve: bindLambdaOpZero @ lambda_block_tbl
 
 
-export const at_lambda_iife_offside = /* #__PURE__ */ @[]
+export const at_lambda_iife_offside = @[]
   @{} jsy_op: '::!', pre: '{(()=>{', post: '})()}', is_kw_close: true
   @{} jsy_op: '::!>', pre: '{(async ()=>{', post: '})()}', is_kw_close: true
 
@@ -106,7 +106,7 @@ export const at_lambda_iife_offside = /* #__PURE__ */ @[]
       opResolve: bindLambdaOpZero @ iife_expr_tbl
 
 
-export const at_lambda_offside_all = /* #__PURE__ */ [].concat @
+export const at_lambda_offside_all = [].concat @
   at_lambda_offside
   at_lambda_iife_offside
 

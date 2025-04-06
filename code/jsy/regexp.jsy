@@ -5,10 +5,10 @@ const regexp_keyword = sz => ::
   sz = sz.replace(/[ ]+/g, '[ ]+') // allow one or more spaces
   return `(?:${sz})` // using a non-matching group
 
-const re_keyword_space_prefix = /* #__PURE__ */ /^(?:[ \t]*)/.source ; // start of line and indent
-const re_keyword_trailer = /* #__PURE__ */ /(?:[ \t]*(?=[^\w,:;=]|$))/.source ;
+const re_keyword_space_prefix = /^(?:[ \t]*)/.source ; // start of line and indent
+const re_keyword_trailer = /(?:[ \t]*(?=[^\w,:;=]|$))/.source ;
 
-export const rx_keyword_ops = /* #__PURE__ */ new RegExp @
+export const rx_keyword_ops = new RegExp @
   re_keyword_space_prefix
     + `(?:${keywords_locator_parts.map(regexp_keyword).join('|')})`
     + re_keyword_trailer
@@ -17,14 +17,14 @@ export const rx_keyword_ops = /* #__PURE__ */ new RegExp @
 const regexp_from_offside_op = offside_op =>
   regexp_from_jsy_op @ offside_op.jsy_op, true
 
-export const rx_offside_ops = /* #__PURE__ */ new RegExp @
+export const rx_offside_ops = new RegExp @
   at_offside
     .map(regexp_from_offside_op)
     .filter(Boolean)
     .join('|')
   'g' // global regexp
 
-export const rx_unknown_ops = /* #__PURE__ */ new RegExp @
+export const rx_unknown_ops = new RegExp @
   at_unknown_ops
     .map(regexp_from_offside_op)
     .filter(Boolean)

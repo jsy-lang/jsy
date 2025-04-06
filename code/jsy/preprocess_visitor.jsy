@@ -1,5 +1,5 @@
 
-export const preprocess_visitor = /* #__PURE__ */ @{}
+export const preprocess_visitor = @{}
   __proto__: null
 
   *ast_iter(ast) ::

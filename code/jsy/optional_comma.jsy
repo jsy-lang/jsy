@@ -1,18 +1,18 @@
-const rx_punct = /* #__PURE__ */ /[,.;:?]/
-const rx_binary_ops = /* #__PURE__ */ /\&\&|\|\||\?\?/
-const rx_add_sub_ops = /* #__PURE__ */ /(?<![+-])[+-]/ // but exclude increment and decrement ops
+const rx_punct = /[,.;:?]/
+const rx_binary_ops = /\&\&|\|\||\?\?/
+const rx_add_sub_ops = /(?<![+-])[+-]/ // but exclude increment and decrement ops
 
-const rx_disrupt_comma_tail = /* #__PURE__ */
+const rx_disrupt_comma_tail = 
   _regexp_join('', [ rx_punct, /=>/, rx_add_sub_ops, rx_binary_ops ], '\\s*$')
 
-const rx_disrupt_comma_head = /* #__PURE__ */
+const rx_disrupt_comma_head = 
   _regexp_join('^\\s*', [ rx_punct, rx_binary_ops ], '')
 
-const rx_rescue_comma_head = /* #__PURE__ */
+const rx_rescue_comma_head = 
   _regexp_join('^\\s*', [ /\.\.\./ ], '')
 
-const rx_last_bits = /* #__PURE__ */ /[()\[\]{}]|<\/?\w*>/ ;
-const rx_dict_as_name = /* #__PURE__ */ /\s+as\s+\w+/g
+const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
+const rx_dict_as_name = /\s+as\s+\w+/g
 
 export function checkOptionalComma(op, pre_body, post_body) ::
   let pre_end = pre_body.split(rx_last_bits).pop()
@@ -40,7 +40,7 @@ export function checkOptionalComma(op, pre_body, post_body) ::
   return false
 
 
-const fn_flavors = /* #__PURE__ */ @[]
+const fn_flavors = @[]
   (function(){}).constructor
   (function *(){}).constructor
   (async function(){}).constructor

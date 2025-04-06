@@ -9,7 +9,7 @@ export const as_op_prefix = (rx, sep=rx.source, inject_sep=sep) => @:
     return @{} ... at_res, pre
 
 
-export const jsy_prefix_operators = /* #__PURE__ */ @[]
+export const jsy_prefix_operators = @[]
   as_op_prefix(/;/)
   as_op_prefix(/,/)
   as_op_prefix(/\?(\.?)/, '?', '?.')

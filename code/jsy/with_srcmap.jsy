@@ -1,7 +1,7 @@
 import tiny_sourcemap from 'tiny-source-map'
 import { jsy_transpile, version } from './transpile.jsy'
 
-const _jsy_srcmap_ctx = /* #__PURE__ */ @{}
+const _jsy_srcmap_ctx = @{}
   i: 1, ts: Date.now().toString(36)
 
 export function jsy_transpile_srcmap(jsy_src, ... args) ::

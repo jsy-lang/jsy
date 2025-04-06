@@ -1,11 +1,11 @@
 import { at_offside_map, extra_jsy_ops, op_template_str } from './jsy_operators.jsy'
 import { checkOptionalComma } from './optional_comma.jsy'
 
-const rx_leading_space = /* #__PURE__ */ /^[ \t]+/ ;
+const rx_leading_space = /^[ \t]+/ ;
 
-const root_head = /* #__PURE__ */ Object.freeze @: __proto__: null
+const root_head = Object.freeze @: __proto__: null
 
-export const transpile_visitor = /* #__PURE__ */ @{}
+export const transpile_visitor = @{}
   __proto__: null
 
   *ast_iter(jsy_ast) ::

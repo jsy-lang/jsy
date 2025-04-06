@@ -3,13 +3,13 @@ import { at_func_offside } from './jsy_func_operators.jsy'
 import { apply_prefix_operators, jsy_prefix_operators } from './jsy_prefix_operators.jsy'
 
 // Order matters here -- list more specific matchers higher (first) in the order
-export const at_outer_offside = /* #__PURE__ */ @[]
+export const at_outer_offside = @[]
   @{} jsy_op: '::()', pre: '(', post: ')', nestBreak: true
   @{} jsy_op: '::{}', pre: '{', post: '}', nestBreak: true
   @{} jsy_op: '::[]', pre: '[', post: ']', nestBreak: true
   @{} jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true
 
-export const at_inner_offside_basic = /* #__PURE__ */ @[]
+export const at_inner_offside_basic = @[]
   @{} jsy_op: '@:', pre: '({', post: '})', implicitSep: ',', isFoldable: true
   @{} jsy_op: '@#', pre: '([', post: '])', implicitSep: ',', isFoldable: true
   @{} jsy_op: '@()', pre: '(', post: ')', implicitSep: ',', isFoldable: true
@@ -18,18 +18,18 @@ export const at_inner_offside_basic = /* #__PURE__ */ @[]
   @{} jsy_op: '@', pre: '(', post: ')', implicitSep: ',', isFoldable: true
 
 
-export const at_inner_offside_core = /* #__PURE__ */ [].concat @
+export const at_inner_offside_core = [].concat @
   at_func_offside
   at_lambda_offside
   at_lambda_iife_offside
   at_inner_offside_basic
 
 
-export const at_experimental = /* #__PURE__ */ @[]
+export const at_experimental = @[]
   /* experimental ideas; may be removed at any time */
 
 
-export const at_unknown_ops = /* #__PURE__ */ @[]
+export const at_unknown_ops = @[]
   @{} jsy_op0: '?@', jsy_op: /\?@[^\w\s]+/,
   @{} jsy_op0: ';@', jsy_op: /;@[^\w\s]+/,
   @{} jsy_op0: ',@', jsy_op: /,@[^\w\s]+/,
@@ -37,7 +37,7 @@ export const at_unknown_ops = /* #__PURE__ */ @[]
   @{} jsy_op0: '@', jsy_op: /@[^\w\s]+/,
 
 
-export const at_inner_offside = /* #__PURE__ */
+export const at_inner_offside = 
   apply_prefix_operators @
     at_inner_offside_core.flat()
     jsy_prefix_operators
@@ -45,13 +45,13 @@ export const at_inner_offside = /* #__PURE__ */
 
 export const op_template_str = @{} nestBreak: true
 
-export const at_offside = /* #__PURE__ */ [].concat @
+export const at_offside = [].concat @
   at_outer_offside
   at_inner_offside
   at_experimental
 
 
-export const at_offside_map = /* #__PURE__ */ at_offside.reduce @
+export const at_offside_map = at_offside.reduce @
   (m, ea) => ::
     if ea.jsy_op0 ::
       m[ea.jsy_op0] = ea
@@ -65,16 +65,16 @@ export const at_offside_map = /* #__PURE__ */ at_offside.reduce @
 function kwExpandOp(p) ::
   return @{} __proto__: this, pre: p.kw + this.pre
 
-export const extra_jsy_ops = /* #__PURE__ */ @{}
+export const extra_jsy_ops = @{}
   kw_normal: @{} jsy_op: 'kw', pre: ' (', post: ')', kwExpandOp, in_nested_block: true
   kw_explicit: @{} jsy_op: 'kw', pre: '', post: '', kwExpandOp, in_nested_block: true
   tmpl_param: @{} jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true
   jsx_param: @{} jsy_op: 'jsx_param', pre: '', post: '', in_nested_block: true
 
-export const keywords_with_args = /* #__PURE__ */ @[] 'if', 'while', 'for await', 'for', 'switch'
-export const keywords_zero_args = /* #__PURE__ */ @[] 'catch'
+export const keywords_with_args = @[] 'if', 'while', 'for await', 'for', 'switch'
+export const keywords_zero_args = @[] 'catch'
 
-export const keywords_locator_parts = /* #__PURE__ */ [].concat @
+export const keywords_locator_parts = [].concat @
   keywords_with_args.map @ e => `else ${e}`
   keywords_with_args
   keywords_zero_args
