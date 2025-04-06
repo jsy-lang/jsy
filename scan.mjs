@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-//import { scan_jsy } from '@jsy-lang/jsy'
-import { scan_jsy, iter_ast_ndjson } from 'jsy-transpile/esm/jsy/scan.js'
+import { scan_jsy, iter_ast_ndjson } from '@jsy-lang/jsy'
 import { readFile } from 'node:fs/promises'
 
 async function jsy_scan_main(filename, feedback={}) {

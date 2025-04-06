@@ -9,7 +9,7 @@ export default function jsy_rollup_plugin(config) {
 
   const filter = createFilter(config.include, config.exclude)
   const sourcemap = false !== config.sourcemap && false !== config.sourceMap
-  const { preprocessor, defines } = config
+  let { preprocessor, defines } = config
   if (! preprocessor && config.preprocess)
     preprocessor = () => config.preprocess
 

@@ -1,5 +1,5 @@
 import * as acorn from 'acorn'
-import jsy_transpile from 'jsy-transpile'
+import jsy_transpile from '@jsy-lang/jsy'
 
 export default jsy_as_ast
 export function jsy_as_ast(jsy_code) ::

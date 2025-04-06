@@ -1,14 +1,14 @@
-# `@jsy-lang/jsy`
+# [`@jsy-lang/jsy`](https://www.npmjs.com/package/@jsy-lang/jsy)
 _(formerly [`jsy-transpile`](https://www.npmjs.com/package/jsy-transpile))_
 
 JSY is a syntax dialect for ECMAScript using offside indentation
 similar to [Python][] or [CoffeeScript][]
-from ES5 to ES2023.
+from ES5 to modern JavaScript (ES2025).
 
 
 This library is the JSY tranpiler and scanner written in JSY itself.
 Zero runtime dependencies. No Babel. No Acorn.
-6262 unit tests and counting.
+6300 unit tests and counting.
 
 ## Docs
 

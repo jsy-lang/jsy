@@ -1,11 +1,10 @@
 import {builtinModules} from 'node:module'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_commonjs from '@rollup/plugin-commonjs'
-import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from './stable/rollup-jsy-bootstrap.mjs'
 import rpi_terser from '@rollup/plugin-terser'
 import rpi_virtual from '@rollup/plugin-virtual'
-import pkg from './package.json' assert {type: 'json'}
+import pkg from './package.json' with {type: 'json'}
 
 const _rpis_ = (defines, ...args) => [
   rpi_virtual({
@@ -13,8 +12,7 @@ const _rpis_ = (defines, ...args) => [
   }),
   rpi_jsy({defines}),
   rpi_resolve(),
-  ...args,
-  rpi_dgnotify()]
+  ...args]
 
 const _cfg_ = {
   external: id => /^\w*:/.test(id) || builtinModules.includes(id)

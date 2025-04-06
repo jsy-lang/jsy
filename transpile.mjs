@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-//import { jsy_transpile_srcmap } from '@jsy-lang/jsy'
-import { jsy_transpile_srcmap } from 'jsy-transpile'
+import { jsy_transpile_srcmap } from '@jsy-lang/jsy'
 import { readFile } from 'node:fs/promises'
 
 async function jsy_transpile_main(filename, opt={}) {
@@ -11,7 +10,7 @@ async function jsy_transpile_main(filename, opt={}) {
         : [await _read_stdin(), '<stdin>']
 
     if (! jsy_src)
-      throw new Error('jsy-transpile expected a filename argument or stdin input')
+      throw new Error('@jsy-lang/jsy expected a filename argument or stdin input')
 
     opt.as_rec = false
     if (process.env.JSY_NOSRCMAP)

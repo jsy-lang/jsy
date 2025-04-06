@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { basic_offside_scanner } from 'jsy-transpile/esm/scanner/index.js'
+import { basic_offside_scanner } from '@jsy-lang/jsy/esm/scanner/index.js'
 
 describe @ 'Scanners', @=> ::
   describe @ 'Basic Offside Line Scanner', @=> ::

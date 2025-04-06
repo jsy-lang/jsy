@@ -1,5 +1,5 @@
 const { assert } = require('chai')
-import { scan_javascript } from 'jsy-transpile/esm/scanner/index.js'
+import { scan_javascript } from '@jsy-lang/jsy/esm/scanner/index.js'
 
 describe @ 'Scanners', @=> ::
   describe @ 'hash_fnv32 example', @=> ::

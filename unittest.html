@@ -21,7 +21,7 @@
   window.mocha.setup({ ui: 'bdd' })
   window['source-map'] = window.sourceMap
   window.require = module => window[module]
-  window.unittest_root = window.location // new URL('https://unpkg.com/jsy-transpile/')
+  window.unittest_root = window.location // new URL('https://unpkg.com/@jsy-lang/jsy/')
 
   import('./test/__unittest.iife.js', unittest_root)
     .then(() => mocha.run())

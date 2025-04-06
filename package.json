@@ -1,6 +1,6 @@
 {
   "name": "@jsy-lang/jsy",
-  "version": "0.10.7",
+  "version": "0.10.8",
   "description": "JSY offside syntax for ECMAScript/JS",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
   "license": "BSD-2-Clause",
@@ -51,14 +51,13 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.4",
-    "@rollup/plugin-node-resolve": "^15.2.1",
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.3",
     "@rollup/plugin-virtual": "^3.0.1",
     "@rollup/pluginutils": "^5.0.4",
     "micromatch": "^4.0.5",
-    "rollup": "^3.28.1",
-    "rollup-plugin-dgnotify": "^0.1.8",
+    "rollup": "^3.29.5",
     "source-map": "^0.7.4",
     "tiny-source-map": "^0.8.0"
   },

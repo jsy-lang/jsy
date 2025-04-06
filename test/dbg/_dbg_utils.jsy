@@ -1,6 +1,6 @@
 require('source-map-support').install()
 
-const { transpile_jsy, scan_jsy } = require('jsy-transpile/cjs/all')
+const { transpile_jsy, scan_jsy } = require('@jsy-lang/jsy/cjs/all')
 
 function scan_jsy_lines(jsy_lines) ::
   return scan_jsy @ jsy_lines.join('\n')
