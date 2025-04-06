@@ -1,6 +1,6 @@
-const rx_escape_offside_ops =  /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
-const re_space_prefix =  /(?:^|[ \t]+)/.source ; // spaces or start of line
-const re_space_suffix =  /(?=$|[ \t]+)/.source ; // spaces or end of line
+const rx_escape_offside_ops = /[?|+*@:.\/\\\(\)\{\}\[\]\=\>]/g ;
+const re_space_prefix = /(?:^|[ \t]+)/.source ; // spaces or start of line
+const re_space_suffix = /(?=$|[ \t]+)/.source ; // spaces or end of line
 
 function regexp_from_jsy_op(jsy_op, with_spacing) {
   if ('string' === typeof jsy_op) {
@@ -27,21 +27,21 @@ function sourcemap_comment(srcmap_json, newline='\n') {
   return `${newline}//# ${'sourceMapping'}URL=data:application/json;charset=utf-8;base64,${b64}${newline}`}
 
 // @::   @::>   @::>*   @::*
-const lambda_block_tbl = {
+const lambda_block_tbl ={
   '': a =>({pre: `((${a}) => {`, post: '})'})
 , '>': a =>({pre: `(async (${a}) => {`, post: '})'})
 , '>*': a =>({pre: `((async function * (${a}) {`, post: '}).bind(this))'})
 , '*': a =>({pre: `((function * (${a}) {`, post: '}).bind(this))'}) };
 
 // @=>   @=>>
-const lambda_arrow_tbl = {
+const lambda_arrow_tbl ={
   __proto__: lambda_block_tbl
 , '': a =>({pre: `((${a}) =>`, post: ')'})
 , '>': a =>({pre: `(async (${a}) =>`, post: ')'}) };
 
 
 // @!::   @!::>   @!::>*   @!::*
-const iife_expr_tbl = {
+const iife_expr_tbl ={
   '': a =>({pre: `(((${a}) => {`, post: '})())'})
 , '>': a =>({pre: `((async (${a}) => {`, post: '})())'})
 , '>*': a =>({pre: `((async function * (${a}) {`, post: '}).call(this))'})
@@ -49,7 +49,7 @@ const iife_expr_tbl = {
 
 
 // @!=>   @!=>>
-const iife_arrow_tbl = {
+const iife_arrow_tbl ={
   __proto__: iife_expr_tbl
 , '': a =>({pre: `(((${a}) =>`, post: ')())'})
 , '>': a =>({pre: `((async (${a}) =>`, post: ')())'}) };
@@ -76,7 +76,7 @@ const bindLambdaOpResolve = (table, as_args=(v=>v)) =>
 
 
 
-const at_lambda_offside = [
+const at_lambda_offside =[
   // object unpack all args
   {jsy_op0: '@\\:=>', jsy_op: /@\\:(.*?)=>(>?\*?)/,
       pre: '(()=>', post: ')'
@@ -110,7 +110,7 @@ const at_lambda_offside = [
       opResolve: bindLambdaOpZero(lambda_block_tbl) } ];
 
 
-const at_lambda_iife_offside = [
+const at_lambda_iife_offside =[
   {jsy_op: '::!', pre: '{(()=>{', post: '})()}', is_kw_close: true}
 , {jsy_op: '::!>', pre: '{(async ()=>{', post: '})()}', is_kw_close: true}
 
@@ -133,14 +133,14 @@ const at_lambda_iife_offside = [
 
 // Like lambdas without closing over `this`
 // @~::   @~::>   @~::>*   @~::*
-const func_block_tbl = {
+const func_block_tbl ={
   '': a =>({pre: `(function (${a}) {`, post: '})'})
 , '>': a =>({pre: `(async function(${a}) {`, post: '})'})
 , '>*': a =>({pre: `(async function * (${a}) {`, post: '})'})
 , '*': a =>({pre: `(function * (${a}) {`, post: '})'}) };
 
 
-const at_func_offside = [
+const at_func_offside =[
   {jsy_op0: '@~::', jsy_op: /@~(.*?)::(>?\*?)/,
       pre: '(function () {', post: '})',
       opResolve(p) {
@@ -158,7 +158,7 @@ const as_op_prefix = (rx, sep=rx.source, inject_sep=sep) =>({
     return {... at_res, pre} } });
 
 
-const jsy_prefix_operators = [
+const jsy_prefix_operators =[
   as_op_prefix(/;/)
 , as_op_prefix(/,/)
 , as_op_prefix(/\?(\.?)/, '?', '?.')];
@@ -195,13 +195,13 @@ function apply_prefix_operators(at_inner_operators, jsy_prefix_operators) {
   return res}
 
 // Order matters here -- list more specific matchers higher (first) in the order
-const at_outer_offside = [
+const at_outer_offside =[
   {jsy_op: '::()', pre: '(', post: ')', nestBreak: true}
 , {jsy_op: '::{}', pre: '{', post: '}', nestBreak: true}
 , {jsy_op: '::[]', pre: '[', post: ']', nestBreak: true}
 , {jsy_op: '::', pre: ' {', post: '}', nestBreak: true, is_kw_close: true} ];
 
-const at_inner_offside_basic = [
+const at_inner_offside_basic =[
   {jsy_op: '@:', pre: '({', post: '})', implicitSep: ',', isFoldable: true}
 , {jsy_op: '@#', pre: '([', post: '])', implicitSep: ',', isFoldable: true}
 , {jsy_op: '@()', pre: '(', post: ')', implicitSep: ',', isFoldable: true}
@@ -210,18 +210,18 @@ const at_inner_offside_basic = [
 , {jsy_op: '@', pre: '(', post: ')', implicitSep: ',', isFoldable: true} ];
 
 
-const at_inner_offside_core = /* #__PURE__ */ [].concat(
+const at_inner_offside_core = [].concat(
   at_func_offside
 , at_lambda_offside
 , at_lambda_iife_offside
 , at_inner_offside_basic);
 
 
-const at_experimental = [
+const at_experimental =[
   /* experimental ideas; may be removed at any time */];
 
 
-const at_unknown_ops = [
+const at_unknown_ops =[
   {jsy_op0: '?@', jsy_op: /\?@[^\w\s]+/,}
 , {jsy_op0: ';@', jsy_op: /;@[^\w\s]+/,}
 , {jsy_op0: ',@', jsy_op: /,@[^\w\s]+/,}
@@ -229,7 +229,7 @@ const at_unknown_ops = [
 , {jsy_op0: '@', jsy_op: /@[^\w\s]+/,} ];
 
 
-const at_inner_offside = /* #__PURE__ */
+const at_inner_offside = 
   apply_prefix_operators(
     at_inner_offside_core.flat()
   , jsy_prefix_operators);
@@ -237,13 +237,13 @@ const at_inner_offside = /* #__PURE__ */
 
 const op_template_str ={nestBreak: true};
 
-const at_offside = /* #__PURE__ */ [].concat(
+const at_offside = [].concat(
   at_outer_offside
 , at_inner_offside
 , at_experimental);
 
 
-const at_offside_map = /* #__PURE__ */ at_offside.reduce(
+const at_offside_map = at_offside.reduce(
   (m, ea) => {
     if (ea.jsy_op0) {
       m[ea.jsy_op0] = ea;}
@@ -257,16 +257,16 @@ const at_offside_map = /* #__PURE__ */ at_offside.reduce(
 function kwExpandOp(p) {
   return {__proto__: this, pre: p.kw + this.pre} }
 
-const extra_jsy_ops = {
+const extra_jsy_ops ={
   kw_normal:{jsy_op: 'kw', pre: ' (', post: ')', kwExpandOp, in_nested_block: true}
 , kw_explicit:{jsy_op: 'kw', pre: '', post: '', kwExpandOp, in_nested_block: true}
 , tmpl_param:{jsy_op: 'tmpl_param', pre: '', post: '', in_nested_block: true}
 , jsx_param:{jsy_op: 'jsx_param', pre: '', post: '', in_nested_block: true} };
 
-const keywords_with_args = ['if', 'while', 'for await', 'for', 'switch'];
-const keywords_zero_args = ['catch'];
+const keywords_with_args =['if', 'while', 'for await', 'for', 'switch'];
+const keywords_zero_args =['catch'];
 
-const keywords_locator_parts = /* #__PURE__ */ [].concat(
+const keywords_locator_parts = [].concat(
   keywords_with_args.map(e => `else ${e}`)
 , keywords_with_args
 , keywords_zero_args);
@@ -275,10 +275,10 @@ const regexp_keyword = sz => {
   sz = sz.replace(/[ ]+/g, '[ ]+'); // allow one or more spaces
   return `(?:${sz})` };// using a non-matching group
 
-const re_keyword_space_prefix =  /^(?:[ \t]*)/.source ; // start of line and indent
-const re_keyword_trailer =  /(?:[ \t]*(?=[^\w,:;=]|$))/.source ;
+const re_keyword_space_prefix = /^(?:[ \t]*)/.source ; // start of line and indent
+const re_keyword_trailer = /(?:[ \t]*(?=[^\w,:;=]|$))/.source ;
 
-const rx_keyword_ops = /* #__PURE__ */ new RegExp(
+const rx_keyword_ops = new RegExp(
   re_keyword_space_prefix
     + `(?:${keywords_locator_parts.map(regexp_keyword).join('|')})`
     + re_keyword_trailer
@@ -287,14 +287,14 @@ const rx_keyword_ops = /* #__PURE__ */ new RegExp(
 const regexp_from_offside_op = offside_op =>
   regexp_from_jsy_op(offside_op.jsy_op, true);
 
-const rx_offside_ops = /* #__PURE__ */ new RegExp(
+const rx_offside_ops = new RegExp(
   at_offside
     .map(regexp_from_offside_op)
     .filter(Boolean)
     .join('|')
 , 'g' );// global regexp
 
-const rx_unknown_ops = /* #__PURE__ */ new RegExp(
+const rx_unknown_ops = new RegExp(
   at_unknown_ops
     .map(regexp_from_offside_op)
     .filter(Boolean)
@@ -1054,9 +1054,9 @@ function compile_context_scanner(context_scanners) {
 
   function build_composite_scanner() {
     const ds_body = new DispatchScanner().startCompile();
-    ds_body.description = 'Dispatch scanner (0)';
+    ds_body.description = 'JSY Dispatch scanner (0)';
     const ds_first = new DispatchFirstlineScanner().startCompile();
-    ds_first.description = 'Firstline Dispatch scanner (0)';
+    ds_first.description = 'Firstline JSY Dispatch scanner (0)';
 
     for (const scanner of context_scanners) {
       if (! scanner) {continue}
@@ -1671,11 +1671,11 @@ function shunting_yard(defines) {
 
     if (1 !== args.length) {
       throw new SyntaxError(
-  `Invalid preprocessor expression: "${expr_src}"`) }
+`Invalid preprocessor expression: "${expr_src}"`) }
 
     return args[0]} }
 
-const preprocess_visitor = {
+const preprocess_visitor ={
   __proto__: null
 
 , *ast_iter(ast) {
@@ -1758,20 +1758,21 @@ const preprocess_visitor = {
     ln.content = content;
     return ln} };
 
-const rx_punct =  /[,.;:?]/;
-const rx_binary_ops =  /\&\&|\|\|/;
+const rx_punct = /[,.;:?]/;
+const rx_binary_ops = /\&\&|\|\||\?\?/;
+const rx_add_sub_ops = /(?<![+-])[+-]/; // but exclude increment and decrement ops
 
-const rx_disrupt_comma_tail = /* #__PURE__ */
-  _regexp_join('', [ rx_punct, /=>/, /[+-]/, rx_binary_ops ], '\\s*$');
+const rx_disrupt_comma_tail = 
+  _regexp_join('', [ rx_punct, /=>/, rx_add_sub_ops, rx_binary_ops ], '\\s*$');
 
-const rx_disrupt_comma_head = /* #__PURE__ */
+const rx_disrupt_comma_head = 
   _regexp_join('^\\s*', [ rx_punct, rx_binary_ops ], '');
 
-const rx_rescue_comma_head = /* #__PURE__ */
+const rx_rescue_comma_head = 
   _regexp_join('^\\s*', [ /\.\.\./ ], '');
 
-const rx_last_bits =  /[()\[\]{}]|<\/?\w*>/ ;
-const rx_dict_as_name =  /\s+as\s+\w+/g;
+const rx_last_bits = /[()\[\]{}]|<\/?\w*>/ ;
+const rx_dict_as_name = /\s+as\s+\w+/g;
 
 function checkOptionalComma(op, pre_body, post_body) {
   let pre_end = pre_body.split(rx_last_bits).pop();
@@ -1799,7 +1800,7 @@ function checkOptionalComma(op, pre_body, post_body) {
   return false}
 
 
-const fn_flavors = [
+const fn_flavors =[
   (function(){}).constructor
 , (function *(){}).constructor
 , (async function(){}).constructor
@@ -1820,11 +1821,11 @@ function _regexp_join(pre, rx_options, post) {
     .flatMap(rx => rx ? [rx.source] : []);
   return new RegExp(`${pre}(?:${rx_options.join('|')})${post}`)}
 
-const rx_leading_space =  /^[ \t]+/ ;
+const rx_leading_space = /^[ \t]+/ ;
 
-const root_head = /* #__PURE__ */ Object.freeze({__proto__: null});
+const root_head = Object.freeze({__proto__: null});
 
-const transpile_visitor = {
+const transpile_visitor ={
   __proto__: null
 
 , *ast_iter(jsy_ast) {
@@ -2375,7 +2376,7 @@ function _b64_vlq(v) {
   }
 }
 
-const _jsy_srcmap_ctx = {
+const _jsy_srcmap_ctx ={
   i: 1, ts: Date.now().toString(36)};
 
 function jsy_transpile_srcmap(jsy_src, ... args) {
