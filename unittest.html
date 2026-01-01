@@ -12,15 +12,12 @@
 <div id="mocha"></div>
 
 <script type=module>
-  import { jsy_transpile } from './esm/index.js'
-  window.jsy_transpile = jsy_transpile 
-
   window.mocha.setup({ ui: 'bdd' })
   window['source-map'] = window.sourceMap
   window.require = module => window[module]
   window.unittest_root = window.location // new URL('https://unpkg.com/@jsy-lang/jsy/')
 
-  import('./test/__unittest.iife.js', unittest_root)
+  import(new URL('./test/__unittest.iife.js', unittest_root))
     .then(() => mocha.run())
 </script>
 

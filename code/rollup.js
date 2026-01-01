@@ -1,7 +1,7 @@
 import { jsy_transpile_srcmap, version } from './jsy/with_srcmap.jsy'
 import { createFilter } from '@rollup/pluginutils'
 
-export default function jsy_rollup_plugin(config) {
+export function jsy_rollup_plugin(config) {
   config = {
     include: ['**/*.jsy'],
     exclude: ['node_modules/**'],
@@ -34,3 +34,5 @@ export default function jsy_rollup_plugin(config) {
     }
   }
 }
+
+export {jsy_rollup_plugin as default}
