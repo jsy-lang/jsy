@@ -43,6 +43,7 @@
   "module": "esm/index.js",
   "browser": "esm/index.js",
   "exports": {
+    "./rollup": "./esm/rollup.js",
     "./*": "./*",
     ".": "./esm/index.js"
   },
@@ -51,12 +52,12 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.3",
-    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.3",
     "@rollup/plugin-virtual": "^3.0.1",
-    "@rollup/pluginutils": "^5.0.4",
-    "rollup": "^4.39.0",
+    "@rollup/pluginutils": "^5.3.0",
+    "rollup": "^4.54.0",
     "tiny-source-map": "^0.8.0"
   },
   "scripts": {

@@ -21,8 +21,7 @@ const _cfg_ = {
 
 let is_watch = process.argv.includes('--watch')
 let fast_build = 'fast' === process.env.JSY_BUILD || is_watch
-const _cfg_min_ = fast_build || is_watch || 'undefined'===typeof rpi_terser ? null
-  : { ... _cfg_, plugins: [ ... _cfg_.plugins, rpi_terser() ]}
+const _rpi_min_ = fast_build || is_watch || 'undefined'===typeof rpi_terser ? null : [ rpi_terser() ]
 
 
 export default [
@@ -37,10 +36,9 @@ export default [
     plugins: [ rpi_commonjs(), ..._cfg_.plugins ],
     output: [
       {file: 'esm/rollup.js', format: 'es', sourcemap: true},
-      {file: 'cjs/rollup.cjs', format: 'cjs', sourcemap: true},
+      {file: 'cjs/rollup.cjs', format: 'cjs', exports: 'named', sourcemap: true},
     ]},
 ]
-
 
 
 function * add_jsy(src_name, opt={}) {
@@ -48,10 +46,10 @@ function * add_jsy(src_name, opt={}) {
   yield { ..._cfg_, input, output: [
     { file: `esm/${src_name}.js`, format: 'es', sourcemap: true },
     { file: `cjs/${src_name}.cjs`, format: 'cjs', exports: 'named', sourcemap: true },
-  ]}
 
-  if (_cfg_min_ && opt.min)
-    yield { ..._cfg_min_, input, output: [
-      { file: `esm/${src_name}.min.js`, format: 'es', sourcemap: false }, ]}
+    (_rpi_min_ && opt.min)
+      ? { plugins: _rpi_min_, file: `esm/${src_name}.min.js`, format: 'es', sourcemap: false }
+      : null
+  ].filter(Boolean)}
 }
 

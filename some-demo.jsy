@@ -1,5 +1,0 @@
-console.log @
-  'Hello JSY world!'
-  @{}
-    jsy: 'indented'
-    wisp: 'inspiration'
