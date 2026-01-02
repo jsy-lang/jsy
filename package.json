@@ -36,8 +36,7 @@
     "jsy-script.js",
     "transpile.mjs",
     "scan.mjs",
-    "unittest.html",
-    "test/__unittest.iife.js"
+    "unittest.html"
   ],
   "type": "module",
   "module": "esm/index.js",
@@ -47,32 +46,32 @@
     "./*": "./*",
     ".": "./esm/index.js"
   },
-  "workspaces": [
-    "test/"
-  ],
-  "dependencies": {},
+  "workspaces": [],
   "devDependencies": {
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.3",
     "@rollup/plugin-virtual": "^3.0.1",
     "@rollup/pluginutils": "^5.3.0",
+    "acorn": "^8.14.1",
+    "chai": "^6.2.2",
+    "mocha": "^11.1.0",
     "rollup": "^4.54.0",
     "tiny-source-map": "^0.8.0"
   },
   "scripts": {
-    "clean": "rm -rf umd/ esm/ iife/",
+    "clean": "rm -rf cjs/ umd/ esm/ iife/",
     "switch:jsy": "node ./pkg.switch.mjs && npm install && npm run build",
     "switch:legacy": "node ./pkg.switch.mjs --legacy && npm install && npm run build",
+    "prebuild": "test -d ./node_modules || npm -s ci",
     "build": "rollup --config",
     "build:stable": "rollup --config rollup.stable.js",
     "watch:fast": "JSY_BUILD=fast npm -s run build -- --watch",
     "watch": "npm -s run build -- --watch",
-    "pretest": "npm -s run build",
-    "test": "cd test; npm -s run test",
-    "test:install": "cd test; npm -s install",
-    "test:one": "cd test; npm -s run test:one",
-    "test:lean": "cd test; npm -s run test:lean",
+    "pretest": "test -f ./esm/index.js || npm -s run build",
+    "test": "mocha ./esm/test/unittest.js",
+    "test:lean": "TEST_LEAN=true mocha ./esm/test/unittest.js",
+    "test:min": "TEST_LEAN=true mocha --reporter=min ./esm/test/unittest.js",
     "test:watch": "cd test; npm -s run test:watch",
     "prepublishOnly": "npm -s run clean && npm -s run test"
   }

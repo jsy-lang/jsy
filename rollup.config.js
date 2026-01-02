@@ -6,18 +6,18 @@ import rpi_terser from '@rollup/plugin-terser'
 import rpi_virtual from '@rollup/plugin-virtual'
 import pkg from './package.json' with {type: 'json'}
 
-const _rpis_ = (defines, ...args) => [
+const external = id => (
+    /^\w*:/.test(id)
+    || builtinModules.includes(id)
+    || 'jsy-transpile' == id || '@jsy-lang/jsy' == id)
+
+const _rpi_jsy_ = [
+  rpi_jsy(),
+  rpi_resolve(),
   rpi_virtual({
     'code/jsy/version.js': `export const version = '${pkg.version}'`,
   }),
-  rpi_jsy({defines}),
-  rpi_resolve(),
-  ...args]
-
-const _cfg_ = {
-  external: id => /^\w*:/.test(id) || builtinModules.includes(id)
-    || 'jsy-transpile' == id || '@jsy-lang/jsy' == id,
-  plugins: _rpis_({}) }
+]
 
 let is_watch = process.argv.includes('--watch')
 let fast_build = 'fast' === process.env.JSY_BUILD || is_watch
@@ -31,9 +31,19 @@ export default [
   ... add_jsy('jsy/scan', {}),
   ... add_jsy('scanner/index', {ext: '.js'}),
 
+  { input: './test/unittest.jsy',
+    external,
+    plugins: [
+      rpi_commonjs({ include: 'node_modules/**'}),
+      ... _rpi_jsy_
+    ],
+    output: { format: 'esm', file: './esm/test/unittest.js', sourcemap: true },
+  },
+
   // add rpi_commonjs to support @rollup/pluginutils use of picomatch
-  { ... _cfg_, input: 'code/rollup.js',
-    plugins: [ rpi_commonjs(), ..._cfg_.plugins ],
+  { input: 'code/rollup.js',
+    external,
+    plugins: [ rpi_commonjs(), ..._rpi_jsy_ ],
     output: [
       {file: 'esm/rollup.js', format: 'es', sourcemap: true},
       {file: 'cjs/rollup.cjs', format: 'cjs', exports: 'named', sourcemap: true},
@@ -43,13 +53,15 @@ export default [
 
 function * add_jsy(src_name, opt={}) {
   const input = `code/${src_name}${opt.ext || '.jsy'}`
-  yield { ..._cfg_, input, output: [
-    { file: `esm/${src_name}.js`, format: 'es', sourcemap: true },
-    { file: `cjs/${src_name}.cjs`, format: 'cjs', exports: 'named', sourcemap: true },
+  yield { input, plugins: _rpi_jsy_, external,
+    output: [
+      { file: `esm/${src_name}.js`, format: 'es', sourcemap: true },
+      { file: `cjs/${src_name}.cjs`, format: 'cjs', exports: 'named', sourcemap: true },
 
-    (_rpi_min_ && opt.min)
-      ? { plugins: _rpi_min_, file: `esm/${src_name}.min.js`, format: 'es', sourcemap: false }
-      : null
-  ].filter(Boolean)}
+      (_rpi_min_ && opt.min)
+        ? { plugins: _rpi_min_, file: `esm/${src_name}.min.js`, format: 'es', sourcemap: false }
+        : null
+    ].filter(Boolean),
+  }
 }
 

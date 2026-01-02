@@ -3,22 +3,20 @@
 <head>
   <meta charset="utf-8">
   <title>JSY Transpile Mocha Tests</title>
-  <link rel='stylesheet' href='https://unpkg.com/mocha@11.1.0/mocha.css' />
+  <link rel='stylesheet' href='https://unpkg.com/mocha/mocha.css' />
 
-  <script crossorigin src='https://unpkg.com/mocha@11.1.0/mocha.js'></script>
+  <script crossorigin src='https://unpkg.com/mocha/mocha.js'></script>
 </head>
 <body>
 
 <div id="mocha"></div>
 
 <script type=module>
-  window.mocha.setup({ ui: 'bdd' })
-  window['source-map'] = window.sourceMap
-  window.require = module => window[module]
-  window.unittest_root = window.location // new URL('https://unpkg.com/@jsy-lang/jsy/')
+  mocha.setup({ui: 'bdd'}).checkLeaks()
 
-  import(new URL('./test/__unittest.iife.js', unittest_root))
-    .then(() => mocha.run())
+  await import('./esm/test/unittest.js')
+
+  mocha.run()
 </script>
 
 </body>
