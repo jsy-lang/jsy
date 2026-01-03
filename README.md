@@ -1,5 +1,5 @@
 # [`@jsy-lang/jsy`](https://www.npmjs.com/package/@jsy-lang/jsy)
-![JSY Logo](./jsy_logo_bk_crop.svg)
+![JSY Logo](./jsy_logo.svg)
 
 JSY is a syntax dialect for ECMAScript using offside indentation
 similar to [Python][] or [CoffeeScript][]
