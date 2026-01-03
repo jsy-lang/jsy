@@ -1,5 +1,5 @@
 # [`@jsy-lang/jsy`](https://www.npmjs.com/package/@jsy-lang/jsy)
-_(formerly [`jsy-transpile`](https://www.npmjs.com/package/jsy-transpile))_
+![JSY Logo](./jsy_logo_bk_crop.svg)
 
 JSY is a syntax dialect for ECMAScript using offside indentation
 similar to [Python][] or [CoffeeScript][]
@@ -16,22 +16,47 @@ Zero runtime dependencies. No Babel. No Acorn.
 - [JSY syntax dialect](https://github.com/jsy-lang/jsy-lang-docs) for details on the JSY dialect.
 
 
-## Use
+## Getting Started
 
-- With [Rollup][] via [`rollup-plugin-jsy`](https://github.com/jsy-lang/rollup-plugin-jsy)
-- Start from a template via `npm init jsy` – see [`npm-create-jsy`](https://github.com/jsy-lang/npm-create-jsy)
-- Use `--loader` feature with `node --loader @jsy-lang/nodejs some-demo.jsy`
-- Transpile via `npx @jsy-lang/jsy some-demo.jsy`
+### Use directly with node
 
+```sh
+node --import @jsy-lang/nodejs example.jsy
+```
 
-## Use directly from HTML
+### Use with [Rollup][] or [Vite][] (primary method)
+
+```javascript
+// rollup.config.js
+import rpi_jsy from '@jsy-lang/jsy/rollup' // or from 'rollup-plugin-jsy'
+
+export default {
+    input: 'code/example.jsy',
+    plugins: [rpi_jsy()],
+    output: { file: 'esm/example.js', format: 'es', sourcemap: true } }
+```
+
+Consider starting from a JSY template, such as `npm init jsy basic`.
+See [`npm-create-jsy`](https://github.com/jsy-lang/npm-create-jsy).
+
+### Use from HTML
 
 ```html
 ...
 <script type='module' src='https://cdn.jsdelivr.net/npm/@jsy-lang/jsy@latest/jsy-script.js'></script>
 ...
-<jsy-script src='./some-demo.jsy'></jsy-script>
+<jsy-script>
+  if true ::
+    console.log @
+      "Fun with JSY"
+</jsy-script>
 ...
+```
+
+### Examine JSY transpiled code
+
+```sh
+npx @jsy-lang/jsy example.jsy
 ```
 
 ### Background and History
@@ -58,8 +83,7 @@ transitioned the project to a scanner-based text transformation library
 independent of the Babel ecosystem, designed to work with [Rollup][] and
 similar transpilation tools in the JavaScript ecosystem. We've been iterating
 it, growing and testing the operators, eating our own dogfood, building an
-extensive test suite, and adapting it to new tools like [Parcel][],
-[ESBuild][], and [Vite][].
+extensive test suite, and adapting it to new tools [Vite][].
 
 Acknowledging that many dislike indented languages. JSY was not made for you. 
 JSY was made for ourselves first -- the thing we wished existed.
@@ -71,14 +95,10 @@ We hope some of you enjoy using it; we certainly do.
 
 [BSD-2-Clause License](./LICENSE)
 
-
-
-
  [Python]: https://www.python.org
  [CoffeeScript]: https://coffeescript.org
  [Wisp]: http://www.draketo.de/english/wisp
  [Babel]: https://babeljs.io
  [Rollup]: https://rollupjs.org
- [Parcel]: https://parceljs.org
- [ESBuild]: https://esbuild.github.io
  [Vite]: https://vitejs.dev
+
